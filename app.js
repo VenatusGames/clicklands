@@ -336,27 +336,73 @@
   }
 
   function equipmentMarkup() {
-    const slot = (cls, icon, name) => `
-      <div class="gear-slot ${cls}">
-        <span class="gear-slot-icon" aria-hidden="true">${icon}</span>
-        <span><span class="gear-name">${name}</span><span class="gear-state">Empty</span></span>
-      </div>`;
+    const slot = (slotName, icon, name, compact = false) => `
+      <button class="equipment-slot${compact ? ' is-compact' : ''}" type="button" data-equipment-slot="${slotName}" aria-label="${name}, empty">
+        <span class="equipment-slot-icon" aria-hidden="true">${icon}</span>
+        <span class="equipment-slot-copy">
+          <span class="equipment-slot-name">${name}</span>
+          <span class="equipment-slot-state">Empty</span>
+        </span>
+      </button>`;
 
     return `
-      <div class="equipment-layout">
-        <div class="equipment-figure" aria-hidden="true">
-          <svg viewBox="0 0 100 220">
-            <circle class="equipment-figure-shape" cx="50" cy="28" r="20"/>
-            <path class="equipment-figure-shape" d="M29 58C35 49 42 46 50 46C58 46 65 49 71 58L79 116L66 128L64 202H51L50 139L49 202H36L34 128L21 116Z"/>
-          </svg>
+      <div class="equipment-screen">
+        <div class="equipment-header">
+          <div>
+            <span class="equipment-kicker">Loadout</span>
+            <strong>Equipment</strong>
+          </div>
+          <span class="equipment-summary">17 slots</span>
         </div>
-        ${slot('head', '◈', 'Head')}
-        ${slot('main', '⚒', 'Main Hand')}
-        ${slot('off', '◇', 'Off Hand')}
-        ${slot('body', '⬡', 'Body')}
-        ${slot('legs', 'Ⅱ', 'Legs')}
-        ${slot('accessory', '✦', 'Accessory')}
-        <div class="gear-note">Equipment slots are ready for future gear.</div>
+
+        <div class="equipment-groups">
+          <section class="equipment-group">
+            <div class="equipment-group-head"><span>Tools</span><span class="equipment-group-count">2</span></div>
+            <div class="equipment-grid two-col">
+              ${slot('axe', '🪓', 'Axe')}
+              ${slot('pickaxe', '⛏', 'Pickaxe')}
+            </div>
+          </section>
+
+          <section class="equipment-group">
+            <div class="equipment-group-head"><span>Weapons</span><span class="equipment-group-count">2</span></div>
+            <div class="equipment-grid two-col">
+              ${slot('main-hand', '⚔', 'Main Hand')}
+              ${slot('off-hand', '◈', 'Off Hand')}
+            </div>
+          </section>
+
+          <section class="equipment-group equipment-group-wide">
+            <div class="equipment-group-head"><span>Armor</span><span class="equipment-group-count">5</span></div>
+            <div class="equipment-grid armor-grid">
+              ${slot('helmet', '⬡', 'Helmet')}
+              ${slot('chestplate', '▣', 'Chestplate')}
+              ${slot('leggings', 'Ⅱ', 'Leggings')}
+              ${slot('boots', '⌄', 'Boots')}
+              ${slot('back', '◇', 'Back')}
+            </div>
+          </section>
+
+          <section class="equipment-group">
+            <div class="equipment-group-head"><span>Jewelry</span><span class="equipment-group-count">3</span></div>
+            <div class="equipment-grid three-col">
+              ${slot('necklace', '⌁', 'Necklace', true)}
+              ${slot('ring-1', '○', 'Ring I', true)}
+              ${slot('ring-2', '○', 'Ring II', true)}
+            </div>
+          </section>
+
+          <section class="equipment-group equipment-group-wide">
+            <div class="equipment-group-head"><span>Trinkets</span><span class="equipment-group-count">5</span></div>
+            <div class="trinket-grid">
+              ${slot('trinket-1', '✦', 'Trinket I', true)}
+              ${slot('trinket-2', '✦', 'Trinket II', true)}
+              ${slot('trinket-3', '✦', 'Trinket III', true)}
+              ${slot('trinket-4', '✦', 'Trinket IV', true)}
+              ${slot('trinket-5', '✦', 'Trinket V', true)}
+            </div>
+          </section>
+        </div>
       </div>
     `;
   }
@@ -551,6 +597,7 @@
 
     ui.itemPane.hidden = state.inventoryTab !== 'items';
     ui.equipmentPane.hidden = state.inventoryTab !== 'equipment';
+    ui.inventoryDrawer.classList.toggle('equipment-mode', state.inventoryTab === 'equipment');
 
     const items = [
       { key: 'oakWood', name: 'Oak Wood', icon: '<span class="mini-log"></span>' },
