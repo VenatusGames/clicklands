@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Clicklands Online</title>
-  <link rel="icon" type="image/png" href="CL-logo.png">
-  <link rel="shortcut icon" href="CL-logo.png">
-  <link rel="apple-touch-icon" href="CL-logo.png">
+  <link rel="icon" type="image/png" href="assets/images/CL-logo.png">
+  <link rel="shortcut icon" href="assets/images/CL-logo.png">
+  <link rel="apple-touch-icon" href="assets/images/CL-logo.png">
   <style>
     :root {
       color-scheme: light;
@@ -84,72 +84,10 @@
       min-height: 620px;
       overflow: hidden;
       isolation: isolate;
-      background:
-        radial-gradient(circle at 18% 15%, rgba(255,255,255,.28) 0 4%, transparent 5%),
-        radial-gradient(circle at 80% 12%, rgba(255,255,255,.15) 0 3.5%, transparent 4.5%),
-        linear-gradient(180deg, var(--sky-top) 0%, var(--sky-bottom) 68%);
+      background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-bottom) 68%);
       transition: background .25s ease, color .25s ease;
     }
 
-    .cloud {
-      position: absolute;
-      width: 175px;
-      height: 50px;
-      border-radius: 999px;
-      background: rgba(255,255,255,.34);
-      filter: blur(.2px);
-      transition: opacity .25s ease;
-    }
-
-    body.dark .cloud { opacity: .14; }
-
-    .cloud:before,
-    .cloud:after {
-      content: "";
-      position: absolute;
-      border-radius: 50%;
-      background: inherit;
-    }
-
-    .cloud:before {
-      width: 74px;
-      height: 74px;
-      left: 28px;
-      bottom: 2px;
-    }
-
-    .cloud:after {
-      width: 86px;
-      height: 86px;
-      right: 23px;
-      bottom: 0;
-    }
-
-    .cloud.c1 { left: 22%; top: 115px; transform: scale(.78); opacity: .58; }
-    .cloud.c2 { left: 62%; top: 165px; transform: scale(.56); opacity: .35; }
-
-    .hill {
-      position: absolute;
-      left: 215px;
-      right: -6%;
-      bottom: -10px;
-      height: 31%;
-      min-height: 190px;
-      border-radius: 48% 52% 0 0 / 24% 24% 0 0;
-      background: linear-gradient(180deg, var(--ground), var(--ground-dark));
-      transition: background .25s ease;
-    }
-
-    .hill:before,
-    .hill:after {
-      content: "";
-      position: absolute;
-      border-radius: 50%;
-      background: rgba(255,255,255,.055);
-    }
-
-    .hill:before { width: 350px; height: 100px; left: 8%; top: 28px; }
-    .hill:after { width: 290px; height: 85px; right: 10%; top: 50px; }
 
     .location-sidebar {
       position: absolute;
@@ -517,6 +455,31 @@
       width: 18%;
       border-radius: inherit;
       background: linear-gradient(90deg, #6f9e64, #91bd71);
+    }
+
+
+    .overall-line strong {
+      margin-left: 4px;
+      color: var(--text);
+      font-size: 10px;
+    }
+
+    .overall-xp-value {
+      color: var(--muted);
+      font-size: 8px;
+      font-weight: 800;
+      letter-spacing: 0;
+      text-transform: none;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .overall-xp-track {
+      height: 7px;
+    }
+
+    .overall-xp-fill {
+      width: 0%;
+      transition: width .25s ease;
     }
 
     .character-chevron {
@@ -1056,17 +1019,17 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 10px;
+      gap: 4px;
     }
 
     .mine-prompt {
-      width: min(330px, 100%);
+      width: min(270px, 88%);
       border: 1px solid rgba(255,255,255,.11);
       background: rgba(22,28,24,.86);
       color: #eef2ed;
       backdrop-filter: blur(12px);
-      border-radius: 17px;
-      padding: 10px 13px;
+      border-radius: 13px;
+      padding: 8px 10px;
       box-shadow: 0 12px 34px rgba(0,0,0,.22);
     }
 
@@ -1528,7 +1491,6 @@
       .location-sidebar { width: 170px; padding-inline: 12px; }
       .sidebar-brand span { display: none; }
       .sidebar-brand strong { font-size: 13px; }
-      .hill { left: 170px; }
       .topbar { margin-left: 170px; padding: 12px 14px; }
       .character-hud { width: min(330px, calc(100% - 126px)); }
       .character-main { min-height: 58px; grid-template-columns: 36px minmax(0,1fr) 20px; padding: 8px; }
@@ -1552,7 +1514,6 @@
       .location-name { font-size: 10px; }
       .location-meta { font-size: 8px; }
       .theme-toggle span:first-child { font-size: 10px; }
-      .hill { left: 132px; }
       .topbar { margin-left: 132px; padding: 8px; gap: 7px; }
       .character-hud { width: min(235px, calc(100% - 104px)); }
       .character-main { min-height: 52px; grid-template-columns: 30px minmax(0,1fr) 17px; gap: 7px; padding: 7px; border-radius: 14px; }
@@ -1626,14 +1587,27 @@
       left: -8%;
       right: -8%;
       bottom: -15%;
-      height: 63%;
-      border-radius: 50% 50% 0 0 / 23% 23% 0 0;
+      height: 64%;
+      border-radius: 50% 50% 0 0 / 22% 22% 0 0;
       background:
-        radial-gradient(circle at 16% 36%, rgba(255,255,255,.10) 0 4%, transparent 4.5%),
-        radial-gradient(circle at 73% 48%, rgba(47,78,42,.11) 0 4%, transparent 4.5%),
-        radial-gradient(circle at 42% 64%, rgba(47,78,42,.10) 0 5%, transparent 5.5%),
-        linear-gradient(180deg, var(--ground), var(--ground-dark));
+        radial-gradient(ellipse at 13% 42%, rgba(47,77,39,.18) 0 7%, transparent 7.6%),
+        radial-gradient(ellipse at 31% 66%, rgba(109,91,55,.10) 0 6%, transparent 6.7%),
+        radial-gradient(ellipse at 52% 39%, rgba(49,82,41,.14) 0 8%, transparent 8.7%),
+        radial-gradient(ellipse at 72% 69%, rgba(104,88,56,.09) 0 7%, transparent 7.7%),
+        radial-gradient(ellipse at 88% 45%, rgba(47,77,39,.17) 0 8%, transparent 8.8%),
+        linear-gradient(180deg, #91b171 0%, var(--ground) 42%, var(--ground-dark) 100%);
+      box-shadow: inset 0 18px 34px rgba(255,255,255,.035);
       z-index: 0;
+    }
+
+    body.dark .forest-stage:before {
+      background:
+        radial-gradient(ellipse at 13% 42%, rgba(20,43,25,.26) 0 7%, transparent 7.6%),
+        radial-gradient(ellipse at 31% 66%, rgba(72,58,39,.16) 0 6%, transparent 6.7%),
+        radial-gradient(ellipse at 52% 39%, rgba(21,45,27,.24) 0 8%, transparent 8.7%),
+        radial-gradient(ellipse at 72% 69%, rgba(72,58,39,.14) 0 7%, transparent 7.7%),
+        radial-gradient(ellipse at 88% 45%, rgba(20,43,25,.25) 0 8%, transparent 8.8%),
+        linear-gradient(180deg, #456542 0%, var(--ground) 42%, var(--ground-dark) 100%);
     }
 
     .forest-stage:after {
@@ -1642,61 +1616,18 @@
       left: 0;
       right: 0;
       bottom: 0;
-      height: 23%;
+      height: 31%;
       pointer-events: none;
       background:
-        linear-gradient(180deg, transparent, rgba(33,55,31,.08)),
-        repeating-linear-gradient(112deg, transparent 0 36px, rgba(255,255,255,.025) 36px 38px);
+        radial-gradient(ellipse at 8% 82%, rgba(30,57,29,.18) 0 4%, transparent 4.6%),
+        radial-gradient(ellipse at 22% 68%, rgba(122,102,61,.10) 0 3%, transparent 3.7%),
+        radial-gradient(ellipse at 43% 88%, rgba(29,54,27,.17) 0 4.5%, transparent 5.1%),
+        radial-gradient(ellipse at 64% 72%, rgba(126,103,61,.08) 0 3.4%, transparent 4%),
+        radial-gradient(ellipse at 82% 86%, rgba(28,53,27,.18) 0 4%, transparent 4.7%),
+        linear-gradient(180deg, transparent, rgba(28,49,26,.10));
       z-index: 1;
     }
 
-    .forest-status {
-      position: absolute;
-      z-index: 2000;
-      left: 50%;
-      top: 14px;
-      width: min(390px, calc(100% - 36px));
-      transform: translateX(-50%);
-      border: 1px solid var(--border);
-      background: var(--panel);
-      color: var(--text);
-      backdrop-filter: blur(14px);
-      border-radius: 18px;
-      padding: 11px 13px;
-      box-shadow: 0 12px 34px var(--shadow);
-    }
-
-    .forest-status-main {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 7px;
-    }
-
-    .forest-status-name {
-      min-width: 0;
-      font-size: 12px;
-      font-weight: 820;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .forest-status-detail {
-      flex: 0 0 auto;
-      color: var(--muted);
-      font-size: 10px;
-      font-weight: 720;
-    }
-
-    .forest-progress-fill {
-      width: 0%;
-      height: 100%;
-      border-radius: inherit;
-      background: linear-gradient(90deg, #8b603e, #c78955);
-      transition: width .14s ease;
-    }
 
     .forest-tree {
       position: absolute;
@@ -1713,6 +1644,74 @@
       transform-origin: 50% 100%;
       filter: drop-shadow(0 18px 14px rgba(31,50,31,.18));
       outline: none;
+    }
+
+
+    .tree-node-bar {
+      position: absolute;
+      z-index: 40;
+      left: 50%;
+      top: 24px;
+      width: 152px;
+      padding: 7px 8px 8px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+      box-shadow: 0 9px 24px var(--shadow);
+      backdrop-filter: blur(12px);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateX(-50%) scale(var(--tree-bar-scale));
+      transform-origin: 50% 100%;
+      transition: opacity .14s ease, visibility .14s ease;
+      pointer-events: none;
+    }
+
+    .forest-tree.selected .tree-node-bar,
+    .forest-tree:hover .tree-node-bar,
+    .forest-tree:focus-visible .tree-node-bar {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .tree-node-bar-line {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 5px;
+      font-size: 9px;
+      font-weight: 820;
+    }
+
+    .tree-node-bar-name {
+      min-width: 0;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .tree-node-bar-count {
+      flex: 0 0 auto;
+      color: var(--muted);
+      font-size: 8px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .tree-node-track {
+      height: 6px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(105,120,105,.18);
+    }
+
+    .tree-node-fill {
+      width: 0%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #8b603e, #c78955);
+      transition: width .13s ease;
     }
 
     .forest-tree:focus-visible .forest-tree-shell {
@@ -1760,6 +1759,7 @@
       height: 100%;
       overflow: visible;
       pointer-events: none;
+      transform: translateY(29px);
     }
 
     .forest-tree-art .tree-shadow { fill: rgba(28,46,27,.18); }
@@ -1858,12 +1858,15 @@
       bottom: 0;
       height: 38%;
       pointer-events: none;
-      opacity: .54;
+      opacity: .72;
       background:
-        radial-gradient(ellipse at 14% 70%, rgba(43,76,38,.22) 0 3%, transparent 3.5%),
-        radial-gradient(ellipse at 37% 82%, rgba(43,76,38,.20) 0 2.6%, transparent 3.1%),
-        radial-gradient(ellipse at 68% 69%, rgba(43,76,38,.20) 0 2.8%, transparent 3.3%),
-        radial-gradient(ellipse at 84% 88%, rgba(43,76,38,.22) 0 3.2%, transparent 3.7%);
+        radial-gradient(ellipse at 10% 78%, rgba(29,62,31,.24) 0 2.7%, transparent 3.3%),
+        radial-gradient(ellipse at 19% 91%, rgba(82,67,40,.12) 0 2.2%, transparent 2.8%),
+        radial-gradient(ellipse at 35% 73%, rgba(33,68,34,.22) 0 2.5%, transparent 3.1%),
+        radial-gradient(ellipse at 49% 90%, rgba(93,74,42,.10) 0 2.5%, transparent 3.1%),
+        radial-gradient(ellipse at 63% 77%, rgba(31,65,32,.22) 0 2.8%, transparent 3.4%),
+        radial-gradient(ellipse at 76% 92%, rgba(92,72,41,.11) 0 2.2%, transparent 2.8%),
+        radial-gradient(ellipse at 90% 75%, rgba(29,62,31,.24) 0 2.9%, transparent 3.5%);
     }
 
     .birch-wood-icon {
@@ -1899,10 +1902,6 @@
         width: 220px;
         height: 372px;
       }
-
-      .forest-status {
-        width: min(340px, calc(100% - 24px));
-      }
     }
 
     @media (max-width: 500px) {
@@ -1910,14 +1909,6 @@
         width: 185px;
         height: 313px;
       }
-
-      .forest-status {
-        top: 10px;
-        width: calc(100% - 16px);
-      }
-
-      .forest-status-name { font-size: 10px; }
-      .forest-status-detail { font-size: 9px; }
     }
 
     .launch-splash {
@@ -1988,7 +1979,8 @@
       width: clamp(90px, 12vw, 145px);
       height: clamp(90px, 12vw, 145px);
       object-fit: contain;
-      margin-bottom: 25px;
+      margin-top: 26px;
+      margin-bottom: 18px;
       filter: drop-shadow(0 14px 20px rgba(0,0,0,.32));
       opacity: 0;
       transform: translateY(-28px) scale(.72);
@@ -2141,8 +2133,8 @@
     <button class="splash-enter" id="splashEnter" type="button" aria-label="Enter Clicklands Online">
       <span class="splash-title-wrap">
         <span class="splash-shockwave" aria-hidden="true"></span>
-        <img class="splash-logo" src="CL-logo.png" alt="">
         <span class="splash-title">Clicklands Online</span>
+        <img class="splash-logo" src="assets/images/CL-logo.png" alt="">
         <span class="splash-subtitle">Click to enter</span>
       </span>
     </button>
@@ -2151,7 +2143,7 @@
   <main class="game">
     <aside class="location-sidebar" aria-label="Locations">
       <div class="sidebar-brand">
-        <div class="sidebar-brand-mark" aria-hidden="true"><img src="CL-logo.png" alt=""></div>
+        <div class="sidebar-brand-mark" aria-hidden="true"><img src="assets/images/CL-logo.png" alt=""></div>
         <div>
           <strong>Clicklands Online</strong>
           <span>Gather. Explore. Build.</span>
@@ -2202,9 +2194,6 @@
       </div>
     </aside>
 
-    <div class="cloud c1" aria-hidden="true"></div>
-    <div class="cloud c2" aria-hidden="true"></div>
-    <div class="hill" aria-hidden="true"></div>
 
     <header class="topbar">
       <div class="character-hud">
@@ -2212,8 +2201,13 @@
           <span class="character-avatar" aria-hidden="true">U</span>
           <span class="character-info">
             <span class="character-name">Username</span>
-            <span class="overall-line"><span>Overall Level</span><span class="overall-level-value">1</span></span>
-            <span class="level-track" aria-hidden="true"><span class="level-fill"></span></span>
+            <span class="overall-line">
+              <span>Overall Level <strong class="overall-level-value">1</strong></span>
+              <span class="overall-xp-value" data-overall-xp>0 / 100 XP</span>
+            </span>
+            <span class="level-track overall-xp-track" aria-label="Overall level experience">
+              <span class="level-fill overall-xp-fill" data-overall-xp-fill style="width:0%"></span>
+            </span>
           </span>
           <span class="character-chevron" aria-hidden="true">⌄</span>
         </button>
@@ -2362,15 +2356,6 @@
 
       <div class="location-view forest-view active" data-view="forest" aria-hidden="false">
         <div class="forest-stage" id="forestStage">
-          <div class="forest-status" aria-live="polite">
-            <div class="forest-status-main">
-              <span class="forest-status-name" data-forest-status>Choose a tree to start chopping</span>
-              <span class="forest-status-detail" data-forest-detail>Oak is most common</span>
-            </div>
-            <div class="progress-track" aria-hidden="true">
-              <div class="forest-progress-fill"></div>
-            </div>
-          </div>
           <div class="forest-floor-detail" aria-hidden="true"></div>
         </div>
       </div>
@@ -2470,8 +2455,9 @@
 
     const launchSplash = document.getElementById('launchSplash');
     const splashEnter = document.getElementById('splashEnter');
-    const enterSound = new Audio('CL-enter.wav');
+    const enterSound = new Audio('assets/sfx/CL-enter.wav');
     enterSound.preload = 'auto';
+    enterSound.volume = 0.35;
 
     function dismissLaunchSplash() {
       if (!launchSplash || launchSplash.classList.contains('hide')) return;
@@ -2491,9 +2477,6 @@
     splashEnter.addEventListener('click', dismissLaunchSplash);
 
     const forestStage = document.getElementById('forestStage');
-    const forestProgressFill = document.querySelector('.forest-progress-fill');
-    const forestStatus = document.querySelector('[data-forest-status]');
-    const forestDetail = document.querySelector('[data-forest-detail]');
     const inventory = document.querySelector('.inventory');
     const inventoryToggle = document.querySelector('.inventory-toggle');
     const closeInventory = document.querySelector('.close-inventory');
@@ -2519,6 +2502,9 @@
     const miningStatus = document.querySelector('[data-mining-status]');
     const stoneReward = document.querySelector('.stone-reward');
     const stoneFlash = document.querySelector('.stone-flash');
+    const overallLevelValue = document.querySelector('.overall-level-value');
+    const overallXpValue = document.querySelector('[data-overall-xp]');
+    const overallXpFill = document.querySelector('[data-overall-xp-fill]');
 
     const miningHitsNeeded = 5;
     let oakWood = 0;
@@ -2528,6 +2514,8 @@
     let stoneHits = 0;
     let stone = 0;
     let miningAlternate = false;
+    let overallLevel = 1;
+    let overallXp = 0;
     let selectedTree = null;
     let treeId = 0;
 
@@ -2618,6 +2606,40 @@
         </svg>`;
     }
 
+    function xpNeededForLevel(level) {
+      return 100 + ((level - 1) * 25);
+    }
+
+    function addOverallXp(amount) {
+      overallXp += amount;
+
+      let needed = xpNeededForLevel(overallLevel);
+      while (overallXp >= needed) {
+        overallXp -= needed;
+        overallLevel += 1;
+        needed = xpNeededForLevel(overallLevel);
+      }
+
+      updateOverallXpUI();
+    }
+
+    function updateOverallXpUI() {
+      const needed = xpNeededForLevel(overallLevel);
+      const percent = Math.max(0, Math.min(100, (overallXp / needed) * 100));
+      overallLevelValue.textContent = String(overallLevel);
+      overallXpValue.textContent = `${overallXp} / ${needed} XP`;
+      overallXpFill.style.width = `${percent}%`;
+    }
+
+    function updateTreeBar(treeData) {
+      if (!treeData || !treeData.barFill) return;
+
+      const percent = Math.max(0, Math.min(100, (treeData.hits / treeData.hitsPerWood) * 100));
+      treeData.barName.textContent = treeDisplayName(treeData);
+      treeData.barCount.textContent = `${treeData.woodRemaining} log${treeData.woodRemaining === 1 ? '' : 's'}`;
+      treeData.barFill.style.width = `${percent}%`;
+    }
+
     function updateUI() {
       inventoryTotal.textContent = String(oakWood + birchWood + apples + acorns + stone);
       oakWoodSide.textContent = String(oakWood);
@@ -2636,21 +2658,8 @@
         miningStatus.textContent = `Keep mining — ${stoneRemaining} hit${stoneRemaining === 1 ? '' : 's'} left`;
       }
 
-      updateForestStatus();
-    }
-
-    function updateForestStatus() {
-      if (!selectedTree || !activeTrees.has(selectedTree.id)) {
-        forestStatus.textContent = 'Choose a tree to start chopping';
-        forestDetail.textContent = 'Oak is most common';
-        forestProgressFill.style.width = '0%';
-        return;
-      }
-
-      const remainingHits = selectedTree.hitsPerWood - selectedTree.hits;
-      forestStatus.textContent = treeDisplayName(selectedTree);
-      forestDetail.textContent = `${selectedTree.woodRemaining} log${selectedTree.woodRemaining === 1 ? '' : 's'} left · ${remainingHits} hit${remainingHits === 1 ? '' : 's'} to gather`;
-      forestProgressFill.style.width = `${(selectedTree.hits / selectedTree.hitsPerWood) * 100}%`;
+      activeTrees.forEach(updateTreeBar);
+      updateOverallXpUI();
     }
 
     function restartAnimation(node, className) {
@@ -2675,8 +2684,36 @@
       button.setAttribute('aria-label', `Chop ${treeDisplayName(treeData)}`);
       button.style.left = `${treeData.x}%`;
       button.style.top = `${treeData.y}%`;
-      button.style.setProperty('--tree-render-scale', String(treeData.scale * treeData.depthScale));
+      const treeRenderScale = treeData.scale * treeData.depthScale;
+      button.style.setProperty('--tree-render-scale', String(treeRenderScale));
+      button.style.setProperty('--tree-bar-scale', String(1 / treeRenderScale));
       button.style.zIndex = String(Math.round(treeData.y * 10));
+
+      const nodeBar = document.createElement('span');
+      nodeBar.className = 'tree-node-bar';
+
+      const nodeBarLine = document.createElement('span');
+      nodeBarLine.className = 'tree-node-bar-line';
+
+      const nodeBarName = document.createElement('span');
+      nodeBarName.className = 'tree-node-bar-name';
+
+      const nodeBarCount = document.createElement('span');
+      nodeBarCount.className = 'tree-node-bar-count';
+
+      const nodeTrack = document.createElement('span');
+      nodeTrack.className = 'tree-node-track';
+
+      const nodeFill = document.createElement('span');
+      nodeFill.className = 'tree-node-fill';
+
+      nodeBarLine.append(nodeBarName, nodeBarCount);
+      nodeTrack.appendChild(nodeFill);
+      nodeBar.append(nodeBarLine, nodeTrack);
+
+      treeData.barName = nodeBarName;
+      treeData.barCount = nodeBarCount;
+      treeData.barFill = nodeFill;
 
       const shell = document.createElement('span');
       shell.className = 'forest-tree-shell';
@@ -2688,7 +2725,8 @@
       tag.className = 'tree-type-tag';
       tag.textContent = treeDisplayName(treeData);
 
-      button.append(shell, tag);
+      button.append(nodeBar, shell, tag);
+      updateTreeBar(treeData);
       button.addEventListener('click', () => chopForestTree(treeData, button, shell));
       return button;
     }
@@ -2795,6 +2833,7 @@
       }
 
       treeData.woodRemaining -= 1;
+      addOverallXp(treeData.variant === 'birch' ? 7 : 5);
       showTreeReward(button, rewards);
     }
 
@@ -2803,6 +2842,7 @@
       occupiedTreeSlots.delete(treeData.slotIndex);
 
       if (selectedTree && selectedTree.id === treeData.id) {
+        button.classList.remove('selected');
         selectedTree = null;
       }
 
@@ -2822,7 +2862,12 @@
     function chopForestTree(treeData, button, shell) {
       if (!activeTrees.has(treeData.id) || button.disabled) return;
 
+      if (selectedTree && selectedTree.element && selectedTree.id !== treeData.id) {
+        selectedTree.element.classList.remove('selected');
+      }
+
       selectedTree = treeData;
+      button.classList.add('selected');
       treeData.alternate = !treeData.alternate;
 
       const activeClass = treeData.alternate ? 'hit-left' : 'hit-right';
@@ -2875,6 +2920,7 @@
       if (stoneHits >= miningHitsNeeded) {
         stone += 1;
         stoneHits = 0;
+        addOverallXp(5);
         miningStatus.textContent = 'Stone gathered!';
         restartAnimation(rock, 'harvest');
         restartAnimation(stoneReward, 'show');
