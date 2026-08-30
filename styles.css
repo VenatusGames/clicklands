@@ -508,6 +508,56 @@ body.dark .map-node { background: rgba(29,39,31,.92); color: #eef2ec; border-col
 .map-node strong { display: block; font-size: 11px; }
 .map-node small { display: block; margin-top: 2px; color: var(--muted); font-size: 8px; }
 
+
+/* Resource hover bar - rendered outside world scenes so it cannot be clipped */
+.resource-hover-bar {
+  position: fixed;
+  z-index: 850;
+  left: 0;
+  top: 0;
+  width: 158px;
+  padding: 7px 8px 8px;
+  border-radius: 11px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  box-shadow: 0 10px 26px var(--shadow);
+  backdrop-filter: blur(16px);
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(5px) scale(.985);
+  transform-origin: 50% 100%;
+  transition: opacity .12s ease, transform .14s ease, visibility 0s linear .14s;
+}
+.resource-hover-bar.is-visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
+  transition: opacity .12s ease, transform .14s ease, visibility 0s linear 0s;
+}
+.resource-hover-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+.resource-hover-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 8px;
+  font-weight: 820;
+}
+.resource-hover-meta {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-size: 7px;
+  font-variant-numeric: tabular-nums;
+}
+.resource-hover-bar .progress-track { height: 6px; }
+
 /* Forest */
 .forest-view {
   background: linear-gradient(180deg, var(--bg-sky-1), var(--bg-sky-2) 50%, #91ad76 50.2%, #6d8e5b 72%, #4d6d48 100%);
@@ -588,29 +638,6 @@ body.dark .forest-ground {
 .tree-node.is-hit-right .tree-shell { animation: treeHitRight .18s ease; }
 .tree-node.is-depleted .tree-shell { animation: nodeDeplete .44s ease forwards; }
 .tree-art { width: 100%; height: 100%; overflow: visible; pointer-events: none; transform: translateY(24px); }
-.node-bar {
-  position: absolute;
-  z-index: 30;
-  left: 50%;
-  top: calc(11px + var(--bar-shift, 0px));
-  width: 142px;
-  padding: 7px 8px 8px;
-  border-radius: 11px;
-  border: 1px solid var(--line);
-  background: var(--surface);
-  box-shadow: 0 9px 22px var(--shadow);
-  transform: translateX(-50%) scale(var(--bar-scale,1));
-  transform-origin: 50% 100%;
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  transition: opacity .14s ease, visibility 0s linear .14s;
-}
-.tree-node:hover .node-bar, .tree-node:focus-visible .node-bar, .rock-node:hover .node-bar, .rock-node:focus-visible .node-bar { opacity: 1; visibility: visible; transition: opacity .14s ease, visibility 0s linear 0s; }
-.node-bar-line { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 5px; }
-.node-bar-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 8px; font-weight: 820; }
-.node-bar-meta { flex: 0 0 auto; color: var(--muted); font-size: 7px; font-variant-numeric: tabular-nums; }
-.node-bar .progress-track { height: 6px; }
 .tree-tag {
   position: absolute;
   left: 50%;
@@ -718,7 +745,6 @@ body.dark .cave-wall { background: linear-gradient(145deg,#4b4e48,#343933 54%,#2
 .rock-node.is-hit-right .rock-shell { animation: rockHitRight .18s ease; }
 .rock-node.is-depleted .rock-shell { animation: rockDeplete .46s ease forwards; }
 .rock-art { width:100%; height:100%; overflow:visible; filter:drop-shadow(0 20px 14px rgba(0,0,0,.24)); }
-.rock-node .node-bar { top:calc(-35px + var(--bar-shift, 0px)); width:158px; }
 .rock-chip { left:50%; top:58%; width:11px; height:9px; border-radius:4px; background:#858a85; }
 @keyframes rockHitLeft { 0%,100% { transform:rotate(0); } 45% { transform:rotate(-2deg) scale(.99); } }
 @keyframes rockHitRight { 0%,100% { transform:rotate(0); } 45% { transform:rotate(2deg) scale(.99); } }

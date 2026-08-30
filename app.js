@@ -46,6 +46,7 @@
     occupiedSlots: new Set(),
     treeId: 0,
     rock: null,
+    hoverNode: null,
     entered: false,
   };
 
@@ -147,6 +148,14 @@
         ${inventoryMarkup()}
         <div class="toast-stack" data-toasts aria-live="polite"></div>
       </main>
+
+      <div class="resource-hover-bar" data-resource-hover-bar aria-hidden="true">
+        <div class="resource-hover-line">
+          <span class="resource-hover-name" data-resource-hover-name></span>
+          <span class="resource-hover-meta" data-resource-hover-meta></span>
+        </div>
+        <span class="progress-track"><span class="progress-fill" data-resource-hover-fill></span></span>
+      </div>
     `;
   }
 
@@ -369,6 +378,10 @@
       rockHost: document.querySelector('[data-rock-host]'),
       toastStack: document.querySelector('[data-toasts]'),
       mapCard: document.querySelector('[data-map-card]'),
+      resourceHoverBar: document.querySelector('[data-resource-hover-bar]'),
+      resourceHoverName: document.querySelector('[data-resource-hover-name]'),
+      resourceHoverMeta: document.querySelector('[data-resource-hover-meta]'),
+      resourceHoverFill: document.querySelector('[data-resource-hover-fill]'),
     };
   }
 
@@ -376,6 +389,10 @@
     const enterSound = new Audio(ENTER_SOUND);
     enterSound.preload = 'auto';
     enterSound.volume = .35;
+
+    window.addEventListener('resize', () => {
+      if (runtime.hoverNode?.isConnected) positionResourceBar(runtime.hoverNode);
+    });
 
     ui.enter.addEventListener('click', () => {
       if (runtime.entered) return;
@@ -674,49 +691,77 @@
     node.setAttribute('aria-label', `Chop ${treeName(tree)}`);
 
     node.innerHTML = `
-      <span class="node-bar">
-        <span class="node-bar-line"><span class="node-bar-name"></span><span class="node-bar-meta"></span></span>
-        <span class="progress-track"><span class="progress-fill"></span></span>
-      </span>
       <span class="tree-shell">${tree.variant === 'birch' ? birchSvg() : oakSvg(tree.variant === 'apple-oak')}</span>
       <span class="tree-tag">${treeName(tree)}</span>
     `;
 
-    node.addEventListener('pointerenter', () => positionNodeBar(node));
-    node.addEventListener('focus', () => positionNodeBar(node));
+    node.addEventListener('pointerenter', () => showTreeResourceBar(tree));
+    node.addEventListener('pointerleave', () => hideResourceBar(node));
+    node.addEventListener('focus', () => showTreeResourceBar(tree));
+    node.addEventListener('blur', () => hideResourceBar(node));
     node.addEventListener('click', () => chopTree(tree));
     return node;
   }
 
-  function positionNodeBar(node) {
-    const bar = node?.querySelector('.node-bar');
-    if (!bar) return;
+  function setResourceBarContent(name, meta, percent) {
+    ui.resourceHoverName.textContent = name;
+    ui.resourceHoverMeta.textContent = meta;
+    ui.resourceHoverFill.style.width = `${clamp(percent, 0, 100)}%`;
+  }
 
-    bar.style.setProperty('--bar-shift', '0px');
+  function positionResourceBar(node) {
+    const bar = ui.resourceHoverBar;
+    if (!node?.isConnected || !bar) return;
+
+    const nodeRect = node.getBoundingClientRect();
+    const hudBottom = document.querySelector('.top-hud')?.getBoundingClientRect().bottom ?? 86;
+    const safeTop = hudBottom + 10;
+    const viewportPadding = 10;
 
     requestAnimationFrame(() => {
-      if (!node.isConnected || !bar.isConnected) return;
+      if (runtime.hoverNode !== node || !node.isConnected) return;
 
-      const characterStack = document.querySelector('.character-stack');
-      const hudBottom = characterStack?.getBoundingClientRect().bottom ?? 86;
-      const safeTop = hudBottom + 8;
       const barRect = bar.getBoundingClientRect();
-      const collision = safeTop - barRect.top;
+      let left = nodeRect.left + (nodeRect.width / 2) - (barRect.width / 2);
+      let top = nodeRect.top - barRect.height - 10;
 
-      if (collision <= 0) return;
+      left = clamp(left, viewportPadding, window.innerWidth - barRect.width - viewportPadding);
+      top = Math.max(safeTop, top);
 
-      const nodeScale = Number.parseFloat(getComputedStyle(node).getPropertyValue('--scale')) || 1;
-      bar.style.setProperty('--bar-shift', `${collision / nodeScale}px`);
+      if (top + barRect.height > window.innerHeight - viewportPadding) {
+        top = window.innerHeight - barRect.height - viewportPadding;
+      }
+
+      bar.style.left = `${Math.round(left)}px`;
+      bar.style.top = `${Math.round(top)}px`;
     });
+  }
+
+  function showResourceBar(node, name, meta, percent) {
+    runtime.hoverNode = node;
+    setResourceBarContent(name, meta, percent);
+    ui.resourceHoverBar.setAttribute('aria-hidden', 'false');
+    ui.resourceHoverBar.classList.add('is-visible');
+    positionResourceBar(node);
+  }
+
+  function hideResourceBar(node) {
+    if (runtime.hoverNode !== node) return;
+    runtime.hoverNode = null;
+    ui.resourceHoverBar.classList.remove('is-visible');
+    ui.resourceHoverBar.setAttribute('aria-hidden', 'true');
+  }
+
+  function showTreeResourceBar(tree) {
+    if (!tree?.node?.isConnected) return;
+    const remainingWork = (tree.logs * tree.hitsPerLog) - tree.hits;
+    const health = clamp((remainingWork / tree.maxWork) * 100, 0, 100);
+    showResourceBar(tree.node, treeName(tree), `${tree.logs} log${tree.logs === 1 ? '' : 's'}`, health);
   }
 
   function updateTreeNode(tree) {
     if (!tree.node?.isConnected) return;
-    const remainingWork = (tree.logs * tree.hitsPerLog) - tree.hits;
-    const health = clamp((remainingWork / tree.maxWork) * 100, 0, 100);
-    tree.node.querySelector('.node-bar-name').textContent = treeName(tree);
-    tree.node.querySelector('.node-bar-meta').textContent = `${tree.logs} log${tree.logs === 1 ? '' : 's'}`;
-    tree.node.querySelector('.node-bar .progress-fill').style.width = `${health}%`;
+    if (runtime.hoverNode === tree.node) showTreeResourceBar(tree);
   }
 
   function chopTree(tree) {
@@ -771,6 +816,7 @@
   }
 
   function depleteTree(tree) {
+    hideResourceBar(tree.node);
     runtime.trees.delete(tree.id);
     runtime.occupiedSlots.delete(tree.slotIndex);
     tree.node.disabled = true;
@@ -805,17 +851,15 @@
 
     ui.rockHost.innerHTML = `
       <button class="rock-node" type="button" data-rock aria-label="Mine stone deposit">
-        <span class="node-bar">
-          <span class="node-bar-line"><span class="node-bar-name">Stone Deposit</span><span class="node-bar-meta"></span></span>
-          <span class="progress-track"><span class="progress-fill"></span></span>
-        </span>
         <span class="rock-shell">${rockSvg()}</span>
       </button>
     `;
 
     rock.node = ui.rockHost.querySelector('[data-rock]');
-    rock.node.addEventListener('pointerenter', () => positionNodeBar(rock.node));
-    rock.node.addEventListener('focus', () => positionNodeBar(rock.node));
+    rock.node.addEventListener('pointerenter', showRockResourceBar);
+    rock.node.addEventListener('pointerleave', () => hideResourceBar(rock.node));
+    rock.node.addEventListener('focus', showRockResourceBar);
+    rock.node.addEventListener('blur', () => hideResourceBar(rock.node));
     rock.node.addEventListener('click', mineRock);
     updateRockNode();
   }
@@ -843,17 +887,23 @@
     if (rock.stones <= 0) depleteRock();
   }
 
-  function updateRockNode() {
+  function showRockResourceBar() {
     const rock = runtime.rock;
     if (!rock?.node?.isConnected) return;
     const remainingWork = (rock.stones * rock.hitsPerStone) - rock.hits;
     const health = clamp((remainingWork / rock.maxWork) * 100, 0, 100);
-    rock.node.querySelector('.node-bar-meta').textContent = `${rock.stones} stone`;
-    rock.node.querySelector('.node-bar .progress-fill').style.width = `${health}%`;
+    showResourceBar(rock.node, 'Stone Deposit', `${rock.stones} stone`, health);
+  }
+
+  function updateRockNode() {
+    const rock = runtime.rock;
+    if (!rock?.node?.isConnected) return;
+    if (runtime.hoverNode === rock.node) showRockResourceBar();
   }
 
   function depleteRock() {
     const rock = runtime.rock;
+    hideResourceBar(rock.node);
     rock.node.disabled = true;
     rock.node.classList.add('is-depleted');
     window.setTimeout(() => {
