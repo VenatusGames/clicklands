@@ -523,36 +523,40 @@
   }
 
   function villageInteriorsMarkup() {
-    const interior = ({ key, title, subtitle, role, note, icon, decor }) => `
-      <div class="world-view village-interior ${key}-interior" data-view="${key}">
-        <div class="interior-backdrop" aria-hidden="true"></div>
-        <div class="interior-floor" aria-hidden="true"></div>
-        <div class="interior-beams" aria-hidden="true"></div>
-        <div class="interior-decor ${decor}" aria-hidden="true">
-          <span class="decor-main"></span><span class="decor-side"></span><span class="decor-small"></span>
+    const npcArtwork = {
+      blacksmith: { file: 'blacksmith.png', className: 'blacksmith-character-image' },
+      'strange-shack': { file: 'wizard.png', className: 'wizard-character-image' },
+      farmer: { file: 'farmer.png', className: 'farmer-character-image' },
+      'foragers-hut': { file: 'herbalist.png', className: 'herbalist-character-image' },
+    };
+
+    const interior = ({ key, title, subtitle, role, note, decor }) => {
+      const artwork = npcArtwork[key];
+
+      return `
+        <div class="world-view village-interior ${key}-interior" data-view="${key}">
+          <div class="interior-backdrop" aria-hidden="true"></div>
+          <div class="interior-floor" aria-hidden="true"></div>
+          <div class="interior-beams" aria-hidden="true"></div>
+          <div class="interior-decor ${decor}" aria-hidden="true">
+            <span class="decor-main"></span><span class="decor-side"></span><span class="decor-small"></span>
+          </div>
+          <button class="mill-back interior-back" type="button" data-location="town">‹ Lakeshore Village</button>
+          <div class="interior-title"><span>Lakeshore Village</span><strong>${title}</strong><small>${subtitle}</small></div>
+          <button class="village-npc npc-${key}" type="button" data-building-npc data-npc-title="${role}" data-npc-note="${note}">
+            <span class="village-npc-shadow" aria-hidden="true"></span>
+            <img class="village-npc-character-image ${artwork.className}" src="assets/images/npcs/${artwork.file}" alt="" aria-hidden="true">
+            <span class="village-npc-label"><strong>${role}</strong><small>Click to talk</small></span>
+          </button>
         </div>
-        <button class="mill-back interior-back" type="button" data-location="town">‹ Lakeshore Village</button>
-        <div class="interior-title"><span>Lakeshore Village</span><strong>${title}</strong><small>${subtitle}</small></div>
-        <button class="village-npc npc-${key}" type="button" data-building-npc data-npc-title="${role}" data-npc-note="${note}">
-          <span class="village-npc-shadow" aria-hidden="true"></span>
-          ${key === 'strange-shack'
-            ? '<img class="village-npc-character-image wizard-character-image" src="assets/images/npcs/wizard.png" alt="" aria-hidden="true">'
-            : `<span class="village-npc-body" aria-hidden="true">
-                <span class="village-npc-head"><i></i></span>
-                <span class="village-npc-torso"></span>
-                <span class="village-npc-arm arm-a"></span><span class="village-npc-arm arm-b"></span>
-                <span class="village-npc-leg leg-a"></span><span class="village-npc-leg leg-b"></span>
-                <span class="village-npc-prop">${icon}</span>
-              </span>`}
-          <span class="village-npc-label"><strong>${role}</strong><small>Click to talk</small></span>
-        </button>
-      </div>`;
+      `;
+    };
 
     return [
-      interior({ key:'blacksmith', title:'Blacksmith', subtitle:'Forge, metalwork & repairs', role:'Blacksmith', note:'The forge is hot, but blacksmith services are still being built.', icon:'⚒', decor:'forge-decor' }),
-      interior({ key:'strange-shack', title:'Strange Shack', subtitle:'Arcane clutter & stranger business', role:'Wizard', note:'The wizard watches you carefully. Arcane services are coming later.', icon:'✦', decor:'wizard-decor' }),
-      interior({ key:'farmer', title:'Farmer', subtitle:'Crops, produce & farm goods', role:'Farmer', note:'The farmer is arranging fresh produce. Trading will be added later.', icon:'♨', decor:'farm-decor' }),
-      interior({ key:'foragers-hut', title:"Forager's Hut", subtitle:'Wild herbs, fungi & gathered goods', role:'Forager', note:'The forager is sorting today\'s finds. Trading will be added later.', icon:'❧', decor:'forager-decor' }),
+      interior({ key:'blacksmith', title:'Blacksmith', subtitle:'Forge, metalwork & repairs', role:'Blacksmith', note:'The forge is hot, but blacksmith services are still being built.', decor:'forge-decor' }),
+      interior({ key:'strange-shack', title:'Strange Shack', subtitle:'Arcane clutter & stranger business', role:'Wizard', note:'The wizard watches you carefully. Arcane services are coming later.', decor:'wizard-decor' }),
+      interior({ key:'farmer', title:'Farmer', subtitle:'Crops, produce & farm goods', role:'Farmer', note:'The farmer is arranging fresh produce. Trading will be added later.', decor:'farm-decor' }),
+      interior({ key:'foragers-hut', title:"Forager's Hut", subtitle:'Wild herbs, fungi & gathered goods', role:'Forager', note:'The forager is sorting today\'s finds. Trading will be added later.', decor:'forager-decor' }),
     ].join('');
   }
 

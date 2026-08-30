@@ -2290,6 +2290,12 @@ body.is-dragging-log .sawmill-input { color:#d8efae; border-color:#b8d77d; backg
 
 .lumberjack-character-image {
   height: 455px;
+  bottom: 42px;
+}
+
+.blacksmith-character-image {
+  height: 425px;
+  bottom: 42px;
 }
 
 .wizard-character-image {
@@ -2297,16 +2303,32 @@ body.is-dragging-log .sawmill-input { color:#d8efae; border-color:#b8d77d; backg
   bottom: 42px;
 }
 
-.npc-strange-shack .village-npc-label {
+.farmer-character-image {
+  height: 395px;
+  bottom: 42px;
+}
+
+.herbalist-character-image {
+  height: 400px;
+  bottom: 42px;
+}
+
+.village-npc-label {
   z-index: 4;
 }
 
 @media (max-width: 1050px) {
   .lumberjack-character-image { height: 420px; }
+  .blacksmith-character-image { height: 390px; }
   .wizard-character-image { height: 370px; }
+  .farmer-character-image { height: 365px; }
+  .herbalist-character-image { height: 370px; }
 }
 
 @media (max-width: 760px) {
   .lumberjack-character-image { height: 385px; }
+  .blacksmith-character-image { height: 350px; }
   .wizard-character-image { height: 330px; }
+  .farmer-character-image { height: 325px; }
+  .herbalist-character-image { height: 330px; }
 }
