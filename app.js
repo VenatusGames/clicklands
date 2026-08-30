@@ -228,11 +228,26 @@
         </div>
 
         <div class="wallet-hud" aria-label="Currency">
-          <div class="currency-chip copper" title="Copper"><span class="coin-icon">C</span><strong data-wallet-copper>0</strong></div>
-          <div class="currency-chip silver" title="Silver"><span class="coin-icon">S</span><strong data-wallet-silver>0</strong></div>
-          <div class="currency-chip gold" title="Gold"><span class="coin-icon">G</span><strong data-wallet-gold>0</strong></div>
-          <div class="currency-chip platinum" title="Platinum"><span class="coin-icon">P</span><strong data-wallet-platinum>0</strong></div>
-          <div class="currency-chip xelium" title="Xelium"><span class="xelium-stone" aria-hidden="true"></span><strong data-wallet-xelium>0</strong></div>
+          <div class="currency-chip copper" title="Copper">
+            <span class="coin-icon" aria-hidden="true"><span>C</span></span>
+            <span class="currency-copy"><strong data-wallet-copper>0</strong><small>Copper</small></span>
+          </div>
+          <div class="currency-chip silver" title="Silver">
+            <span class="coin-icon" aria-hidden="true"><span>S</span></span>
+            <span class="currency-copy"><strong data-wallet-silver>0</strong><small>Silver</small></span>
+          </div>
+          <div class="currency-chip gold" title="Gold">
+            <span class="coin-icon" aria-hidden="true"><span>G</span></span>
+            <span class="currency-copy"><strong data-wallet-gold>0</strong><small>Gold</small></span>
+          </div>
+          <div class="currency-chip platinum" title="Platinum">
+            <span class="coin-icon" aria-hidden="true"><span>P</span></span>
+            <span class="currency-copy"><strong data-wallet-platinum>0</strong><small>Platinum</small></span>
+          </div>
+          <div class="currency-chip xelium" title="Xelium">
+            <span class="xelium-stone" aria-hidden="true"></span>
+            <span class="currency-copy"><strong data-wallet-xelium>0</strong><small>Xelium</small></span>
+          </div>
         </div>
 
         <button class="inventory-button" type="button" data-inventory-toggle>
