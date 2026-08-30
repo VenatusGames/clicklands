@@ -474,12 +474,18 @@
     }
 
     .overall-xp-track {
-      height: 7px;
+      position: relative;
+      height: 12px;
+      border: 1px solid rgba(87,112,88,.16);
+      background: rgba(79,98,81,.12);
+      box-shadow: inset 0 1px 2px rgba(0,0,0,.08);
     }
 
     .overall-xp-fill {
       width: 0%;
-      transition: width .25s ease;
+      background: linear-gradient(90deg, #5f945c 0%, #82b96b 55%, #acd17c 100%);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.18);
+      transition: width .28s cubic-bezier(.2,.8,.2,1);
     }
 
     .character-chevron {
@@ -568,10 +574,45 @@
     }
 
     .skill-level {
-      color: var(--muted);
+      color: var(--text);
       font-size: 10px;
-      font-weight: 800;
+      font-weight: 850;
       white-space: nowrap;
+    }
+
+    .skill-progress-line {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 5px;
+    }
+
+    .skill-xp-value {
+      color: var(--muted);
+      font-size: 8px;
+      font-weight: 760;
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .skill-xp-track {
+      height: 8px;
+      border: 1px solid rgba(87,112,88,.12);
+      background: rgba(79,98,81,.11);
+    }
+
+    .skill-xp-fill {
+      width: 0%;
+      transition: width .24s ease;
+    }
+
+    .skill-row[data-skill="woodcutting"] .skill-xp-fill {
+      background: linear-gradient(90deg, #7f633e, #b58b50);
+    }
+
+    .skill-row[data-skill="mining"] .skill-xp-fill {
+      background: linear-gradient(90deg, #66716d, #98a29e);
     }
 
     .inventory-toggle {
@@ -594,17 +635,6 @@
     .inventory-toggle:hover { filter: brightness(1.03); }
     .inventory-toggle:active { transform: scale(.96); }
 
-    .count-pill {
-      min-width: 28px;
-      height: 28px;
-      padding: 0 7px;
-      border-radius: 999px;
-      display: grid;
-      place-items: center;
-      color: white;
-      background: #6d4a31;
-      font-size: 12px;
-    }
 
     .game-area {
       position: absolute;
@@ -1327,30 +1357,30 @@
     .inventory {
       position: fixed;
       z-index: 200;
-      top: 16px;
-      right: 16px;
-      bottom: 16px;
-      width: 360px;
-      max-width: calc(100vw - 255px);
-      padding: 20px;
+      top: 14px;
+      right: 14px;
+      bottom: 14px;
+      width: 296px;
+      max-width: calc(100vw - 250px);
+      padding: 12px;
       background: var(--panel);
       color: var(--text);
       border: 1px solid var(--border);
-      border-radius: 22px;
+      border-radius: 18px;
       backdrop-filter: blur(24px);
-      box-shadow: 0 24px 70px rgba(0,0,0,.24);
-      transform: translateX(calc(100% + 32px));
+      box-shadow: 0 22px 64px rgba(0,0,0,.22);
+      transform: translateX(calc(100% + 28px));
       opacity: 0;
       visibility: hidden;
       pointer-events: none;
       transition:
-        transform .28s cubic-bezier(.22,.9,.34,1),
-        opacity .18s ease,
-        visibility 0s linear .28s,
+        transform .26s cubic-bezier(.22,.9,.34,1),
+        opacity .16s ease,
+        visibility 0s linear .26s,
         background .25s ease;
       display: flex;
       flex-direction: column;
-      gap: 18px;
+      gap: 9px;
       overflow: hidden;
       contain: layout paint;
     }
@@ -1361,130 +1391,305 @@
       visibility: visible;
       pointer-events: auto;
       transition:
-        transform .28s cubic-bezier(.22,.9,.34,1),
-        opacity .18s ease,
+        transform .26s cubic-bezier(.22,.9,.34,1),
+        opacity .16s ease,
         visibility 0s linear 0s,
         background .25s ease;
     }
 
     .inventory-head {
+      min-height: 34px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
+      padding: 0 1px;
       flex: 0 0 auto;
-      padding-bottom: 14px;
-      border-bottom: 1px solid var(--border);
     }
 
-    .inventory-head strong { font-size: 19px; }
-    .inventory-head span {
-      display: block;
+    .inventory-head strong {
+      font-size: 15px;
+      line-height: 1;
+      letter-spacing: -.025em;
+    }
+
+    .inventory-head .inventory-subtitle {
       margin-top: 3px;
-      font-size: 12px;
       color: var(--muted);
+      font-size: 9px;
+      line-height: 1;
     }
 
     .close-inventory {
-      width: 44px;
-      height: 44px;
-      flex: 0 0 44px;
-      border-radius: 14px;
-      border: 1px solid var(--border);
+      width: 30px;
+      height: 30px;
+      flex: 0 0 30px;
+      border-radius: 8px;
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 18px;
+      line-height: 1;
+      transition: background .14s ease, color .14s ease;
+    }
+
+    .close-inventory:hover {
       background: var(--panel-soft);
       color: var(--text);
+    }
+
+    .inventory-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3px;
+      padding: 3px;
+      border-radius: 10px;
+      background: rgba(100,112,101,.08);
+      flex: 0 0 auto;
+    }
+
+    .inventory-tab {
+      min-height: 29px;
+      border: 0;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--muted);
       cursor: pointer;
-      font-size: 20px;
+      font-size: 9px;
+      font-weight: 820;
+      letter-spacing: .035em;
+      transition: background .14s ease, color .14s ease, box-shadow .14s ease;
+    }
+
+    .inventory-tab.active {
+      background: var(--panel-solid);
+      color: var(--text);
+      box-shadow: 0 1px 4px rgba(0,0,0,.08);
+    }
+
+    .inventory-body {
+      min-height: 0;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .inventory-pane {
+      height: 100%;
+      min-height: 0;
+      overflow-y: auto;
+      padding: 2px 1px 3px;
+    }
+
+    .inventory-pane[hidden] {
+      display: none !important;
     }
 
     .inventory-list {
       display: flex;
       flex-direction: column;
-      gap: 8px;
-      overflow-y: auto;
       min-height: 0;
     }
 
+    .inventory-empty {
+      padding: 18px 4px;
+      color: var(--muted);
+      font-size: 10px;
+      text-align: center;
+    }
+
     .inventory-row {
-      min-height: 62px;
-      border-radius: 15px;
-      border: 1px solid var(--border);
-      background: var(--panel-soft);
-      padding: 9px 12px 9px 10px;
-      display: flex;
+      min-height: 35px;
+      padding: 4px 1px;
+      display: grid;
+      grid-template-columns: 25px minmax(0,1fr) auto;
       align-items: center;
-      gap: 12px;
-      flex: 0 0 auto;
+      gap: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .inventory-row:first-of-type {
+      border-top: 1px solid var(--border);
+    }
+
+    .inventory-row[hidden],
+    .inventory-empty[hidden] {
+      display: none !important;
     }
 
     .inventory-logo {
-      width: 44px;
-      height: 44px;
-      flex: 0 0 44px;
-      border-radius: 12px;
+      width: 24px;
+      height: 24px;
       display: grid;
       place-items: center;
-      background: rgba(143,96,57,.11);
-      border: 1px solid rgba(118,82,50,.14);
+      color: var(--muted);
+    }
+
+    .inventory-name {
+      min-width: 0;
+      color: var(--text);
+      font-size: 10.5px;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .inventory-count {
+      min-width: 23px;
+      text-align: right;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .inventory-count:before {
+      content: "×";
+      margin-right: 2px;
+      opacity: .45;
+      font-weight: 600;
     }
 
     .wood-icon {
-      width: 32px;
-      height: 21px;
-      border-radius: 7px;
+      width: 20px;
+      height: 12px;
+      border-radius: 4px;
       background: linear-gradient(90deg,#6f462c,#ad7345 50%,#70472d);
       position: relative;
-      box-shadow: inset 0 0 0 2px rgba(78,46,27,.18);
+      box-shadow: inset 0 0 0 1.5px rgba(78,46,27,.18);
     }
 
     .wood-icon:before,
     .wood-icon:after {
       content: "";
       position: absolute;
-      width: 7px;
-      height: 7px;
+      width: 4px;
+      height: 4px;
       border-radius: 50%;
-      border: 2px solid rgba(71,42,26,.42);
+      border: 1.5px solid rgba(71,42,26,.42);
       top: 50%;
       transform: translateY(-50%);
     }
 
-    .wood-icon:before { left: 4px; }
-    .wood-icon:after { right: 4px; }
+    .wood-icon:before { left: 3px; }
+    .wood-icon:after { right: 3px; }
+
+    .inventory-logo .birch-wood-icon {
+      width: 20px;
+      height: 12px;
+      border-radius: 4px;
+    }
+
+    .inventory-logo .birch-wood-icon:before,
+    .inventory-logo .birch-wood-icon:after {
+      height: 1.5px;
+    }
+
+    .inventory-logo .item-emoji {
+      font-size: 16px;
+      line-height: 1;
+    }
 
     .stone-logo {
       color: #7d8782;
-      font-size: 24px;
-      background: rgba(111,122,117,.11);
-      border-color: rgba(111,122,117,.16);
+      font-size: 15px;
+      background: transparent;
     }
 
-    .inventory-name {
-      min-width: 0;
-      flex: 1;
-      font-size: 13px;
-      font-weight: 760;
-      color: var(--text);
+    .equipment-pane {
+      overflow: hidden;
     }
 
-    .inventory-count {
-      min-width: 38px;
-      text-align: right;
-      color: var(--text);
-      font-size: 13px;
-      font-weight: 800;
-      font-variant-numeric: tabular-nums;
+    .equipment-layout {
+      position: relative;
+      height: 100%;
+      min-height: 310px;
+      padding: 8px 0 4px;
     }
 
-    .inventory-note {
-      margin-top: auto;
-      padding: 13px;
-      border-radius: 16px;
-      background: rgba(85,117,80,.09);
+    .equipment-figure {
+      position: absolute;
+      left: 50%;
+      top: 49%;
+      width: 82px;
+      height: 178px;
+      transform: translate(-50%, -50%);
+      opacity: .42;
+      pointer-events: none;
+    }
+
+    .equipment-figure svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .equipment-figure-shape {
+      fill: rgba(110,125,112,.11);
+      stroke: var(--muted);
+      stroke-width: 2;
+    }
+
+    .equipment-slot {
+      position: absolute;
+      width: 83px;
+      min-height: 45px;
+      padding: 5px 6px;
+      display: grid;
+      grid-template-columns: 24px minmax(0,1fr);
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      background: rgba(105,118,107,.035);
+    }
+
+    .equipment-slot-icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 7px;
+      display: grid;
+      place-items: center;
+      background: var(--panel-soft);
       color: var(--muted);
       font-size: 12px;
-      line-height: 1.45;
-      flex: 0 0 auto;
+    }
+
+    .equipment-slot-copy {
+      min-width: 0;
+    }
+
+    .equipment-slot-name {
+      display: block;
+      color: var(--text);
+      font-size: 8px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .equipment-slot-state {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 7.5px;
+      white-space: nowrap;
+    }
+
+    .equipment-slot.head { left: 50%; top: 4px; transform: translateX(-50%); }
+    .equipment-slot.main-hand { left: 0; top: 82px; }
+    .equipment-slot.off-hand { right: 0; top: 82px; }
+    .equipment-slot.body { left: 50%; top: 134px; transform: translateX(-50%); }
+    .equipment-slot.legs { left: 0; bottom: 28px; }
+    .equipment-slot.accessory { right: 0; bottom: 28px; }
+
+    .equipment-note {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 1px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 8px;
     }
 
     @media (max-width: 700px) {
@@ -1499,7 +1704,7 @@
       .tree-wrap { width: min(420px, calc(100vw - 185px)); margin-top: 175px; }
       .prompt { width: min(320px, calc(100vw - 190px)); }
       .tree-button { width: min(570px, calc(100vw - 165px)); margin-top: -585px; margin-bottom: -245px; }
-      .inventory { right: 12px; top: 12px; bottom: 12px; width: 340px; max-width: calc(100vw - 194px); }
+      .inventory { right: 10px; top: 10px; bottom: 10px; width: 286px; max-width: calc(100vw - 188px); }
       .location { padding-inline: 8px; }
       .location-icon { width: 28px; height: 28px; flex-basis: 28px; }
     }
@@ -1528,13 +1733,12 @@
       .skill-level { font-size: 8px; }
       .inventory-toggle { padding: 7px 8px; font-size: 0; gap: 5px; }
       .inventory-toggle > span:first-child { font-size: 16px; }
-      .count-pill { font-size: 10px; min-width: 24px; height: 24px; }
       .game-area { inset: 62px 0 0 132px; }
       .tree-wrap { width: calc(100vw - 138px); margin-top: 195px; }
       .prompt { width: calc(100vw - 150px); padding-inline: 10px; }
       .prompt-row { font-size: 10px; }
       .tree-button { width: max(350px, calc(100vw - 110px)); margin-top: -580px; margin-bottom: -250px; }
-      .inventory { right: 8px; top: 8px; bottom: 8px; width: calc(100vw - 148px); max-width: none; padding: 16px; }
+      .inventory { right: 7px; top: 7px; bottom: 7px; width: calc(100vw - 145px); max-width: none; padding: 10px; }
     }
 
 
@@ -2214,21 +2418,31 @@
 
         <div class="skills-drawer" id="skillsDrawer">
           <div class="skills-title">Skills</div>
-          <div class="skill-row">
+          <div class="skill-row" data-skill="woodcutting">
             <div class="skill-icon" aria-hidden="true">🪓</div>
             <div class="skill-copy">
-              <span class="skill-name">Woodcutting</span>
-              <div class="level-track" aria-hidden="true"><div class="level-fill" style="width: 12%"></div></div>
+              <div class="skill-progress-line">
+                <span class="skill-name">Woodcutting</span>
+                <span class="skill-xp-value" data-woodcutting-xp>0 / 100 XP</span>
+              </div>
+              <div class="level-track skill-xp-track" aria-label="Woodcutting experience">
+                <div class="level-fill skill-xp-fill" data-woodcutting-xp-fill style="width:0%"></div>
+              </div>
             </div>
-            <div class="skill-level">Level 1</div>
+            <div class="skill-level" data-woodcutting-level>Level 1</div>
           </div>
-          <div class="skill-row">
+          <div class="skill-row" data-skill="mining">
             <div class="skill-icon" aria-hidden="true">⛏️</div>
             <div class="skill-copy">
-              <span class="skill-name">Mining</span>
-              <div class="level-track" aria-hidden="true"><div class="level-fill" style="width: 8%"></div></div>
+              <div class="skill-progress-line">
+                <span class="skill-name">Mining</span>
+                <span class="skill-xp-value" data-mining-xp>0 / 100 XP</span>
+              </div>
+              <div class="level-track skill-xp-track" aria-label="Mining experience">
+                <div class="level-fill skill-xp-fill" data-mining-xp-fill style="width:0%"></div>
+              </div>
             </div>
-            <div class="skill-level">Level 1</div>
+            <div class="skill-level" data-mining-level>Level 1</div>
           </div>
         </div>
       </div>
@@ -2236,7 +2450,6 @@
       <button class="inventory-toggle" type="button" aria-expanded="false">
         <span aria-hidden="true">🎒</span>
         Inventory
-        <span class="count-pill" data-inventory-total>0</span>
       </button>
     </header>
 
@@ -2404,49 +2617,117 @@
     </section>
 
 
-    <aside class="inventory" aria-label="Inventory sidebar">
+    <aside class="inventory" aria-label="Inventory and equipment">
       <div class="inventory-head">
         <div>
           <strong>Inventory</strong>
-          <span>Your gathered resources</span>
+          <div class="inventory-subtitle">Items & equipment</div>
         </div>
         <button class="close-inventory" type="button" aria-label="Close inventory">×</button>
       </div>
 
-      <div class="inventory-list">
-        <div class="inventory-row">
-          <div class="inventory-logo" aria-hidden="true"><div class="wood-icon"></div></div>
-          <div class="inventory-name">Oak Wood</div>
-          <div class="inventory-count" data-oak-wood-side>0</div>
-        </div>
-
-        <div class="inventory-row">
-          <div class="inventory-logo" aria-hidden="true"><div class="birch-wood-icon"></div></div>
-          <div class="inventory-name">Birch Wood</div>
-          <div class="inventory-count" data-birch-wood-side>0</div>
-        </div>
-
-        <div class="inventory-row">
-          <div class="inventory-logo" aria-hidden="true"><span class="item-emoji">🍎</span></div>
-          <div class="inventory-name">Apple</div>
-          <div class="inventory-count" data-apple-side>0</div>
-        </div>
-
-        <div class="inventory-row">
-          <div class="inventory-logo" aria-hidden="true"><span class="item-emoji">🌰</span></div>
-          <div class="inventory-name">Acorn</div>
-          <div class="inventory-count" data-acorn-side>0</div>
-        </div>
-
-        <div class="inventory-row">
-          <div class="inventory-logo stone-logo" aria-hidden="true">◆</div>
-          <div class="inventory-name">Stone</div>
-          <div class="inventory-count" data-stone-side>0</div>
-        </div>
+      <div class="inventory-tabs" role="tablist" aria-label="Inventory sections">
+        <button class="inventory-tab active" type="button" role="tab" aria-selected="true" data-inventory-tab="items">Items</button>
+        <button class="inventory-tab" type="button" role="tab" aria-selected="false" data-inventory-tab="equipment">Equipment</button>
       </div>
 
-      <div class="inventory-note">
-        Resources gathered around Lakeside appear here.
+      <div class="inventory-body">
+        <section class="inventory-pane" data-inventory-pane="items" role="tabpanel">
+          <div class="inventory-list">
+            <div class="inventory-empty" data-inventory-empty>No items yet.</div>
+
+            <div class="inventory-row" data-item-row="oakWood" hidden>
+              <div class="inventory-logo" aria-hidden="true"><div class="wood-icon"></div></div>
+              <div class="inventory-name">Oak Wood</div>
+              <div class="inventory-count" data-oak-wood-side>0</div>
+            </div>
+
+            <div class="inventory-row" data-item-row="birchWood" hidden>
+              <div class="inventory-logo" aria-hidden="true"><div class="birch-wood-icon"></div></div>
+              <div class="inventory-name">Birch Wood</div>
+              <div class="inventory-count" data-birch-wood-side>0</div>
+            </div>
+
+            <div class="inventory-row" data-item-row="apples" hidden>
+              <div class="inventory-logo" aria-hidden="true"><span class="item-emoji">🍎</span></div>
+              <div class="inventory-name">Apple</div>
+              <div class="inventory-count" data-apple-side>0</div>
+            </div>
+
+            <div class="inventory-row" data-item-row="acorns" hidden>
+              <div class="inventory-logo" aria-hidden="true"><span class="item-emoji">🌰</span></div>
+              <div class="inventory-name">Acorn</div>
+              <div class="inventory-count" data-acorn-side>0</div>
+            </div>
+
+            <div class="inventory-row" data-item-row="stone" hidden>
+              <div class="inventory-logo stone-logo" aria-hidden="true">◆</div>
+              <div class="inventory-name">Stone</div>
+              <div class="inventory-count" data-stone-side>0</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="inventory-pane equipment-pane" data-inventory-pane="equipment" role="tabpanel" hidden>
+          <div class="equipment-layout">
+            <div class="equipment-figure" aria-hidden="true">
+              <svg viewBox="0 0 100 220">
+                <circle class="equipment-figure-shape" cx="50" cy="28" r="20"/>
+                <path class="equipment-figure-shape" d="M29 58C35 49 42 46 50 46C58 46 65 49 71 58L79 116L66 128L64 202H51L50 139L49 202H36L34 128L21 116Z"/>
+              </svg>
+            </div>
+
+            <div class="equipment-slot head">
+              <div class="equipment-slot-icon" aria-hidden="true">◈</div>
+              <div class="equipment-slot-copy">
+                <span class="equipment-slot-name">Head</span>
+                <span class="equipment-slot-state">Empty</span>
+              </div>
+            </div>
+
+            <div class="equipment-slot main-hand">
+              <div class="equipment-slot-icon" aria-hidden="true">⚒</div>
+              <div class="equipment-slot-copy">
+                <span class="equipment-slot-name">Main Hand</span>
+                <span class="equipment-slot-state">Empty</span>
+              </div>
+            </div>
+
+            <div class="equipment-slot off-hand">
+              <div class="equipment-slot-icon" aria-hidden="true">◇</div>
+              <div class="equipment-slot-copy">
+                <span class="equipment-slot-name">Off Hand</span>
+                <span class="equipment-slot-state">Empty</span>
+              </div>
+            </div>
+
+            <div class="equipment-slot body">
+              <div class="equipment-slot-icon" aria-hidden="true">⬡</div>
+              <div class="equipment-slot-copy">
+                <span class="equipment-slot-name">Body</span>
+                <span class="equipment-slot-state">Empty</span>
+              </div>
+            </div>
+
+            <div class="equipment-slot legs">
+              <div class="equipment-slot-icon" aria-hidden="true">Ⅱ</div>
+              <div class="equipment-slot-copy">
+                <span class="equipment-slot-name">Legs</span>
+                <span class="equipment-slot-state">Empty</span>
+              </div>
+            </div>
+
+            <div class="equipment-slot accessory">
+              <div class="equipment-slot-icon" aria-hidden="true">✦</div>
+              <div class="equipment-slot-copy">
+                <span class="equipment-slot-name">Accessory</span>
+                <span class="equipment-slot-state">Empty</span>
+              </div>
+            </div>
+
+            <div class="equipment-note">Equipment slots are ready for future gear.</div>
+          </div>
+        </section>
       </div>
     </aside>
   </main>
@@ -2480,12 +2761,21 @@
     const inventory = document.querySelector('.inventory');
     const inventoryToggle = document.querySelector('.inventory-toggle');
     const closeInventory = document.querySelector('.close-inventory');
-    const inventoryTotal = document.querySelector('[data-inventory-total]');
     const oakWoodSide = document.querySelector('[data-oak-wood-side]');
     const birchWoodSide = document.querySelector('[data-birch-wood-side]');
     const appleSide = document.querySelector('[data-apple-side]');
     const acornSide = document.querySelector('[data-acorn-side]');
     const stoneSide = document.querySelector('[data-stone-side]');
+    const inventoryEmpty = document.querySelector('[data-inventory-empty]');
+    const inventoryItemRows = {
+      oakWood: document.querySelector('[data-item-row="oakWood"]'),
+      birchWood: document.querySelector('[data-item-row="birchWood"]'),
+      apples: document.querySelector('[data-item-row="apples"]'),
+      acorns: document.querySelector('[data-item-row="acorns"]'),
+      stone: document.querySelector('[data-item-row="stone"]')
+    };
+    const inventoryTabs = Array.from(document.querySelectorAll('[data-inventory-tab]'));
+    const inventoryPanes = Array.from(document.querySelectorAll('[data-inventory-pane]'));
     const themeToggle = document.querySelector('.theme-toggle');
     const themeLabel = document.querySelector('.theme-label');
     const themeIcon = document.querySelector('.theme-icon');
@@ -2505,6 +2795,12 @@
     const overallLevelValue = document.querySelector('.overall-level-value');
     const overallXpValue = document.querySelector('[data-overall-xp]');
     const overallXpFill = document.querySelector('[data-overall-xp-fill]');
+    const woodcuttingLevelValue = document.querySelector('[data-woodcutting-level]');
+    const woodcuttingXpValue = document.querySelector('[data-woodcutting-xp]');
+    const woodcuttingXpFill = document.querySelector('[data-woodcutting-xp-fill]');
+    const miningLevelValue = document.querySelector('[data-mining-level]');
+    const miningXpValue = document.querySelector('[data-mining-xp]');
+    const miningXpFill = document.querySelector('[data-mining-xp-fill]');
 
     const miningHitsNeeded = 5;
     let oakWood = 0;
@@ -2516,6 +2812,10 @@
     let miningAlternate = false;
     let overallLevel = 1;
     let overallXp = 0;
+    let woodcuttingLevel = 1;
+    let woodcuttingXp = 0;
+    let miningLevel = 1;
+    let miningXp = 0;
     let selectedTree = null;
     let treeId = 0;
 
@@ -2553,8 +2853,8 @@
 
     function chooseTreeVariant() {
       const roll = Math.random();
-      if (roll < .035) return 'apple-oak';
-      if (roll < .105) return 'birch';
+      if (roll < .05) return 'apple-oak';
+      if (roll < .15) return 'birch';
       return 'oak';
     }
 
@@ -2623,12 +2923,54 @@
       updateOverallXpUI();
     }
 
+    function addSkillXp(skill, amount) {
+      if (skill === 'woodcutting') {
+        woodcuttingXp += amount;
+        let needed = xpNeededForLevel(woodcuttingLevel);
+
+        while (woodcuttingXp >= needed) {
+          woodcuttingXp -= needed;
+          woodcuttingLevel += 1;
+          needed = xpNeededForLevel(woodcuttingLevel);
+        }
+      }
+
+      if (skill === 'mining') {
+        miningXp += amount;
+        let needed = xpNeededForLevel(miningLevel);
+
+        while (miningXp >= needed) {
+          miningXp -= needed;
+          miningLevel += 1;
+          needed = xpNeededForLevel(miningLevel);
+        }
+      }
+
+      addOverallXp(amount);
+      updateSkillXpUI();
+    }
+
     function updateOverallXpUI() {
       const needed = xpNeededForLevel(overallLevel);
       const percent = Math.max(0, Math.min(100, (overallXp / needed) * 100));
       overallLevelValue.textContent = String(overallLevel);
       overallXpValue.textContent = `${overallXp} / ${needed} XP`;
       overallXpFill.style.width = `${percent}%`;
+    }
+
+    function updateSkillXpUI() {
+      const woodNeeded = xpNeededForLevel(woodcuttingLevel);
+      const miningNeeded = xpNeededForLevel(miningLevel);
+      const woodPercent = Math.max(0, Math.min(100, (woodcuttingXp / woodNeeded) * 100));
+      const miningPercent = Math.max(0, Math.min(100, (miningXp / miningNeeded) * 100));
+
+      woodcuttingLevelValue.textContent = `Level ${woodcuttingLevel}`;
+      woodcuttingXpValue.textContent = `${woodcuttingXp} / ${woodNeeded} XP`;
+      woodcuttingXpFill.style.width = `${woodPercent}%`;
+
+      miningLevelValue.textContent = `Level ${miningLevel}`;
+      miningXpValue.textContent = `${miningXp} / ${miningNeeded} XP`;
+      miningXpFill.style.width = `${miningPercent}%`;
     }
 
     function updateTreeBar(treeData) {
@@ -2641,12 +2983,24 @@
     }
 
     function updateUI() {
-      inventoryTotal.textContent = String(oakWood + birchWood + apples + acorns + stone);
       oakWoodSide.textContent = String(oakWood);
       birchWoodSide.textContent = String(birchWood);
       appleSide.textContent = String(apples);
       acornSide.textContent = String(acorns);
       stoneSide.textContent = String(stone);
+
+      const inventoryCounts = { oakWood, birchWood, apples, acorns, stone };
+      let hasInventoryItems = false;
+
+      Object.entries(inventoryCounts).forEach(([key, amount]) => {
+        const row = inventoryItemRows[key];
+        if (!row) return;
+        const owned = amount > 0;
+        row.hidden = !owned;
+        if (owned) hasInventoryItems = true;
+      });
+
+      inventoryEmpty.hidden = hasInventoryItems;
 
       stoneProgressFill.style.width = `${(stoneHits / miningHitsNeeded) * 100}%`;
       stoneHitLabel.textContent = `${stoneHits} / ${miningHitsNeeded}`;
@@ -2660,6 +3014,7 @@
 
       activeTrees.forEach(updateTreeBar);
       updateOverallXpUI();
+      updateSkillXpUI();
     }
 
     function restartAnimation(node, className) {
@@ -2833,7 +3188,7 @@
       }
 
       treeData.woodRemaining -= 1;
-      addOverallXp(treeData.variant === 'birch' ? 7 : 5);
+      addSkillXp('woodcutting', treeData.variant === 'birch' ? 7 : 5);
       showTreeReward(button, rewards);
     }
 
@@ -2920,13 +3275,27 @@
       if (stoneHits >= miningHitsNeeded) {
         stone += 1;
         stoneHits = 0;
-        addOverallXp(5);
+        addSkillXp('mining', 5);
         miningStatus.textContent = 'Stone gathered!';
         restartAnimation(rock, 'harvest');
         restartAnimation(stoneReward, 'show');
       }
 
       updateUI();
+    }
+
+    function setInventoryTab(tabName) {
+      const nextTab = tabName === 'equipment' ? 'equipment' : 'items';
+
+      inventoryTabs.forEach((tab) => {
+        const active = tab.dataset.inventoryTab === nextTab;
+        tab.classList.toggle('active', active);
+        tab.setAttribute('aria-selected', active ? 'true' : 'false');
+      });
+
+      inventoryPanes.forEach((pane) => {
+        pane.hidden = pane.dataset.inventoryPane !== nextTab;
+      });
     }
 
     function setInventory(open) {
@@ -3032,6 +3401,10 @@
       button.addEventListener('click', () => setLocation(button.dataset.navTarget));
     });
 
+    inventoryTabs.forEach((tab) => {
+      tab.addEventListener('click', () => setInventoryTab(tab.dataset.inventoryTab));
+    });
+
     inventoryToggle.addEventListener('click', () => setInventory(true));
     closeInventory.addEventListener('click', () => setInventory(false));
     themeToggle.addEventListener('click', () => {
@@ -3063,6 +3436,7 @@
     }
 
     setTheme(startDark);
+    setInventoryTab('items');
     setLakesideExpanded(lakesideExpanded);
     spawnInitialForest();
     setLocation(startLocation);
