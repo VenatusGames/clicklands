@@ -46,7 +46,7 @@
     occupiedSlots: new Set(),
     treeId: 0,
     rock: null,
-    hoverNode: null,
+    hoverResource: null,
     entered: false,
   };
 
@@ -146,16 +146,9 @@
           ${minesMarkup()}
         </section>
         ${inventoryMarkup()}
+        ${resourceHoverBarMarkup()}
         <div class="toast-stack" data-toasts aria-live="polite"></div>
       </main>
-
-      <div class="resource-hover-bar" data-resource-hover-bar aria-hidden="true">
-        <div class="resource-hover-line">
-          <span class="resource-hover-name" data-resource-hover-name></span>
-          <span class="resource-hover-meta" data-resource-hover-meta></span>
-        </div>
-        <span class="progress-track"><span class="progress-fill" data-resource-hover-fill></span></span>
-      </div>
     `;
   }
 
@@ -309,6 +302,20 @@
     `;
   }
 
+  function resourceHoverBarMarkup() {
+    return `
+      <div class="resource-hover-bar" data-resource-hover-bar aria-hidden="true">
+        <span class="resource-hover-line">
+          <span class="resource-hover-name" data-resource-hover-name></span>
+          <span class="resource-hover-meta" data-resource-hover-meta></span>
+        </span>
+        <span class="progress-track resource-hover-track">
+          <span class="progress-fill resource-hover-fill" data-resource-hover-fill></span>
+        </span>
+      </div>
+    `;
+  }
+
   function inventoryMarkup() {
     return `
       <aside class="inventory-drawer" data-inventory-drawer aria-label="Inventory and equipment">
@@ -377,11 +384,11 @@
       forestStage: document.querySelector('[data-forest-stage]'),
       rockHost: document.querySelector('[data-rock-host]'),
       toastStack: document.querySelector('[data-toasts]'),
-      mapCard: document.querySelector('[data-map-card]'),
       resourceHoverBar: document.querySelector('[data-resource-hover-bar]'),
       resourceHoverName: document.querySelector('[data-resource-hover-name]'),
       resourceHoverMeta: document.querySelector('[data-resource-hover-meta]'),
       resourceHoverFill: document.querySelector('[data-resource-hover-fill]'),
+      mapCard: document.querySelector('[data-map-card]'),
     };
   }
 
@@ -389,10 +396,6 @@
     const enterSound = new Audio(ENTER_SOUND);
     enterSound.preload = 'auto';
     enterSound.volume = .35;
-
-    window.addEventListener('resize', () => {
-      if (runtime.hoverNode?.isConnected) positionResourceBar(runtime.hoverNode);
-    });
 
     ui.enter.addEventListener('click', () => {
       if (runtime.entered) return;
@@ -449,6 +452,10 @@
       ui.inventoryToggle.focus();
     });
 
+    window.addEventListener('resize', () => {
+      if (runtime.hoverResource?.node) positionResourceHoverBar(runtime.hoverResource.node);
+    });
+
     document.addEventListener('keydown', (event) => {
       if (event.key !== 'Escape') return;
       if (state.inventoryOpen) {
@@ -495,6 +502,7 @@
 
   function setLocation(location) {
     if (!['lakeside', 'forest', 'mines'].includes(location)) return;
+    hideResourceHoverBar();
     state.location = location;
     state.inventoryOpen = false;
     renderNavigation();
@@ -695,73 +703,75 @@
       <span class="tree-tag">${treeName(tree)}</span>
     `;
 
-    node.addEventListener('pointerenter', () => showTreeResourceBar(tree));
-    node.addEventListener('pointerleave', () => hideResourceBar(node));
-    node.addEventListener('focus', () => showTreeResourceBar(tree));
-    node.addEventListener('blur', () => hideResourceBar(node));
+    node.addEventListener('pointerenter', () => showTreeHoverBar(tree));
+    node.addEventListener('pointermove', () => positionResourceHoverBar(node));
+    node.addEventListener('pointerleave', () => hideResourceHoverBar(node));
+    node.addEventListener('focus', () => showTreeHoverBar(tree));
+    node.addEventListener('blur', () => hideResourceHoverBar(node));
     node.addEventListener('click', () => chopTree(tree));
     return node;
   }
 
-  function setResourceBarContent(name, meta, percent) {
+  function setResourceHoverBar(node, name, meta, percent, key) {
+    if (!node?.isConnected) return;
+
+    runtime.hoverResource = { node, key };
     ui.resourceHoverName.textContent = name;
     ui.resourceHoverMeta.textContent = meta;
     ui.resourceHoverFill.style.width = `${clamp(percent, 0, 100)}%`;
+    ui.resourceHoverBar.classList.add('is-visible');
+    ui.resourceHoverBar.setAttribute('aria-hidden', 'false');
+    positionResourceHoverBar(node);
   }
 
-  function positionResourceBar(node) {
-    const bar = ui.resourceHoverBar;
-    if (!node?.isConnected || !bar) return;
+  function positionResourceHoverBar(node) {
+    if (!node?.isConnected || runtime.hoverResource?.node !== node) return;
 
     const nodeRect = node.getBoundingClientRect();
-    const hudBottom = document.querySelector('.top-hud')?.getBoundingClientRect().bottom ?? 86;
-    const safeTop = hudBottom + 10;
-    const viewportPadding = 10;
+    const hudRect = document.querySelector('.character-stack')?.getBoundingClientRect();
+    const barRect = ui.resourceHoverBar.getBoundingClientRect();
+    const safeTop = Math.max(12, (hudRect?.bottom || 0) + 10);
+    const desiredTop = nodeRect.top - barRect.height - 9;
+    const top = Math.max(safeTop, desiredTop);
+    const half = barRect.width / 2;
+    const left = clamp(nodeRect.left + (nodeRect.width / 2), half + 10, window.innerWidth - half - 10);
 
-    requestAnimationFrame(() => {
-      if (runtime.hoverNode !== node || !node.isConnected) return;
-
-      const barRect = bar.getBoundingClientRect();
-      let left = nodeRect.left + (nodeRect.width / 2) - (barRect.width / 2);
-      let top = nodeRect.top - barRect.height - 10;
-
-      left = clamp(left, viewportPadding, window.innerWidth - barRect.width - viewportPadding);
-      top = Math.max(safeTop, top);
-
-      if (top + barRect.height > window.innerHeight - viewportPadding) {
-        top = window.innerHeight - barRect.height - viewportPadding;
-      }
-
-      bar.style.left = `${Math.round(left)}px`;
-      bar.style.top = `${Math.round(top)}px`;
-    });
+    ui.resourceHoverBar.style.left = `${left}px`;
+    ui.resourceHoverBar.style.top = `${top}px`;
   }
 
-  function showResourceBar(node, name, meta, percent) {
-    runtime.hoverNode = node;
-    setResourceBarContent(name, meta, percent);
-    ui.resourceHoverBar.setAttribute('aria-hidden', 'false');
-    ui.resourceHoverBar.classList.add('is-visible');
-    positionResourceBar(node);
-  }
-
-  function hideResourceBar(node) {
-    if (runtime.hoverNode !== node) return;
-    runtime.hoverNode = null;
+  function hideResourceHoverBar(node) {
+    if (node && runtime.hoverResource?.node !== node) return;
+    runtime.hoverResource = null;
     ui.resourceHoverBar.classList.remove('is-visible');
     ui.resourceHoverBar.setAttribute('aria-hidden', 'true');
   }
 
-  function showTreeResourceBar(tree) {
-    if (!tree?.node?.isConnected) return;
+  function showTreeHoverBar(tree) {
+    if (!tree?.node?.isConnected || tree.node.disabled) return;
     const remainingWork = (tree.logs * tree.hitsPerLog) - tree.hits;
     const health = clamp((remainingWork / tree.maxWork) * 100, 0, 100);
-    showResourceBar(tree.node, treeName(tree), `${tree.logs} log${tree.logs === 1 ? '' : 's'}`, health);
+    setResourceHoverBar(tree.node, treeName(tree), `${tree.logs} log${tree.logs === 1 ? '' : 's'}`, health, `tree:${tree.id}`);
+  }
+
+  function showRockHoverBar() {
+    const rock = runtime.rock;
+    if (!rock?.node?.isConnected || rock.node.disabled) return;
+    const remainingWork = (rock.stones * rock.hitsPerStone) - rock.hits;
+    const health = clamp((remainingWork / rock.maxWork) * 100, 0, 100);
+    setResourceHoverBar(rock.node, 'Stone Deposit', `${rock.stones} stone`, health, 'rock');
   }
 
   function updateTreeNode(tree) {
     if (!tree.node?.isConnected) return;
-    if (runtime.hoverNode === tree.node) showTreeResourceBar(tree);
+    const remainingWork = (tree.logs * tree.hitsPerLog) - tree.hits;
+    const health = clamp((remainingWork / tree.maxWork) * 100, 0, 100);
+    if (runtime.hoverResource?.key === `tree:${tree.id}`) {
+      ui.resourceHoverName.textContent = treeName(tree);
+      ui.resourceHoverMeta.textContent = `${tree.logs} log${tree.logs === 1 ? '' : 's'}`;
+      ui.resourceHoverFill.style.width = `${health}%`;
+      positionResourceHoverBar(tree.node);
+    }
   }
 
   function chopTree(tree) {
@@ -816,7 +826,7 @@
   }
 
   function depleteTree(tree) {
-    hideResourceBar(tree.node);
+    if (runtime.hoverResource?.node === tree.node) hideResourceHoverBar(tree.node);
     runtime.trees.delete(tree.id);
     runtime.occupiedSlots.delete(tree.slotIndex);
     tree.node.disabled = true;
@@ -856,10 +866,11 @@
     `;
 
     rock.node = ui.rockHost.querySelector('[data-rock]');
-    rock.node.addEventListener('pointerenter', showRockResourceBar);
-    rock.node.addEventListener('pointerleave', () => hideResourceBar(rock.node));
-    rock.node.addEventListener('focus', showRockResourceBar);
-    rock.node.addEventListener('blur', () => hideResourceBar(rock.node));
+    rock.node.addEventListener('pointerenter', showRockHoverBar);
+    rock.node.addEventListener('pointermove', () => positionResourceHoverBar(rock.node));
+    rock.node.addEventListener('pointerleave', () => hideResourceHoverBar(rock.node));
+    rock.node.addEventListener('focus', showRockHoverBar);
+    rock.node.addEventListener('blur', () => hideResourceHoverBar(rock.node));
     rock.node.addEventListener('click', mineRock);
     updateRockNode();
   }
@@ -887,23 +898,22 @@
     if (rock.stones <= 0) depleteRock();
   }
 
-  function showRockResourceBar() {
+  function updateRockNode() {
     const rock = runtime.rock;
     if (!rock?.node?.isConnected) return;
     const remainingWork = (rock.stones * rock.hitsPerStone) - rock.hits;
     const health = clamp((remainingWork / rock.maxWork) * 100, 0, 100);
-    showResourceBar(rock.node, 'Stone Deposit', `${rock.stones} stone`, health);
-  }
-
-  function updateRockNode() {
-    const rock = runtime.rock;
-    if (!rock?.node?.isConnected) return;
-    if (runtime.hoverNode === rock.node) showRockResourceBar();
+    if (runtime.hoverResource?.key === 'rock') {
+      ui.resourceHoverName.textContent = 'Stone Deposit';
+      ui.resourceHoverMeta.textContent = `${rock.stones} stone`;
+      ui.resourceHoverFill.style.width = `${health}%`;
+      positionResourceHoverBar(rock.node);
+    }
   }
 
   function depleteRock() {
     const rock = runtime.rock;
-    hideResourceBar(rock.node);
+    if (runtime.hoverResource?.node === rock.node) hideResourceHoverBar(rock.node);
     rock.node.disabled = true;
     rock.node.classList.add('is-depleted');
     window.setTimeout(() => {
