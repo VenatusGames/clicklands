@@ -502,13 +502,7 @@
 
         <button class="lumberjack-npc" type="button" data-lumberjack aria-label="Talk to Garrick the lumberjack">
           <span class="npc-shadow" aria-hidden="true"></span>
-          <span class="npc-body" aria-hidden="true">
-            <span class="npc-head"><span class="npc-hair"></span><span class="npc-beard"></span></span>
-            <span class="npc-shirt"></span>
-            <span class="npc-overalls"></span>
-            <span class="npc-arm arm-left"></span><span class="npc-arm arm-right"></span>
-            <span class="npc-leg leg-left"></span><span class="npc-leg leg-right"></span>
-          </span>
+          <img class="npc-character-image lumberjack-character-image" src="assets/images/npcs/lumberjack.png" alt="" aria-hidden="true">
           <span class="npc-label"><strong>Garrick</strong><small>Lumberjack · Click to trade</small></span>
         </button>
         <div class="mill-counter" aria-hidden="true">
@@ -541,13 +535,15 @@
         <div class="interior-title"><span>Lakeshore Village</span><strong>${title}</strong><small>${subtitle}</small></div>
         <button class="village-npc npc-${key}" type="button" data-building-npc data-npc-title="${role}" data-npc-note="${note}">
           <span class="village-npc-shadow" aria-hidden="true"></span>
-          <span class="village-npc-body" aria-hidden="true">
-            <span class="village-npc-head"><i></i></span>
-            <span class="village-npc-torso"></span>
-            <span class="village-npc-arm arm-a"></span><span class="village-npc-arm arm-b"></span>
-            <span class="village-npc-leg leg-a"></span><span class="village-npc-leg leg-b"></span>
-            <span class="village-npc-prop">${icon}</span>
-          </span>
+          ${key === 'strange-shack'
+            ? '<img class="village-npc-character-image wizard-character-image" src="assets/images/npcs/wizard.png" alt="" aria-hidden="true">'
+            : `<span class="village-npc-body" aria-hidden="true">
+                <span class="village-npc-head"><i></i></span>
+                <span class="village-npc-torso"></span>
+                <span class="village-npc-arm arm-a"></span><span class="village-npc-arm arm-b"></span>
+                <span class="village-npc-leg leg-a"></span><span class="village-npc-leg leg-b"></span>
+                <span class="village-npc-prop">${icon}</span>
+              </span>`}
           <span class="village-npc-label"><strong>${role}</strong><small>Click to talk</small></span>
         </button>
       </div>`;
