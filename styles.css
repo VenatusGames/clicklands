@@ -755,7 +755,7 @@ body.dark .town-ground {
   position: absolute;
   z-index: 40;
   left: 50%;
-  top: 18px;
+  top: 96px;
   transform: translateX(-50%);
   min-width: 235px;
   padding: 10px 14px;
@@ -1736,7 +1736,7 @@ body.dark .mines-view {
 
 
 @media (max-width: 760px) {
-  .town-heading { top: 10px; min-width: 210px; }
+  .town-heading { top: 94px; min-width: 210px; }
   .town-square { width: calc(100% - 20px); height: 72%; top: 56%; }
   .town-building { width: 128px; height: 142px; }
   .building-visual { width: 112px; height: 96px; }
@@ -1748,6 +1748,7 @@ body.dark .mines-view {
 }
 
 @media (max-width: 520px) {
+  .town-heading { top: 126px; }
   .town-heading > span:last-child { display: none; }
   .town-square { top: 58%; height: 76%; }
   .town-building { width: 104px; height: 122px; }
