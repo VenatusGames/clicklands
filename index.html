@@ -3,7 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Clicklands</title>
+  <title>Clicklands Online</title>
+  <link rel="icon" type="image/png" href="CL-logo.png">
+  <link rel="shortcut icon" href="CL-logo.png">
+  <link rel="apple-touch-icon" href="CL-logo.png">
   <style>
     :root {
       color-scheme: light;
@@ -180,7 +183,14 @@
       place-items: center;
       background: rgba(255,255,255,.10);
       border: 1px solid rgba(255,255,255,.08);
-      font-size: 21px;
+      overflow: hidden;
+    }
+
+    .sidebar-brand-mark img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
     }
 
     .sidebar-brand strong {
@@ -1165,6 +1175,26 @@
       transition: opacity .48s ease, visibility .48s ease;
     }
 
+    .splash-enter {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      place-items: center;
+      background: transparent;
+      color: inherit;
+      cursor: pointer;
+    }
+
+    .splash-enter:focus-visible {
+      outline: 3px solid rgba(144,197,124,.9);
+      outline-offset: -10px;
+    }
+
     .launch-splash.hide {
       opacity: 0;
       visibility: hidden;
@@ -1226,13 +1256,20 @@
     .splash-subtitle {
       margin-top: 34px;
       font-size: 11px;
-      font-weight: 800;
-      letter-spacing: .22em;
+      font-weight: 850;
+      letter-spacing: .24em;
       text-transform: uppercase;
-      color: rgba(239,245,235,.52);
+      color: rgba(239,245,235,.62);
       opacity: 0;
       transform: translateY(8px);
-      animation: splashSubtitle .38s .82s ease-out forwards;
+      animation:
+        splashSubtitle .38s .82s ease-out forwards,
+        enterPulse 1.65s 1.3s ease-in-out infinite;
+    }
+
+    @keyframes enterPulse {
+      0%, 100% { color: rgba(239,245,235,.52); }
+      50% { color: rgba(239,245,235,.95); }
     }
 
     .splash-shockwave {
@@ -1322,20 +1359,22 @@
   </style>
 </head>
 <body>
-  <div class="launch-splash" id="launchSplash" aria-label="Clicklands loading">
-    <div class="splash-title-wrap">
-      <div class="splash-shockwave" aria-hidden="true"></div>
-      <h1 class="splash-title">Clicklands</h1>
-      <div class="splash-subtitle">Enter the world</div>
-    </div>
+  <div class="launch-splash" id="launchSplash">
+    <button class="splash-enter" id="splashEnter" type="button" aria-label="Enter Clicklands Online">
+      <span class="splash-title-wrap">
+        <span class="splash-shockwave" aria-hidden="true"></span>
+        <span class="splash-title">Clicklands Online</span>
+        <span class="splash-subtitle">Click to enter</span>
+      </span>
+    </button>
   </div>
 
   <main class="game">
     <aside class="location-sidebar" aria-label="Locations">
       <div class="sidebar-brand">
-        <div class="sidebar-brand-mark" aria-hidden="true">🌲</div>
+        <div class="sidebar-brand-mark" aria-hidden="true"><img src="CL-logo.png" alt=""></div>
         <div>
-          <strong>Clicklands</strong>
+          <strong>Clicklands Online</strong>
           <span>Gather. Explore. Build.</span>
         </div>
       </div>
@@ -1586,19 +1625,26 @@
   <script>
 
     const launchSplash = document.getElementById('launchSplash');
+    const splashEnter = document.getElementById('splashEnter');
+    const enterSound = new Audio('CL-enter.wav');
+    enterSound.preload = 'auto';
 
     function dismissLaunchSplash() {
-      if (!launchSplash) return;
+      if (!launchSplash || launchSplash.classList.contains('hide')) return;
+
+      try {
+        enterSound.currentTime = 0;
+        enterSound.play().catch(() => {});
+      } catch (error) {
+      }
+
       launchSplash.classList.add('hide');
       window.setTimeout(() => {
         launchSplash.remove();
       }, 520);
     }
 
-    const reducedMotion = window.matchMedia &&
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-    window.setTimeout(dismissLaunchSplash, reducedMotion ? 300 : 1750);
+    splashEnter.addEventListener('click', dismissLaunchSplash);
 
     const tree = document.querySelector('.tree-button');
     const inventory = document.querySelector('.inventory');
