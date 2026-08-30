@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cliquest</title>
+  <title>Clicklands</title>
   <style>
     :root {
       color-scheme: light;
@@ -222,6 +222,45 @@
       color: var(--sidebar-text);
       background: transparent;
       text-align: left;
+      cursor: pointer;
+      transition: background .18s ease, border-color .18s ease, transform .18s ease;
+    }
+
+    .location:hover {
+      background: rgba(255,255,255,.07);
+    }
+
+    .location:active {
+      transform: scale(.985);
+    }
+
+    .location.parent-location {
+      min-height: 52px;
+    }
+
+    .location.child-location {
+      width: calc(100% - 14px);
+      margin-left: 14px;
+      position: relative;
+    }
+
+    .location.child-location:before {
+      content: "";
+      position: absolute;
+      left: -10px;
+      top: -9px;
+      bottom: 50%;
+      width: 8px;
+      border-left: 1px solid rgba(255,255,255,.16);
+      border-bottom: 1px solid rgba(255,255,255,.16);
+      border-bottom-left-radius: 7px;
+      pointer-events: none;
+    }
+
+    .area-children {
+      display: grid;
+      gap: 7px;
+      padding-top: 2px;
     }
 
     .location.active {
@@ -230,10 +269,6 @@
       box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
     }
 
-    .location.locked {
-      opacity: .48;
-      cursor: default;
-    }
 
     .location-icon {
       width: 31px;
@@ -267,10 +302,6 @@
       color: var(--sidebar-muted);
     }
 
-    .lock {
-      font-size: 11px;
-      opacity: .8;
-    }
 
     .theme-panel {
       margin-top: auto;
@@ -381,10 +412,338 @@
       position: absolute;
       inset: 80px 0 0 215px;
       z-index: 5;
+      overflow: hidden;
+    }
+
+    .location-view {
+      position: absolute;
+      inset: 0;
+      display: none;
+      place-items: center;
+      padding: 82px 18px 46px;
+    }
+
+    .location-view.active {
+      display: grid;
+    }
+
+    .forest-view {
+      overflow: hidden;
+    }
+
+    .lakeside-view {
+      background:
+        radial-gradient(circle at 25% 18%, rgba(255,255,255,.18), transparent 30%),
+        linear-gradient(180deg, rgba(255,255,255,.02), rgba(76,116,80,.05));
+    }
+
+    .map-shell {
+      width: min(760px, calc(100% - 42px));
+      max-height: calc(100% - 24px);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      background: var(--panel);
+      box-shadow: 0 24px 70px var(--shadow);
+      padding: 18px;
+      backdrop-filter: blur(16px);
+    }
+
+    .map-heading {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 14px;
+      padding: 2px 4px;
+    }
+
+    .map-heading strong {
+      display: block;
+      font-size: 22px;
+      letter-spacing: -.03em;
+    }
+
+    .map-heading span {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .map-label {
+      flex: 0 0 auto;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: rgba(72,110,78,.10);
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .area-map {
+      position: relative;
+      height: min(430px, 55vh);
+      min-height: 315px;
+      overflow: hidden;
+      border-radius: 22px;
+      border: 1px solid var(--border);
+      background:
+        radial-gradient(ellipse at 44% 60%, #7cb5bd 0 16%, #77aeb6 17% 23%, transparent 24%),
+        radial-gradient(circle at 15% 27%, rgba(62,112,65,.22) 0 11%, transparent 12%),
+        radial-gradient(circle at 24% 37%, rgba(62,112,65,.26) 0 13%, transparent 14%),
+        radial-gradient(circle at 74% 23%, rgba(102,92,73,.18) 0 13%, transparent 14%),
+        radial-gradient(circle at 83% 33%, rgba(102,92,73,.20) 0 15%, transparent 16%),
+        linear-gradient(145deg, #b9cf91 0 48%, #a9c183 49% 100%);
+    }
+
+    body.dark .area-map {
+      background:
+        radial-gradient(ellipse at 44% 60%, #477a83 0 16%, #416f77 17% 23%, transparent 24%),
+        radial-gradient(circle at 15% 27%, rgba(45,91,51,.54) 0 11%, transparent 12%),
+        radial-gradient(circle at 24% 37%, rgba(45,91,51,.58) 0 13%, transparent 14%),
+        radial-gradient(circle at 74% 23%, rgba(83,72,58,.48) 0 13%, transparent 14%),
+        radial-gradient(circle at 83% 33%, rgba(83,72,58,.52) 0 15%, transparent 16%),
+        linear-gradient(145deg, #506844 0 48%, #445c3b 49% 100%);
+    }
+
+    .map-water {
+      position: absolute;
+      left: 25%;
+      top: 44%;
+      width: 39%;
+      height: 31%;
+      border-radius: 48% 52% 55% 45% / 58% 43% 57% 42%;
+      background: linear-gradient(145deg, #8ac5cc, #5d9ca8);
+      box-shadow: inset 0 0 0 8px rgba(255,255,255,.10);
+      transform: rotate(-7deg);
+    }
+
+    .map-water:after {
+      content: "";
+      position: absolute;
+      left: 17%;
+      right: 18%;
+      top: 37%;
+      height: 3px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.38);
+      box-shadow: 38px 18px 0 -1px rgba(255,255,255,.26);
+    }
+
+    .map-trees,
+    .map-mountains {
+      position: absolute;
+      font-size: clamp(28px, 4vw, 46px);
+      letter-spacing: -12px;
+      filter: saturate(.78);
+      user-select: none;
+      pointer-events: none;
+    }
+
+    .map-trees {
+      left: 8%;
+      top: 18%;
+      transform: rotate(-5deg);
+    }
+
+    .map-mountains {
+      right: 8%;
+      top: 16%;
+      letter-spacing: -8px;
+    }
+
+    .map-path {
+      position: absolute;
+      left: 36%;
+      top: 31%;
+      width: 43%;
+      height: 43%;
+      border: 5px dashed rgba(116,91,59,.35);
+      border-left-color: transparent;
+      border-bottom-color: transparent;
+      border-radius: 50%;
+      transform: rotate(12deg);
+      pointer-events: none;
+    }
+
+    .map-node {
+      position: absolute;
+      min-width: 124px;
+      min-height: 50px;
+      border: 1px solid rgba(255,255,255,.55);
+      border-radius: 16px;
+      padding: 8px 11px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      background: rgba(249,250,244,.90);
+      color: #26392c;
+      box-shadow: 0 12px 28px rgba(55,72,49,.16);
+      cursor: pointer;
+      text-align: left;
+      transition: transform .18s ease, box-shadow .18s ease;
+    }
+
+    body.dark .map-node {
+      background: rgba(26,36,29,.92);
+      color: #eff4ed;
+      border-color: rgba(255,255,255,.12);
+    }
+
+    .map-node:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 16px 34px rgba(55,72,49,.20);
+    }
+
+    .map-node.forest-node {
+      left: 10%;
+      top: 24%;
+    }
+
+    .map-node.mine-node {
+      right: 9%;
+      top: 24%;
+    }
+
+    .map-node-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
       display: grid;
       place-items: center;
-      padding: 82px 18px 60px;
+      background: rgba(74,111,76,.10);
+      font-size: 17px;
     }
+
+    .map-node strong {
+      display: block;
+      font-size: 12px;
+    }
+
+    .map-node span {
+      display: block;
+      margin-top: 2px;
+      font-size: 9px;
+      color: var(--muted);
+    }
+
+    .mine-view {
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 8%, rgba(255,255,255,.08), transparent 24%),
+        linear-gradient(180deg, #596258 0%, #4f594f 28%, #454a42 29%, #343832 100%);
+    }
+
+    body.dark .mine-view {
+      background:
+        radial-gradient(circle at 50% 8%, rgba(255,255,255,.045), transparent 24%),
+        linear-gradient(180deg, #2b312d 0%, #252b27 28%, #20241f 29%, #171a17 100%);
+    }
+
+    .mine-scene {
+      position: relative;
+      width: min(720px, calc(100% - 32px));
+      height: min(520px, calc(100% - 24px));
+      min-height: 360px;
+    }
+
+    .mine-title {
+      position: absolute;
+      z-index: 6;
+      left: 50%;
+      top: 6px;
+      transform: translateX(-50%);
+      padding: 10px 14px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+      box-shadow: 0 12px 30px rgba(0,0,0,.14);
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .mine-title strong {
+      display: block;
+      font-size: 17px;
+    }
+
+    .mine-title span {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    .mountain-rock {
+      position: absolute;
+      left: 50%;
+      bottom: -72px;
+      width: min(620px, 88%);
+      height: 420px;
+      transform: translateX(-50%);
+      border-radius: 48% 52% 12% 12% / 36% 42% 8% 8%;
+      background:
+        linear-gradient(130deg, transparent 0 23%, rgba(255,255,255,.055) 24% 30%, transparent 31%),
+        linear-gradient(75deg, transparent 0 56%, rgba(0,0,0,.10) 57% 64%, transparent 65%),
+        linear-gradient(145deg, #77766d, #575a53 55%, #464942);
+      box-shadow: inset -28px -20px 40px rgba(0,0,0,.18);
+    }
+
+    body.dark .mountain-rock {
+      background:
+        linear-gradient(130deg, transparent 0 23%, rgba(255,255,255,.035) 24% 30%, transparent 31%),
+        linear-gradient(75deg, transparent 0 56%, rgba(0,0,0,.14) 57% 64%, transparent 65%),
+        linear-gradient(145deg, #4c4d48, #363a35 55%, #2b2e2a);
+    }
+
+    .cave-mouth {
+      position: absolute;
+      left: 50%;
+      bottom: 0;
+      width: 220px;
+      height: 255px;
+      transform: translateX(-50%);
+      border-radius: 50% 50% 12px 12px / 56% 56% 8px 8px;
+      background: radial-gradient(ellipse at 50% 68%, #111713 0 44%, #1d241f 64%, #252b27 100%);
+      box-shadow:
+        0 0 0 14px rgba(48,50,46,.68),
+        0 0 0 25px rgba(74,73,66,.52),
+        inset 0 0 42px rgba(0,0,0,.92);
+    }
+
+    .mine-track {
+      position: absolute;
+      left: 50%;
+      bottom: -22px;
+      width: 260px;
+      height: 120px;
+      transform: translateX(-50%) perspective(250px) rotateX(58deg);
+      border-left: 5px solid #6d5037;
+      border-right: 5px solid #6d5037;
+    }
+
+    .mine-track:before {
+      content: "";
+      position: absolute;
+      inset: 7px -8px;
+      background: repeating-linear-gradient(0deg, transparent 0 17px, #7a5b3e 18px 23px);
+    }
+
+    .mine-rock {
+      position: absolute;
+      bottom: 18px;
+      width: 92px;
+      height: 58px;
+      border-radius: 54% 46% 40% 60%;
+      background: linear-gradient(145deg, #777971, #50544f);
+      box-shadow: inset -10px -8px 15px rgba(0,0,0,.14);
+    }
+
+    .mine-rock.r1 { left: 7%; transform: rotate(8deg); }
+    .mine-rock.r2 { right: 8%; width: 118px; height: 72px; transform: rotate(-8deg); }
 
     .tree-wrap {
       width: min(470px, calc(100vw - 245px));
@@ -571,23 +930,6 @@
       100% { opacity: 0; transform: translate(-50%,-120%) scale(.95); }
     }
 
-    .hint {
-      position: absolute;
-      z-index: 6;
-      bottom: 24px;
-      left: calc(50% + 107px);
-      transform: translateX(-50%);
-      width: max-content;
-      max-width: calc(100% - 270px);
-      padding: 10px 14px;
-      border-radius: 999px;
-      background: rgba(31,45,34,.80);
-      color: white;
-      font-size: 12px;
-      font-weight: 680;
-      box-shadow: 0 10px 24px rgba(38,56,40,.16);
-      text-align: center;
-    }
 
 
     .inventory {
@@ -756,7 +1098,6 @@
       .tree-wrap { width: min(420px, calc(100vw - 185px)); margin-top: 175px; }
       .prompt { width: min(320px, calc(100vw - 190px)); }
       .tree-button { width: min(490px, calc(100vw - 190px)); margin-top: -545px; margin-bottom: -205px; }
-      .hint { left: calc(50% + 85px); max-width: calc(100% - 205px); }
       .inventory { right: 12px; top: 12px; bottom: 12px; width: 340px; max-width: calc(100vw - 194px); }
       .location { padding-inline: 8px; }
       .location-icon { width: 28px; height: 28px; flex-basis: 28px; }
@@ -775,13 +1116,200 @@
       .hill { left: 132px; }
       .topbar { margin-left: 132px; padding: 12px; }
       .inventory-toggle { padding: 8px 10px; font-size: 12px; }
-      .game-area { inset: 62px 0 0 132px; padding-inline: 6px; }
+      .game-area { inset: 62px 0 0 132px; }
       .tree-wrap { width: calc(100vw - 138px); margin-top: 195px; }
       .prompt { width: calc(100vw - 150px); padding-inline: 10px; }
       .prompt-row { font-size: 10px; }
       .tree-button { width: max(300px, calc(100vw - 140px)); margin-top: -530px; margin-bottom: -210px; }
-      .hint { left: calc(50% + 66px); max-width: calc(100% - 150px); font-size: 10px; }
       .inventory { right: 8px; top: 8px; bottom: 8px; width: calc(100vw - 148px); max-width: none; padding: 16px; }
+    }
+
+
+    @media (max-width: 700px) {
+      .map-shell { width: calc(100% - 20px); padding: 14px; }
+      .area-map { min-height: 300px; }
+      .map-node { min-width: 108px; padding: 7px 9px; }
+      .map-node.forest-node { left: 5%; }
+      .map-node.mine-node { right: 5%; }
+      .mine-scene { width: calc(100% - 10px); }
+    }
+
+    @media (max-width: 500px) {
+      .location.child-location { margin-left: 9px; width: calc(100% - 9px); }
+      .map-heading strong { font-size: 18px; }
+      .map-heading span { font-size: 10px; }
+      .map-label { display: none; }
+      .area-map { height: 340px; min-height: 280px; }
+      .map-node { min-width: 94px; border-radius: 13px; }
+      .map-node-icon { display: none; }
+      .map-node.forest-node { left: 4%; top: 20%; }
+      .map-node.mine-node { right: 4%; top: 20%; }
+      .map-trees { left: 5%; top: 15%; }
+      .map-mountains { right: 5%; top: 14%; }
+      .cave-mouth { width: 175px; height: 215px; }
+      .mine-track { width: 210px; }
+    }
+
+
+    .launch-splash {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 43%, rgba(120,169,108,.18), transparent 24%),
+        linear-gradient(180deg, #16221b 0%, #0f1712 100%);
+      color: #f6f8f2;
+      transition: opacity .48s ease, visibility .48s ease;
+    }
+
+    .launch-splash.hide {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .launch-splash:before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 51%;
+      width: 280px;
+      height: 54px;
+      border-radius: 50%;
+      background: rgba(0,0,0,.42);
+      filter: blur(18px);
+      transform: translate(-50%, -50%) scale(.4);
+      opacity: 0;
+      animation: splashImpactShadow 1.35s cubic-bezier(.2,.78,.25,1) forwards;
+    }
+
+    .splash-title-wrap {
+      position: relative;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 32px;
+    }
+
+    .splash-title {
+      position: relative;
+      margin: 0;
+      font-size: clamp(52px, 10vw, 118px);
+      line-height: .88;
+      font-weight: 950;
+      letter-spacing: -.075em;
+      color: #f8faf4;
+      text-shadow:
+        0 3px 0 rgba(255,255,255,.08),
+        0 13px 22px rgba(0,0,0,.32);
+      transform-origin: 50% 100%;
+      animation: titleSlam 1.15s cubic-bezier(.18,.88,.22,1.08) both;
+    }
+
+    .splash-title:after {
+      content: "";
+      position: absolute;
+      left: 8%;
+      right: 8%;
+      bottom: -26px;
+      height: 4px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, transparent, rgba(137,188,117,.9), transparent);
+      transform: scaleX(0);
+      opacity: 0;
+      animation: splashGroundFlash .45s .53s ease-out forwards;
+    }
+
+    .splash-subtitle {
+      margin-top: 34px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+      color: rgba(239,245,235,.52);
+      opacity: 0;
+      transform: translateY(8px);
+      animation: splashSubtitle .38s .82s ease-out forwards;
+    }
+
+    .splash-shockwave {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 170px;
+      height: 170px;
+      border: 2px solid rgba(146,196,126,.5);
+      border-radius: 50%;
+      opacity: 0;
+      transform: translate(-50%,-50%) scale(.2);
+      animation: splashShockwave .6s .5s ease-out forwards;
+      pointer-events: none;
+    }
+
+    @keyframes titleSlam {
+      0% {
+        opacity: 0;
+        transform: translateY(-115vh) scale(1.28, .82) rotate(-2deg);
+      }
+      52% {
+        opacity: 1;
+        transform: translateY(0) scale(1.04, .92) rotate(.4deg);
+      }
+      61% {
+        transform: translateY(7px) scale(1.14, .78) rotate(0deg);
+      }
+      72% {
+        transform: translateY(-10px) scale(.96, 1.08);
+      }
+      84% {
+        transform: translateY(3px) scale(1.02, .98);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes splashImpactShadow {
+      0%, 44% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(.25);
+      }
+      52% {
+        opacity: .72;
+        transform: translate(-50%, -50%) scale(1.08);
+      }
+      100% {
+        opacity: .24;
+        transform: translate(-50%, -50%) scale(.82);
+      }
+    }
+
+    @keyframes splashGroundFlash {
+      0% { opacity: 0; transform: scaleX(.15); }
+      35% { opacity: .95; transform: scaleX(1.25); }
+      100% { opacity: 0; transform: scaleX(.85); }
+    }
+
+    @keyframes splashShockwave {
+      0% {
+        opacity: .7;
+        transform: translate(-50%,-50%) scale(.22);
+      }
+      100% {
+        opacity: 0;
+        transform: translate(-50%,-50%) scale(2.7);
+      }
+    }
+
+    @keyframes splashSubtitle {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -794,12 +1322,20 @@
   </style>
 </head>
 <body>
+  <div class="launch-splash" id="launchSplash" aria-label="Clicklands loading">
+    <div class="splash-title-wrap">
+      <div class="splash-shockwave" aria-hidden="true"></div>
+      <h1 class="splash-title">Clicklands</h1>
+      <div class="splash-subtitle">Enter the world</div>
+    </div>
+  </div>
+
   <main class="game">
     <aside class="location-sidebar" aria-label="Locations">
       <div class="sidebar-brand">
         <div class="sidebar-brand-mark" aria-hidden="true">🌲</div>
         <div>
-          <strong>Cliquest</strong>
+          <strong>Clicklands</strong>
           <span>Gather. Explore. Build.</span>
         </div>
       </div>
@@ -807,39 +1343,30 @@
       <div class="sidebar-section-title">Locations</div>
 
       <nav class="locations" aria-label="Location list">
-        <div class="location active" aria-current="page">
-          <div class="location-icon" aria-hidden="true">🌳</div>
+        <button class="location parent-location" type="button" data-location="lakeside" aria-current="false">
+          <div class="location-icon" aria-hidden="true">🌊</div>
           <div class="location-copy">
-            <span class="location-name">Forest Clearing</span>
-            <span class="location-meta">Current location</span>
+            <span class="location-name">Lakeside</span>
+            <span class="location-meta">Area map</span>
           </div>
-        </div>
+        </button>
 
-        <div class="location locked" aria-disabled="true">
-          <div class="location-icon" aria-hidden="true">🌲</div>
-          <div class="location-copy">
-            <span class="location-name">Pine Woods</span>
-            <span class="location-meta">Locked</span>
-          </div>
-          <span class="lock" aria-hidden="true">🔒</span>
-        </div>
+        <div class="area-children">
+          <button class="location child-location active" type="button" data-location="forest" aria-current="page">
+            <div class="location-icon" aria-hidden="true">🌳</div>
+            <div class="location-copy">
+              <span class="location-name">Forest</span>
+              <span class="location-meta">Current location</span>
+            </div>
+          </button>
 
-        <div class="location locked" aria-disabled="true">
-          <div class="location-icon" aria-hidden="true">⛰️</div>
-          <div class="location-copy">
-            <span class="location-name">Mountain Pass</span>
-            <span class="location-meta">Locked</span>
-          </div>
-          <span class="lock" aria-hidden="true">🔒</span>
-        </div>
-
-        <div class="location locked" aria-disabled="true">
-          <div class="location-icon" aria-hidden="true">🌫️</div>
-          <div class="location-copy">
-            <span class="location-name">Misty Hollow</span>
-            <span class="location-meta">Locked</span>
-          </div>
-          <span class="lock" aria-hidden="true">🔒</span>
+          <button class="location child-location" type="button" data-location="mines" aria-current="false">
+            <div class="location-icon" aria-hidden="true">⛏️</div>
+            <div class="location-copy">
+              <span class="location-name">Mines</span>
+              <span class="location-meta">Travel here</span>
+            </div>
+          </button>
         </div>
       </nav>
 
@@ -848,7 +1375,7 @@
           <span><span class="theme-icon" aria-hidden="true">☀️</span><span class="theme-label">Light mode</span></span>
           <span class="switch" aria-hidden="true"><span class="switch-dot"></span></span>
         </button>
-        <div class="sidebar-footer">More locations will open as the world grows.</div>
+        <div class="sidebar-footer">Lakeside contains your currently available locations.</div>
       </div>
     </aside>
 
@@ -865,7 +1392,43 @@
     </header>
 
     <section class="game-area">
-      <div class="tree-wrap">
+      <div class="location-view lakeside-view" data-view="lakeside" aria-hidden="true">
+        <div class="map-shell">
+          <div class="map-heading">
+            <div>
+              <strong>Lakeside</strong>
+              <span>Select a location to travel there.</span>
+            </div>
+            <div class="map-label">Area Map</div>
+          </div>
+
+          <div class="area-map" aria-label="Lakeside area map">
+            <div class="map-water" aria-hidden="true"></div>
+            <div class="map-trees" aria-hidden="true">🌲🌳🌲</div>
+            <div class="map-mountains" aria-hidden="true">⛰️⛰️</div>
+            <div class="map-path" aria-hidden="true"></div>
+
+            <button class="map-node forest-node" type="button" data-nav-target="forest">
+              <span class="map-node-icon" aria-hidden="true">🌳</span>
+              <span>
+                <strong>Forest</strong>
+                <span>Gather wood</span>
+              </span>
+            </button>
+
+            <button class="map-node mine-node" type="button" data-nav-target="mines">
+              <span class="map-node-icon" aria-hidden="true">⛏️</span>
+              <span>
+                <strong>Mines</strong>
+                <span>Explore the mine</span>
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="location-view forest-view active" data-view="forest" aria-hidden="false">
+<div class="tree-wrap">
         <div class="prompt" aria-live="polite">
           <div class="prompt-row">
             <span data-status>Click the tree to chop</span>
@@ -979,9 +1542,22 @@
 
         <div class="reward-pop" aria-live="polite">+1 Wood</div>
       </div>
-    </section>
+      </div>
 
-    <div class="hint">Tap the tree 5 times to gather 1 wood</div>
+      <div class="location-view mine-view" data-view="mines" aria-hidden="true">
+        <div class="mine-scene">
+          <div class="mine-title">
+            <strong>Mines</strong>
+            <span>Lakeside mining site</span>
+          </div>
+          <div class="mountain-rock" aria-hidden="true"></div>
+          <div class="cave-mouth" aria-hidden="true"></div>
+          <div class="mine-track" aria-hidden="true"></div>
+          <div class="mine-rock r1" aria-hidden="true"></div>
+          <div class="mine-rock r2" aria-hidden="true"></div>
+        </div>
+      </div>
+    </section>
 
 
     <aside class="inventory" aria-label="Inventory sidebar">
@@ -1008,6 +1584,22 @@
   </main>
 
   <script>
+
+    const launchSplash = document.getElementById('launchSplash');
+
+    function dismissLaunchSplash() {
+      if (!launchSplash) return;
+      launchSplash.classList.add('hide');
+      window.setTimeout(() => {
+        launchSplash.remove();
+      }, 520);
+    }
+
+    const reducedMotion = window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    window.setTimeout(dismissLaunchSplash, reducedMotion ? 300 : 1750);
+
     const tree = document.querySelector('.tree-button');
     const inventory = document.querySelector('.inventory');
     const inventoryToggle = document.querySelector('.inventory-toggle');
@@ -1022,6 +1614,9 @@
     const themeToggle = document.querySelector('.theme-toggle');
     const themeLabel = document.querySelector('.theme-label');
     const themeIcon = document.querySelector('.theme-icon');
+    const locationButtons = Array.from(document.querySelectorAll('[data-location]'));
+    const locationViews = Array.from(document.querySelectorAll('[data-view]'));
+    const mapDestinationButtons = Array.from(document.querySelectorAll('[data-nav-target]'));
 
     const hitsNeeded = 5;
     let hits = 0;
@@ -1102,6 +1697,40 @@
       }
     }
 
+
+    function setLocation(locationName) {
+      const validLocations = ['lakeside', 'forest', 'mines'];
+      const nextLocation = validLocations.includes(locationName) ? locationName : 'forest';
+
+      locationViews.forEach((view) => {
+        const isActive = view.dataset.view === nextLocation;
+        view.classList.toggle('active', isActive);
+        view.setAttribute('aria-hidden', isActive ? 'false' : 'true');
+      });
+
+      locationButtons.forEach((button) => {
+        const isActive = button.dataset.location === nextLocation;
+        button.classList.toggle('active', isActive);
+        button.setAttribute('aria-current', isActive ? 'page' : 'false');
+
+        const meta = button.querySelector('.location-meta');
+        if (!meta) return;
+
+        if (button.dataset.location === 'lakeside') {
+          meta.textContent = isActive ? 'Viewing area map' : 'Area map';
+        } else if (button.dataset.location === 'forest') {
+          meta.textContent = isActive ? 'Current location' : 'Travel here';
+        } else if (button.dataset.location === 'mines') {
+          meta.textContent = isActive ? 'Current location' : 'Travel here';
+        }
+      });
+
+      try {
+        localStorage.setItem('clicklands-location', nextLocation);
+      } catch (error) {
+      }
+    }
+
     function setTheme(isDark) {
       document.body.classList.toggle('dark', isDark);
       themeToggle.setAttribute('aria-pressed', isDark ? 'true' : 'false');
@@ -1109,7 +1738,7 @@
       themeIcon.textContent = isDark ? '🌙' : '☀️';
 
       try {
-        localStorage.setItem('cliquest-theme', isDark ? 'dark' : 'light');
+        localStorage.setItem('clicklands-theme', isDark ? 'dark' : 'light');
       } catch (error) {
       }
     }
@@ -1117,7 +1746,7 @@
     let startDark = false;
 
     try {
-      const storedTheme = localStorage.getItem('cliquest-theme');
+      const storedTheme = localStorage.getItem('clicklands-theme') || localStorage.getItem('cliquest-theme');
       if (storedTheme === 'dark') {
         startDark = true;
       } else if (storedTheme !== 'light' && window.matchMedia) {
@@ -1130,6 +1759,14 @@
     }
 
     tree.addEventListener('click', chop);
+    locationButtons.forEach((button) => {
+      button.addEventListener('click', () => setLocation(button.dataset.location));
+    });
+
+    mapDestinationButtons.forEach((button) => {
+      button.addEventListener('click', () => setLocation(button.dataset.navTarget));
+    });
+
     inventoryToggle.addEventListener('click', () => setInventory(true));
     closeInventory.addEventListener('click', () => setInventory(false));
     themeToggle.addEventListener('click', () => {
@@ -1142,7 +1779,18 @@
       }
     });
 
+    let startLocation = 'forest';
+
+    try {
+      const storedLocation = localStorage.getItem('clicklands-location') || localStorage.getItem('cliquest-location');
+      if (['lakeside', 'forest', 'mines'].includes(storedLocation)) {
+        startLocation = storedLocation;
+      }
+    } catch (error) {
+    }
+
     setTheme(startDark);
+    setLocation(startLocation);
     updateUI();
   </script>
 </body>
