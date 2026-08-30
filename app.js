@@ -14,6 +14,22 @@
     oakWood: { name: 'Oak Wood', plankKey: 'oakPlanks', plankName: 'Oak Planks', duration: 3200, planks: 2, sawdust: 1 },
     birchWood: { name: 'Birch Wood', plankKey: 'birchPlanks', plankName: 'Birch Planks', duration: 5200, planks: 2, sawdust: 1 },
   };
+  const GEAR_ITEMS = {
+    basicWoodcuttersAxe: {
+      name: "Basic Woodcutter's Axe",
+      shortName: 'Basic Axe',
+      slot: 'axe',
+      icon: '🪓',
+      bonus: '+1 tree damage',
+    },
+  };
+  const EQUIPMENT_SLOT_LABELS = {
+    axe: 'Axe', pickaxe: 'Pickaxe', helmet: 'Helmet', chestplate: 'Chestplate',
+    leggings: 'Leggings', boots: 'Boots', back: 'Back', necklace: 'Necklace',
+    'ring-1': 'Ring I', 'ring-2': 'Ring II', 'main-hand': 'Main Hand', 'off-hand': 'Off Hand',
+    'trinket-1': 'Trinket I', 'trinket-2': 'Trinket II', 'trinket-3': 'Trinket III',
+    'trinket-4': 'Trinket IV', 'trinket-5': 'Trinket V',
+  };
 
   const defaultState = {
     theme: 'light',
@@ -22,6 +38,7 @@
     inventoryOpen: false,
     inventoryTab: 'items',
     skillsOpen: false,
+    xpMenu: 'skills',
     username: 'Username',
     inventory: {
       oakWood: 0,
@@ -41,11 +58,28 @@
       basicWoodcuttersAxe: 0,
     },
     wallet: { copper: 0, xelium: 0 },
-    equipment: { axe: null },
+    equipment: {
+      axe: null, pickaxe: null, helmet: null, chestplate: null, leggings: null,
+      boots: null, back: null, necklace: null, 'ring-1': null, 'ring-2': null,
+      'main-hand': null, 'off-hand': null, 'trinket-1': null, 'trinket-2': null,
+      'trinket-3': null, 'trinket-4': null, 'trinket-5': null,
+    },
     overall: { level: 1, xp: 0 },
     skills: {
       woodcutting: { level: 1, xp: 0 },
       mining: { level: 1, xp: 0 },
+      foraging: { level: 1, xp: 0 },
+      fishing: { level: 1, xp: 0 },
+      alchemy: { level: 1, xp: 0 },
+      enchanting: { level: 1, xp: 0 },
+      archeology: { level: 1, xp: 0 },
+    },
+    classes: {
+      swordsman: { level: 1, xp: 0 },
+      ranger: { level: 1, xp: 0 },
+      wizard: { level: 1, xp: 0 },
+      priest: { level: 1, xp: 0 },
+      bard: { level: 1, xp: 0 },
     },
   };
 
@@ -132,6 +166,7 @@
           ${minesMarkup()}
           ${townMarkup()}
           ${lumbermillMarkup()}
+          ${villageInteriorsMarkup()}
         </section>
         ${inventoryMarkup()}
         ${resourceHoverBarMarkup()}
@@ -222,8 +257,46 @@
           </button>
 
           <div class="skills-drawer" data-skills-drawer>
-            ${skillMarkup('woodcutting', '🪓', 'Woodcutting')}
-            ${skillMarkup('mining', '⛏', 'Mining')}
+            <div class="xp-menu-tabs" role="tablist" aria-label="XP categories">
+              <button class="xp-menu-tab is-active" type="button" role="tab" aria-selected="true" data-xp-menu="skills">
+                <span class="xp-menu-tab-icon" aria-hidden="true">✦</span>
+                <span>Skill XP</span>
+              </button>
+              <button class="xp-menu-tab" type="button" role="tab" aria-selected="false" data-xp-menu="classes">
+                <span class="xp-menu-tab-icon" aria-hidden="true">⚔</span>
+                <span>Class XP</span>
+              </button>
+            </div>
+
+            <section class="progression-section xp-menu-pane" data-xp-pane="skills" role="tabpanel">
+              <div class="progression-section-head">
+                <span>Skills</span>
+                <small>Professions</small>
+              </div>
+              <div class="progression-grid">
+                ${skillMarkup('woodcutting', '🪓', 'Woodcutting')}
+                ${skillMarkup('mining', '⛏', 'Mining')}
+                ${skillMarkup('foraging', '🍄', 'Foraging')}
+                ${skillMarkup('fishing', '🎣', 'Fishing')}
+                ${skillMarkup('alchemy', '⚗', 'Alchemy')}
+                ${skillMarkup('enchanting', '✦', 'Enchanting')}
+                ${skillMarkup('archeology', '🏺', 'Archeology')}
+              </div>
+            </section>
+
+            <section class="progression-section xp-menu-pane class-levels-section" data-xp-pane="classes" role="tabpanel" hidden>
+              <div class="progression-section-head">
+                <span>Classes</span>
+                <small>Combat progression</small>
+              </div>
+              <div class="progression-grid class-grid">
+                ${classMarkup('swordsman', '⚔', 'Swordsman')}
+                ${classMarkup('ranger', '🏹', 'Ranger')}
+                ${classMarkup('wizard', '✧', 'Wizard')}
+                ${classMarkup('priest', '✚', 'Priest')}
+                ${classMarkup('bard', '♪', 'Bard')}
+              </div>
+            </section>
           </div>
         </div>
 
@@ -270,6 +343,22 @@
           <span class="progress-track"><span class="progress-fill" data-skill-fill="${key}"></span></span>
         </span>
         <span class="skill-level" data-skill-level="${key}">Level 1</span>
+      </div>
+    `;
+  }
+
+  function classMarkup(key, icon, name) {
+    return `
+      <div class="skill-row class-row" data-class="${key}">
+        <span class="skill-icon class-icon" aria-hidden="true">${icon}</span>
+        <span class="skill-copy">
+          <span class="skill-line">
+            <span class="skill-name">${name}</span>
+            <span class="skill-xp" data-class-xp="${key}">0 / 100 XP</span>
+          </span>
+          <span class="progress-track"><span class="progress-fill class-progress-fill" data-class-fill="${key}"></span></span>
+        </span>
+        <span class="skill-level" data-class-level="${key}">Level 1</span>
       </div>
     `;
   }
@@ -396,7 +485,22 @@
         <button class="mill-back" type="button" data-location="town">‹ Lakeshore Village</button>
         <div class="mill-title"><span>Lumbermill</span><strong>Timber & Sawworks</strong></div>
 
-        <button class="lumberjack-npc" type="button" data-lumberjack aria-label="Talk to the lumberjack">
+        <div class="sawmill-station" data-sawmill-drop>
+          <div class="sawmill-head">
+            <span><small>Sawmill Table</small><strong data-sawmill-status>Drag a log stack here</strong></span>
+            <span class="sawmill-busy-dot" aria-hidden="true"></span>
+          </div>
+          <div class="sawmill-machine" data-sawmill-machine>
+            <div class="sawmill-bed"><span class="sawmill-belt"></span></div>
+            <div class="saw-housing"><span class="saw-blade"></span></div>
+            <div class="sawmill-input">DROP LOG STACK</div>
+            <div class="sawmill-output" data-sawmill-output><span></span><span></span><span></span></div>
+          </div>
+          <div class="sawmill-progress"><span data-sawmill-fill></span></div>
+          <div class="sawmill-hint">Choose a batch amount in Inventory, then drag Oak or Birch Wood here. Larger batches process sequentially.</div>
+        </div>
+
+        <button class="lumberjack-npc" type="button" data-lumberjack aria-label="Talk to Garrick the lumberjack">
           <span class="npc-shadow" aria-hidden="true"></span>
           <span class="npc-body" aria-hidden="true">
             <span class="npc-head"><span class="npc-hair"></span><span class="npc-beard"></span></span>
@@ -407,20 +511,10 @@
           </span>
           <span class="npc-label"><strong>Garrick</strong><small>Lumberjack · Click to trade</small></span>
         </button>
-
-        <div class="sawmill-station" data-sawmill-drop>
-          <div class="sawmill-head">
-            <span><small>Sawmill Table</small><strong data-sawmill-status>Drag a log here</strong></span>
-            <span class="sawmill-busy-dot" aria-hidden="true"></span>
-          </div>
-          <div class="sawmill-machine" data-sawmill-machine>
-            <div class="sawmill-bed"><span class="sawmill-belt"></span></div>
-            <div class="saw-housing"><span class="saw-blade"></span></div>
-            <div class="sawmill-input">DROP LOG</div>
-            <div class="sawmill-output" data-sawmill-output><span></span><span></span><span></span></div>
-          </div>
-          <div class="sawmill-progress"><span data-sawmill-fill></span></div>
-          <div class="sawmill-hint">Drag Oak or Birch Wood from your inventory onto the table.</div>
+        <div class="mill-counter" aria-hidden="true">
+          <span class="counter-top"></span>
+          <span class="counter-panel panel-a"></span><span class="counter-panel panel-b"></span><span class="counter-panel panel-c"></span>
+          <span class="counter-sign">GARRICK'S TIMBER</span>
         </div>
 
         <aside class="lumber-shop" data-lumber-shop aria-label="Lumberjack shop">
@@ -432,6 +526,38 @@
         </aside>
       </div>
     `;
+  }
+
+  function villageInteriorsMarkup() {
+    const interior = ({ key, title, subtitle, role, note, icon, decor }) => `
+      <div class="world-view village-interior ${key}-interior" data-view="${key}">
+        <div class="interior-backdrop" aria-hidden="true"></div>
+        <div class="interior-floor" aria-hidden="true"></div>
+        <div class="interior-beams" aria-hidden="true"></div>
+        <div class="interior-decor ${decor}" aria-hidden="true">
+          <span class="decor-main"></span><span class="decor-side"></span><span class="decor-small"></span>
+        </div>
+        <button class="mill-back interior-back" type="button" data-location="town">‹ Lakeshore Village</button>
+        <div class="interior-title"><span>Lakeshore Village</span><strong>${title}</strong><small>${subtitle}</small></div>
+        <button class="village-npc npc-${key}" type="button" data-building-npc data-npc-title="${role}" data-npc-note="${note}">
+          <span class="village-npc-shadow" aria-hidden="true"></span>
+          <span class="village-npc-body" aria-hidden="true">
+            <span class="village-npc-head"><i></i></span>
+            <span class="village-npc-torso"></span>
+            <span class="village-npc-arm arm-a"></span><span class="village-npc-arm arm-b"></span>
+            <span class="village-npc-leg leg-a"></span><span class="village-npc-leg leg-b"></span>
+            <span class="village-npc-prop">${icon}</span>
+          </span>
+          <span class="village-npc-label"><strong>${role}</strong><small>Click to talk</small></span>
+        </button>
+      </div>`;
+
+    return [
+      interior({ key:'blacksmith', title:'Blacksmith', subtitle:'Forge, metalwork & repairs', role:'Blacksmith', note:'The forge is hot, but blacksmith services are still being built.', icon:'⚒', decor:'forge-decor' }),
+      interior({ key:'strange-shack', title:'Strange Shack', subtitle:'Arcane clutter & stranger business', role:'Wizard', note:'The wizard watches you carefully. Arcane services are coming later.', icon:'✦', decor:'wizard-decor' }),
+      interior({ key:'farmer', title:'Farmer', subtitle:'Crops, produce & farm goods', role:'Farmer', note:'The farmer is arranging fresh produce. Trading will be added later.', icon:'♨', decor:'farm-decor' }),
+      interior({ key:'foragers-hut', title:"Forager's Hut", subtitle:'Wild herbs, fungi & gathered goods', role:'Forager', note:'The forager is sorting today\'s finds. Trading will be added later.', icon:'❧', decor:'forager-decor' }),
+    ].join('');
   }
 
   function resourceHoverBarMarkup() {
@@ -452,15 +578,17 @@
     return `
       <aside class="inventory-drawer" data-inventory-drawer aria-label="Inventory and equipment">
         <div class="drawer-head">
-          <div><strong>Inventory</strong><span>Items & equipment</span></div>
+          <div><strong>Inventory</strong><span>Items · gear · equipment</span></div>
           <button class="icon-button" type="button" data-inventory-close aria-label="Close inventory">×</button>
         </div>
         <div class="drawer-tabs" role="tablist">
           <button class="drawer-tab" type="button" data-inventory-tab="items">Items</button>
+          <button class="drawer-tab" type="button" data-inventory-tab="gear">Gear</button>
           <button class="drawer-tab" type="button" data-inventory-tab="equipment">Equipment</button>
         </div>
         <div class="drawer-body">
           <section class="drawer-pane" data-inventory-pane="items"></section>
+          <section class="drawer-pane" data-inventory-pane="gear" hidden></section>
           <section class="drawer-pane" data-inventory-pane="equipment" hidden>${equipmentMarkup()}</section>
         </div>
       </aside>
@@ -558,6 +686,7 @@
       inventoryDrawer: document.querySelector('[data-inventory-drawer]'),
       inventoryClose: document.querySelector('[data-inventory-close]'),
       itemPane: document.querySelector('[data-inventory-pane="items"]'),
+      gearPane: document.querySelector('[data-inventory-pane="gear"]'),
       equipmentPane: document.querySelector('[data-inventory-pane="equipment"]'),
       forestStage: document.querySelector('[data-forest-stage]'),
       mineStage: document.querySelector('[data-mine-stage]'),
@@ -608,15 +737,20 @@
 
       const building = event.target.closest('[data-town-building]');
       if (building) {
-        if (building.dataset.townBuilding === 'lumbermill') {
-          setLocation('lumbermill');
-        } else {
-          showToast(
-            building.dataset.buildingName,
-            `${building.dataset.buildingNote}. Building interactions will be added later.`,
-            '⌂'
-          );
-        }
+        const destination = {
+          lumbermill: 'lumbermill',
+          blacksmith: 'blacksmith',
+          'strange-shack': 'strange-shack',
+          farmer: 'farmer',
+          'foragers-hut': 'foragers-hut',
+        }[building.dataset.townBuilding];
+        if (destination) setLocation(destination);
+        return;
+      }
+
+      const villageNpc = event.target.closest('[data-building-npc]');
+      if (villageNpc) {
+        showToast(villageNpc.dataset.npcTitle, villageNpc.dataset.npcNote, '⌂');
         return;
       }
 
@@ -649,11 +783,27 @@
         return;
       }
 
+      const equipmentSlot = event.target.closest('[data-equipment-slot]');
+      if (equipmentSlot) {
+        toggleEquipmentSlot(equipmentSlot.dataset.equipmentSlot);
+        return;
+      }
+
+      const xpMenuTab = event.target.closest('[data-xp-menu]');
+      if (xpMenuTab) {
+        state.xpMenu = xpMenuTab.dataset.xpMenu === 'classes' ? 'classes' : 'skills';
+        renderXpMenu();
+        return;
+      }
+
       const tab = event.target.closest('[data-inventory-tab]');
       if (tab) {
-        state.inventoryTab = tab.dataset.inventoryTab === 'equipment' ? 'equipment' : 'items';
+        state.inventoryTab = ['items', 'gear', 'equipment'].includes(tab.dataset.inventoryTab)
+          ? tab.dataset.inventoryTab
+          : 'items';
         renderInventory();
-            }
+        return;
+      }
     });
 
     ui.themeToggle.addEventListener('click', () => {
@@ -691,11 +841,14 @@
         event.preventDefault();
         return;
       }
-      runtime.draggedItem = key;
+      const row = item.closest('.item-row');
+      const amountInput = row?.querySelector(`[data-stack-amount="${key}"]`);
+      const amount = clamp(parseInt(amountInput?.value || '1', 10) || 1, 1, state.inventory[key]);
+      runtime.draggedItem = { key, amount };
       item.classList.add('is-dragging');
       document.body.classList.add('is-dragging-log');
       event.dataTransfer.effectAllowed = 'move';
-      event.dataTransfer.setData('text/plain', key);
+      event.dataTransfer.setData('text/plain', JSON.stringify({ key, amount }));
     });
 
     document.addEventListener('dragend', (event) => {
@@ -706,7 +859,7 @@
     });
 
     ui.sawmillDrop?.addEventListener('dragover', (event) => {
-      if (!runtime.draggedItem || !SAWMILL_RECIPES[runtime.draggedItem]) return;
+      if (!runtime.draggedItem || !SAWMILL_RECIPES[runtime.draggedItem.key]) return;
       event.preventDefault();
       event.dataTransfer.dropEffect = 'move';
       ui.sawmillDrop.classList.add('is-dragover');
@@ -719,10 +872,22 @@
     ui.sawmillDrop?.addEventListener('drop', (event) => {
       event.preventDefault();
       ui.sawmillDrop.classList.remove('is-dragover');
-      const key = event.dataTransfer.getData('text/plain') || runtime.draggedItem;
+      let payload = runtime.draggedItem;
+      const raw = event.dataTransfer.getData('text/plain');
+      if (raw) {
+        try { payload = JSON.parse(raw); } catch (error) { payload = { key: raw, amount: 1 }; }
+      }
       runtime.draggedItem = null;
       document.body.classList.remove('is-dragging-log');
-      startSawmill(key);
+      if (payload?.key) startSawmill(payload.key, payload.amount || 1);
+    });
+
+    document.addEventListener('input', (event) => {
+      const input = event.target.closest('[data-stack-amount]');
+      if (!input) return;
+      const key = input.dataset.stackAmount;
+      const max = Math.max(1, state.inventory[key] || 1);
+      input.value = String(clamp(parseInt(input.value || '1', 10) || 1, 1, max));
     });
 
     window.addEventListener('resize', () => {
@@ -791,7 +956,7 @@
   }
 
   function setLocation(location) {
-    if (!['lakeside', 'forest', 'mines', 'town', 'lumbermill'].includes(location)) return;
+    if (!['lakeside', 'forest', 'mines', 'town', 'lumbermill', 'blacksmith', 'strange-shack', 'farmer', 'foragers-hut'].includes(location)) return;
     hideResourceHoverBar();
     state.location = location;
     state.inventoryOpen = false;
@@ -806,12 +971,22 @@
     updateProgressUI(state.overall, ui.overallLevel, ui.overallXp, ui.overallFill, true);
     renderWallet();
 
-    ['woodcutting', 'mining'].forEach((skill) => {
-      const data = state.skills[skill];
+    Object.entries(state.skills).forEach(([skill, data]) => {
       const levelNode = document.querySelector(`[data-skill-level="${skill}"]`);
       const xpNode = document.querySelector(`[data-skill-xp="${skill}"]`);
       const fillNode = document.querySelector(`[data-skill-fill="${skill}"]`);
-      updateProgressUI(data, levelNode, xpNode, fillNode, false);
+      if (levelNode && xpNode && fillNode) {
+        updateProgressUI(data, levelNode, xpNode, fillNode, false);
+      }
+    });
+
+    Object.entries(state.classes).forEach(([className, data]) => {
+      const levelNode = document.querySelector(`[data-class-level="${className}"]`);
+      const xpNode = document.querySelector(`[data-class-xp="${className}"]`);
+      const fillNode = document.querySelector(`[data-class-fill="${className}"]`);
+      if (levelNode && xpNode && fillNode) {
+        updateProgressUI(data, levelNode, xpNode, fillNode, false);
+      }
     });
   }
 
@@ -832,6 +1007,19 @@
     ui.inventoryDrawer.classList.toggle('is-open', state.inventoryOpen);
     ui.characterBar.setAttribute('aria-expanded', String(state.skillsOpen));
     ui.skillsDrawer.classList.toggle('is-open', state.skillsOpen);
+    renderXpMenu();
+  }
+
+  function renderXpMenu() {
+    document.querySelectorAll('[data-xp-menu]').forEach((tab) => {
+      const active = tab.dataset.xpMenu === state.xpMenu;
+      tab.classList.toggle('is-active', active);
+      tab.setAttribute('aria-selected', String(active));
+    });
+
+    document.querySelectorAll('[data-xp-pane]').forEach((pane) => {
+      pane.hidden = pane.dataset.xpPane !== state.xpMenu;
+    });
   }
 
   function renderInventory() {
@@ -842,6 +1030,7 @@
     });
 
     ui.itemPane.hidden = state.inventoryTab !== 'items';
+    ui.gearPane.hidden = state.inventoryTab !== 'gear';
     ui.equipmentPane.hidden = state.inventoryTab !== 'equipment';
     ui.inventoryDrawer.classList.toggle('equipment-mode', state.inventoryTab === 'equipment');
 
@@ -851,7 +1040,6 @@
       { key: 'oakPlanks', name: 'Oak Planks', icon: '<span class="mini-plank oak"></span>' },
       { key: 'birchPlanks', name: 'Birch Planks', icon: '<span class="mini-plank birch"></span>' },
       { key: 'sawdust', name: 'Sawdust', icon: '<span class="mini-sawdust"></span>' },
-      { key: 'basicWoodcuttersAxe', name: "Basic Woodcutter's Axe", icon: '<span aria-hidden="true">🪓</span>', equip: true },
       { key: 'apples', name: 'Apple', icon: '<span aria-hidden="true">🍎</span>' },
       { key: 'acorns', name: 'Acorn', icon: '<span aria-hidden="true">🌰</span>' },
       { key: 'stone', name: 'Stone', icon: '<span class="mini-ore stone" aria-hidden="true"></span>' },
@@ -865,17 +1053,35 @@
 
     ui.itemPane.innerHTML = items.length
       ? `<div class="item-list">${items.map((item) => {
-          const isEquipped = item.key === 'basicWoodcuttersAxe' && state.equipment.axe === item.key;
-          const action = item.equip
-            ? `<button class="item-action" type="button" data-equip-item="${item.key}">${isEquipped ? 'Unequip' : 'Equip'}</button>`
+          const dragHandle = item.draggable
+            ? `<span class="item-drag-zone" draggable="true" data-drag-item="${item.key}" title="Drag to the sawmill">
+                <span class="item-icon">${item.icon}</span><span class="item-name">${item.name}</span>
+              </span>`
+            : `<span class="item-drag-zone item-static-zone"><span class="item-icon">${item.icon}</span><span class="item-name">${item.name}</span></span>`;
+          const batch = item.draggable
+            ? `<label class="stack-picker" title="Amount to process"><span>Batch</span><input type="number" min="1" max="${state.inventory[item.key]}" value="1" data-stack-amount="${item.key}"></label>`
             : '';
-          return `<div class="item-row${item.draggable ? ' is-draggable' : ''}" ${item.draggable ? `draggable="true" data-drag-item="${item.key}"` : ''}>
-            <span class="item-icon">${item.icon}</span>
-            <span class="item-name">${item.name}${isEquipped ? '<small>Equipped · +1 tree damage</small>' : ''}</span>
-            <span class="item-actions"><span class="item-count">${state.inventory[item.key]}</span>${action}</span>
+          return `<div class="item-row${item.draggable ? ' is-draggable' : ''}">
+            ${dragHandle}
+            <span class="item-actions">${batch}<span class="item-count">${state.inventory[item.key]}</span></span>
           </div>`;
         }).join('')}</div>`
       : '<div class="item-empty">No items yet.</div>';
+
+    const gear = Object.entries(GEAR_ITEMS)
+      .map(([key, item]) => ({ key, ...item, count: state.inventory[key] || 0 }))
+      .filter((item) => item.count > 0);
+
+    ui.gearPane.innerHTML = gear.length
+      ? `<div class="gear-list">${gear.map((item) => {
+          const equipped = state.equipment[item.slot] === item.key;
+          return `<div class="gear-row${equipped ? ' is-equipped' : ''}">
+            <span class="gear-icon">${item.icon}</span>
+            <span class="gear-copy"><strong>${item.name}</strong><small>${item.bonus}</small></span>
+            <span class="gear-actions"><span class="gear-slot-tag">${EQUIPMENT_SLOT_LABELS[item.slot]}</span><button type="button" data-equip-item="${item.key}">${equipped ? 'Unequip' : 'Equip'}</button></span>
+          </div>`;
+        }).join('')}</div>`
+      : '<div class="item-empty">No gear yet.</div>';
 
     renderEquipment();
   }
@@ -976,50 +1182,85 @@
   }
 
   function toggleEquipItem(key) {
-    if (key !== 'basicWoodcuttersAxe' || state.inventory[key] <= 0) return;
-    state.equipment.axe = state.equipment.axe === key ? null : key;
+    const gear = GEAR_ITEMS[key];
+    if (!gear || state.inventory[key] <= 0) return;
+    const equipped = state.equipment[gear.slot] === key;
+    state.equipment[gear.slot] = equipped ? null : key;
     renderInventory();
     showToast(
-      state.equipment.axe ? 'Axe equipped' : 'Axe unequipped',
-      state.equipment.axe ? '+1 damage to every tree hit.' : 'Tree damage returned to normal.',
-      '🪓'
+      equipped ? 'Gear unequipped' : 'Gear equipped',
+      equipped ? `${gear.name} removed from ${EQUIPMENT_SLOT_LABELS[gear.slot]}.` : `${gear.name} equipped · ${gear.bonus}.`,
+      gear.icon
     );
   }
 
+  function toggleEquipmentSlot(slot) {
+    if (!(slot in state.equipment)) return;
+    const equippedKey = state.equipment[slot];
+    if (equippedKey) {
+      const gear = GEAR_ITEMS[equippedKey];
+      state.equipment[slot] = null;
+      renderInventory();
+      showToast('Slot cleared', `${gear?.name || 'Gear'} unequipped.`, gear?.icon || '◇');
+      return;
+    }
+
+    const compatible = Object.entries(GEAR_ITEMS).find(([key, gear]) => gear.slot === slot && (state.inventory[key] || 0) > 0);
+    if (!compatible) {
+      showToast('No compatible gear', `You do not own gear for the ${EQUIPMENT_SLOT_LABELS[slot] || slot} slot yet.`, '◇');
+      return;
+    }
+
+    const [key, gear] = compatible;
+    state.equipment[slot] = key;
+    renderInventory();
+    showToast('Gear equipped', `${gear.name} equipped · ${gear.bonus}.`, gear.icon);
+  }
+
   function renderEquipment() {
-    const axeSlot = document.querySelector('[data-equipment-slot="axe"]');
-    if (!axeSlot) return;
-    const equipped = state.equipment.axe === 'basicWoodcuttersAxe';
-    axeSlot.classList.toggle('is-equipped', equipped);
-    axeSlot.setAttribute('aria-label', equipped ? "Axe, Basic Woodcutter's Axe equipped" : 'Axe, empty');
-    const stateNode = axeSlot.querySelector('.equipment-slot-state');
-    if (stateNode) stateNode.textContent = equipped ? "Basic Woodcutter's Axe · +1 dmg" : 'Empty';
+    document.querySelectorAll('[data-equipment-slot]').forEach((slotNode) => {
+      const slot = slotNode.dataset.equipmentSlot;
+      const equippedKey = state.equipment[slot];
+      const gear = equippedKey ? GEAR_ITEMS[equippedKey] : null;
+      slotNode.classList.toggle('is-equipped', Boolean(gear));
+      slotNode.setAttribute('aria-label', gear
+        ? `${EQUIPMENT_SLOT_LABELS[slot]}, ${gear.name} equipped. Click to unequip.`
+        : `${EQUIPMENT_SLOT_LABELS[slot]}, empty. Click to equip compatible gear.`);
+      const stateNode = slotNode.querySelector('.equipment-slot-state');
+      if (stateNode) {
+        stateNode.textContent = gear ? gear.name : 'Empty';
+        stateNode.title = gear ? `${gear.name} · ${gear.bonus}` : '';
+      }
+    });
   }
 
   function getTreeDamage() {
     return state.equipment.axe === 'basicWoodcuttersAxe' ? 2 : 1;
   }
 
-  function startSawmill(key) {
+  function startSawmill(key, requestedAmount = 1) {
     const recipe = SAWMILL_RECIPES[key];
     if (!recipe || state.location !== 'lumbermill') return;
     if (runtime.sawmillJob) {
-      showToast('Sawmill busy', 'Wait for the current log to finish.', '⚙');
+      showToast('Sawmill busy', 'Wait for the current batch to finish.', '⚙');
       return;
     }
-    if ((state.inventory[key] || 0) <= 0) {
+    const owned = state.inventory[key] || 0;
+    if (owned <= 0) {
       showToast('No logs', `You do not have any ${recipe.name}.`, '▤');
       return;
     }
 
-    state.inventory[key] -= 1;
+    const amount = clamp(parseInt(requestedAmount, 10) || 1, 1, owned);
+    state.inventory[key] -= amount;
     const startedAt = performance.now();
-    runtime.sawmillJob = { key, recipe, startedAt, endsAt: startedAt + recipe.duration };
+    const duration = recipe.duration * amount;
+    runtime.sawmillJob = { key, recipe, amount, startedAt, duration, endsAt: startedAt + duration };
     renderInventory();
     renderLumberShop();
     ui.sawmillMachine.classList.add('is-running');
     ui.sawmillDrop.classList.add('is-processing');
-    ui.sawmillStatus.textContent = `Cutting ${recipe.name}…`;
+    ui.sawmillStatus.textContent = `Cutting ${amount} × ${recipe.name}…`;
     updateSawmillProgress();
     runtime.sawmillTimer = window.setInterval(updateSawmillProgress, 80);
   }
@@ -1031,7 +1272,7 @@
       return;
     }
     const now = performance.now();
-    const progress = clamp((now - job.startedAt) / job.recipe.duration, 0, 1);
+    const progress = clamp((now - job.startedAt) / job.duration, 0, 1);
     ui.sawmillFill.style.width = `${progress * 100}%`;
     if (progress >= 1) finishSawmill();
   }
@@ -1043,8 +1284,10 @@
     runtime.sawmillTimer = null;
     runtime.sawmillJob = null;
 
-    state.inventory[job.recipe.plankKey] += job.recipe.planks;
-    state.inventory.sawdust += job.recipe.sawdust;
+    const plankOutput = job.recipe.planks * job.amount;
+    const sawdustOutput = job.recipe.sawdust * job.amount;
+    state.inventory[job.recipe.plankKey] += plankOutput;
+    state.inventory.sawdust += sawdustOutput;
     ui.sawmillMachine.classList.remove('is-running');
     ui.sawmillDrop.classList.remove('is-processing');
     ui.sawmillOutput.classList.remove('is-ejecting');
@@ -1053,12 +1296,12 @@
     ui.sawmillFill.style.width = '100%';
     ui.sawmillStatus.textContent = `${job.recipe.plankName} ready`;
     renderInventory();
-    showToast('Sawmill finished', `+${job.recipe.planks} ${job.recipe.plankName} · +${job.recipe.sawdust} Sawdust`, '▤');
+    showToast('Sawmill finished', `+${plankOutput} ${job.recipe.plankName} · +${sawdustOutput} Sawdust`, '▤');
 
     window.setTimeout(() => {
       ui.sawmillOutput.classList.remove('is-ejecting');
       ui.sawmillFill.style.width = '0%';
-      ui.sawmillStatus.textContent = 'Drag a log here';
+      ui.sawmillStatus.textContent = 'Drag a log stack here';
     }, 1050);
   }
 
