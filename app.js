@@ -1,9 +1,19 @@
 (() => {
-  const SAVE_KEY = 'clicklands-online-save-v2';
   const ENTER_SOUND = 'assets/sfx/CL-enter.wav';
   const LOGO = 'assets/images/CL-logo.png';
-  const PROGRESSION_MODEL = 3;
+  const THEME_KEY = 'clicklands-theme';
   const OVERALL_XP_PER_SKILL_LEVEL = 25;
+  const COIN_RATES = { copper: 1, silver: 100, gold: 10000, platinum: 1000000 };
+  const BASIC_AXE_PRICE = 150;
+  const LUMBER_SELL_PRICES = {
+    oakWood: { name: 'Oak Wood', price: 12 },
+    birchWood: { name: 'Birch Wood', price: 20 },
+    acorns: { name: 'Acorn', price: 6 },
+  };
+  const SAWMILL_RECIPES = {
+    oakWood: { name: 'Oak Wood', plankKey: 'oakPlanks', plankName: 'Oak Planks', duration: 3200, planks: 2, sawdust: 1 },
+    birchWood: { name: 'Birch Wood', plankKey: 'birchPlanks', plankName: 'Birch Planks', duration: 5200, planks: 2, sawdust: 1 },
+  };
 
   const defaultState = {
     theme: 'light',
@@ -19,7 +29,19 @@
       apples: 0,
       acorns: 0,
       stone: 0,
+      coal: 0,
+      ironOre: 0,
+      goldOre: 0,
+      silverOre: 0,
+      quartz: 0,
+      amethyst: 0,
+      oakPlanks: 0,
+      birchPlanks: 0,
+      sawdust: 0,
+      basicWoodcuttersAxe: 0,
     },
+    wallet: { copper: 0, xelium: 0 },
+    equipment: { axe: null },
     overall: { level: 1, xp: 0 },
     skills: {
       woodcutting: { level: 1, xp: 0 },
@@ -40,14 +62,39 @@
     large: { scale: 1.22, minLogs: 7, maxLogs: 11, hitsPerLog: 4, label: 'Large' },
   };
 
-  const state = loadState();
+  const mineSlots = [
+    { x: 14, y: 79, scale: .86 },
+    { x: 31, y: 91, scale: 1.02 },
+    { x: 49, y: 79, scale: .92 },
+    { x: 67, y: 91, scale: 1.04 },
+    { x: 85, y: 80, scale: .88 },
+  ];
+
+  const miningTypes = [
+    { key: 'stone', name: 'Stone Deposit', itemName: 'Stone', weight: 52, minUnits: 5, maxUnits: 9, hitsPerUnit: 3, xp: 5, color: '#8c9591' },
+    { key: 'coal', name: 'Coal Vein', itemName: 'Coal', weight: 26, minUnits: 4, maxUnits: 7, hitsPerUnit: 3, xp: 6, color: '#343a38' },
+    { key: 'ironOre', name: 'Iron Vein', itemName: 'Iron Ore', weight: 12, minUnits: 3, maxUnits: 5, hitsPerUnit: 4, xp: 8, color: '#b56f53' },
+    { key: 'goldOre', name: 'Gold Vein', itemName: 'Gold Ore', weight: 4, minUnits: 2, maxUnits: 4, hitsPerUnit: 5, xp: 12, color: '#d7b84d' },
+    { key: 'geode', name: 'Geode', itemName: 'Geode', weight: 5, minUnits: 2, maxUnits: 4, hitsPerUnit: 4, xp: 10, color: '#8c73b8' },
+    { key: 'silverOre', name: 'Silver Vein', itemName: 'Silver Ore', weight: 1, minUnits: 1, maxUnits: 3, hitsPerUnit: 6, xp: 18, color: '#d5dbe0' },
+  ];
+
+  const state = JSON.parse(JSON.stringify(defaultState));
+  state.theme = loadThemePreference();
+
   const runtime = {
     trees: new Map(),
     occupiedSlots: new Set(),
     treeId: 0,
-    rock: null,
+    mineNodes: new Map(),
+    occupiedMineSlots: new Set(),
+    mineNodeId: 0,
     hoverResource: null,
     entered: false,
+    lumberShopOpen: false,
+    sawmillJob: null,
+    sawmillTimer: null,
+    draggedItem: null,
   };
 
   mountApp();
@@ -58,70 +105,9 @@
   renderHUD();
   renderInventory();
   renderDrawers();
+  renderLumberShop();
   spawnInitialForest();
-  spawnRock();
-  saveState();
-
-  function loadState() {
-    let saved = {};
-    try {
-      saved = JSON.parse(localStorage.getItem(SAVE_KEY) || '{}');
-    } catch (error) {
-      saved = {};
-    }
-
-    let oldTheme = null;
-    let oldLocation = null;
-    try {
-      oldTheme = localStorage.getItem('clicklands-theme') || localStorage.getItem('cliquest-theme');
-      oldLocation = localStorage.getItem('clicklands-location') || localStorage.getItem('cliquest-location');
-    } catch (error) {
-    }
-
-    const merged = {
-      ...defaultState,
-      ...saved,
-      inventory: { ...defaultState.inventory, ...(saved.inventory || {}) },
-      overall: { ...defaultState.overall, ...(saved.overall || {}) },
-      skills: {
-        woodcutting: { ...defaultState.skills.woodcutting, ...(saved.skills?.woodcutting || {}) },
-        mining: { ...defaultState.skills.mining, ...(saved.skills?.mining || {}) },
-      },
-    };
-
-    if (!saved.theme && oldTheme === 'dark') merged.theme = 'dark';
-    if (!saved.location && ['lakeside', 'forest', 'mines'].includes(oldLocation)) merged.location = oldLocation;
-
-    if (saved.progressionModel !== PROGRESSION_MODEL) {
-      const earnedSkillLevels =
-        Math.max(0, merged.skills.woodcutting.level - 1) +
-        Math.max(0, merged.skills.mining.level - 1);
-      merged.overall = progressFromTotalXp(earnedSkillLevels * OVERALL_XP_PER_SKILL_LEVEL);
-    }
-
-    merged.inventoryOpen = false;
-    merged.skillsOpen = false;
-    return merged;
-  }
-
-  function saveState() {
-    const save = {
-      theme: state.theme,
-      location: state.location,
-      lakesideExpanded: state.lakesideExpanded,
-      inventoryTab: state.inventoryTab,
-      username: state.username,
-      progressionModel: PROGRESSION_MODEL,
-      inventory: state.inventory,
-      overall: state.overall,
-      skills: state.skills,
-    };
-
-    try {
-      localStorage.setItem(SAVE_KEY, JSON.stringify(save));
-    } catch (error) {
-    }
-  }
+  spawnInitialMineNodes();
 
   function mountApp() {
     const root = document.getElementById('app');
@@ -144,6 +130,8 @@
           ${lakesideMarkup()}
           ${forestMarkup()}
           ${minesMarkup()}
+          ${townMarkup()}
+          ${lumbermillMarkup()}
         </section>
         ${inventoryMarkup()}
         ${resourceHoverBarMarkup()}
@@ -179,6 +167,13 @@
           </div>
 
           <div class="area-children" data-area-children>
+            <button class="nav-button child" type="button" data-location="town">
+              <span class="nav-icon" aria-hidden="true">⌂</span>
+              <span class="nav-copy">
+                <span class="nav-name">Lakeshore Village</span>
+                <span class="nav-meta">Shops & services</span>
+              </span>
+            </button>
             <button class="nav-button child" type="button" data-location="forest">
               <span class="nav-icon" aria-hidden="true">♣</span>
               <span class="nav-copy">
@@ -232,6 +227,14 @@
           </div>
         </div>
 
+        <div class="wallet-hud" aria-label="Currency">
+          <div class="currency-chip copper" title="Copper"><span class="coin-icon">C</span><strong data-wallet-copper>0</strong></div>
+          <div class="currency-chip silver" title="Silver"><span class="coin-icon">S</span><strong data-wallet-silver>0</strong></div>
+          <div class="currency-chip gold" title="Gold"><span class="coin-icon">G</span><strong data-wallet-gold>0</strong></div>
+          <div class="currency-chip platinum" title="Platinum"><span class="coin-icon">P</span><strong data-wallet-platinum>0</strong></div>
+          <div class="currency-chip xelium" title="Xelium"><span class="xelium-stone" aria-hidden="true"></span><strong data-wallet-xelium>0</strong></div>
+        </div>
+
         <button class="inventory-button" type="button" data-inventory-toggle>
           ${bagSvg()}
           <span>Inventory</span>
@@ -273,7 +276,11 @@
           </button>
           <button class="map-node mines" type="button" data-location="mines">
             <span class="map-node-icon" aria-hidden="true">◆</span>
-            <span><strong>Mines</strong><small>Mine stone deposits</small></span>
+            <span><strong>Mines</strong><small>Ore veins & geodes</small></span>
+          </button>
+          <button class="map-node town" type="button" data-location="town">
+            <span class="map-node-icon" aria-hidden="true">⌂</span>
+            <span><strong>Lakeshore Village</strong><small>Trade, craft & explore</small></span>
           </button>
         </div>
       </div>
@@ -286,7 +293,7 @@
         <div class="forest-horizon" aria-hidden="true"></div>
         <div class="forest-ground" aria-hidden="true"></div>
         <div class="forest-ground-detail" aria-hidden="true"></div>
-        <div data-forest-stage></div>
+        <div class="forest-node-stage" data-forest-stage></div>
       </div>
     `;
   }
@@ -294,10 +301,120 @@
   function minesMarkup() {
     return `
       <div class="world-view mines-view" data-view="mines">
-        <div class="cave-wall" aria-hidden="true"></div>
-        <div class="cave-mouth" aria-hidden="true"></div>
-        <div class="mine-track" aria-hidden="true"></div>
-        <div data-rock-host></div>
+        <div class="cave-depth" aria-hidden="true"></div>
+        <div class="cave-ceiling" aria-hidden="true"></div>
+        <div class="cave-wall-layer cave-wall-left" aria-hidden="true"></div>
+        <div class="cave-wall-layer cave-wall-right" aria-hidden="true"></div>
+        <div class="cave-floor" aria-hidden="true"></div>
+        <div class="cave-tunnel" aria-hidden="true"></div>
+        <div class="cave-support support-a" aria-hidden="true"></div>
+        <div class="cave-support support-b" aria-hidden="true"></div>
+        <div class="cave-lantern lantern-a" aria-hidden="true"><span></span></div>
+        <div class="cave-lantern lantern-b" aria-hidden="true"><span></span></div>
+        <div class="cave-crystal crystal-a" aria-hidden="true"></div>
+        <div class="cave-crystal crystal-b" aria-hidden="true"></div>
+        <div class="mine-node-stage" data-mine-stage></div>
+      </div>
+    `;
+  }
+
+
+  function townMarkup() {
+    const building = (key, icon, name, subtitle) => `
+      <button class="town-building ${key}" type="button"
+        data-town-building="${key}"
+        data-building-name="${name}"
+        data-building-note="${subtitle}">
+        <span class="building-visual" aria-hidden="true">
+          <span class="building-shadow"></span>
+          <span class="building-body"></span>
+          <span class="building-roof"></span>
+          <span class="building-door"></span>
+          <span class="building-window window-a"></span>
+          <span class="building-window window-b"></span>
+          <span class="building-detail">${icon}</span>
+        </span>
+        <span class="building-label">
+          <strong>${name}</strong>
+          <small>${subtitle}</small>
+        </span>
+      </button>`;
+
+    return `
+      <div class="world-view town-view" data-view="town">
+        <div class="town-skyline" aria-hidden="true"></div>
+        <div class="town-ground" aria-hidden="true"></div>
+        <div class="town-road road-main" aria-hidden="true"></div>
+        <div class="town-road road-cross" aria-hidden="true"></div>
+
+        <div class="town-heading">
+          <span class="town-kicker">Lakeside</span>
+          <strong>Lakeshore Village</strong>
+          <span>Local tradesfolk and a few questionable neighbors.</span>
+        </div>
+
+        <div class="town-square">
+          ${building('lumbermill', '▤', 'Lumbermill', 'Woodworking & timber')}
+          ${building('blacksmith', '⚒', 'Blacksmith', 'Tools, metal & repairs')}
+          ${building('strange-shack', '✧', 'Strange Shack', 'Something feels off')}
+          ${building('farmer', '♜', 'Farmer', 'Crops, food & produce')}
+          ${building('foragers-hut', '❧', "Forager's Hut", 'Wild goods & supplies')}
+        </div>
+
+        <div class="town-lake-edge" aria-hidden="true"></div>
+        <div class="town-foliage foliage-a" aria-hidden="true">♣ ♣ ♣</div>
+        <div class="town-foliage foliage-b" aria-hidden="true">♣ ♣</div>
+      </div>
+    `;
+  }
+
+
+  function lumbermillMarkup() {
+    return `
+      <div class="world-view lumbermill-view" data-view="lumbermill">
+        <div class="mill-wall" aria-hidden="true"></div>
+        <div class="mill-beam beam-a" aria-hidden="true"></div>
+        <div class="mill-beam beam-b" aria-hidden="true"></div>
+        <div class="mill-window" aria-hidden="true"><span></span></div>
+        <div class="mill-log-stack" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+
+        <button class="mill-back" type="button" data-location="town">‹ Lakeshore Village</button>
+        <div class="mill-title"><span>Lumbermill</span><strong>Timber & Sawworks</strong></div>
+
+        <button class="lumberjack-npc" type="button" data-lumberjack aria-label="Talk to the lumberjack">
+          <span class="npc-shadow" aria-hidden="true"></span>
+          <span class="npc-body" aria-hidden="true">
+            <span class="npc-head"><span class="npc-hair"></span><span class="npc-beard"></span></span>
+            <span class="npc-shirt"></span>
+            <span class="npc-overalls"></span>
+            <span class="npc-arm arm-left"></span><span class="npc-arm arm-right"></span>
+            <span class="npc-leg leg-left"></span><span class="npc-leg leg-right"></span>
+          </span>
+          <span class="npc-label"><strong>Garrick</strong><small>Lumberjack · Click to trade</small></span>
+        </button>
+
+        <div class="sawmill-station" data-sawmill-drop>
+          <div class="sawmill-head">
+            <span><small>Sawmill Table</small><strong data-sawmill-status>Drag a log here</strong></span>
+            <span class="sawmill-busy-dot" aria-hidden="true"></span>
+          </div>
+          <div class="sawmill-machine" data-sawmill-machine>
+            <div class="sawmill-bed"><span class="sawmill-belt"></span></div>
+            <div class="saw-housing"><span class="saw-blade"></span></div>
+            <div class="sawmill-input">DROP LOG</div>
+            <div class="sawmill-output" data-sawmill-output><span></span><span></span><span></span></div>
+          </div>
+          <div class="sawmill-progress"><span data-sawmill-fill></span></div>
+          <div class="sawmill-hint">Drag Oak or Birch Wood from your inventory onto the table.</div>
+        </div>
+
+        <aside class="lumber-shop" data-lumber-shop aria-label="Lumberjack shop">
+          <div class="lumber-shop-head">
+            <div><small>Garrick's Counter</small><strong>Lumberjack Shop</strong></div>
+            <button type="button" data-lumber-shop-close aria-label="Close shop">×</button>
+          </div>
+          <div class="lumber-shop-body" data-lumber-shop-body></div>
+        </aside>
       </div>
     `;
   }
@@ -428,13 +545,25 @@
       itemPane: document.querySelector('[data-inventory-pane="items"]'),
       equipmentPane: document.querySelector('[data-inventory-pane="equipment"]'),
       forestStage: document.querySelector('[data-forest-stage]'),
-      rockHost: document.querySelector('[data-rock-host]'),
+      mineStage: document.querySelector('[data-mine-stage]'),
       toastStack: document.querySelector('[data-toasts]'),
       resourceHoverBar: document.querySelector('[data-resource-hover-bar]'),
       resourceHoverName: document.querySelector('[data-resource-hover-name]'),
       resourceHoverMeta: document.querySelector('[data-resource-hover-meta]'),
       resourceHoverFill: document.querySelector('[data-resource-hover-fill]'),
       mapCard: document.querySelector('[data-map-card]'),
+      walletCopper: document.querySelector('[data-wallet-copper]'),
+      walletSilver: document.querySelector('[data-wallet-silver]'),
+      walletGold: document.querySelector('[data-wallet-gold]'),
+      walletPlatinum: document.querySelector('[data-wallet-platinum]'),
+      walletXelium: document.querySelector('[data-wallet-xelium]'),
+      lumberShop: document.querySelector('[data-lumber-shop]'),
+      lumberShopBody: document.querySelector('[data-lumber-shop-body]'),
+      sawmillDrop: document.querySelector('[data-sawmill-drop]'),
+      sawmillMachine: document.querySelector('[data-sawmill-machine]'),
+      sawmillStatus: document.querySelector('[data-sawmill-status]'),
+      sawmillFill: document.querySelector('[data-sawmill-fill]'),
+      sawmillOutput: document.querySelector('[data-sawmill-output]'),
     };
   }
 
@@ -462,25 +591,66 @@
         return;
       }
 
+      const building = event.target.closest('[data-town-building]');
+      if (building) {
+        if (building.dataset.townBuilding === 'lumbermill') {
+          setLocation('lumbermill');
+        } else {
+          showToast(
+            building.dataset.buildingName,
+            `${building.dataset.buildingNote}. Building interactions will be added later.`,
+            '⌂'
+          );
+        }
+        return;
+      }
+
+      if (event.target.closest('[data-lumberjack]')) {
+        runtime.lumberShopOpen = true;
+        renderLumberShop();
+        return;
+      }
+
+      if (event.target.closest('[data-lumber-shop-close]')) {
+        runtime.lumberShopOpen = false;
+        renderLumberShop();
+        return;
+      }
+
+      const sellButton = event.target.closest('[data-sell-item]');
+      if (sellButton) {
+        sellLumberItem(sellButton.dataset.sellItem, sellButton.dataset.sellMode === 'all');
+        return;
+      }
+
+      if (event.target.closest('[data-buy-basic-axe]')) {
+        buyBasicAxe();
+        return;
+      }
+
+      const equipButton = event.target.closest('[data-equip-item]');
+      if (equipButton) {
+        toggleEquipItem(equipButton.dataset.equipItem);
+        return;
+      }
+
       const tab = event.target.closest('[data-inventory-tab]');
       if (tab) {
         state.inventoryTab = tab.dataset.inventoryTab === 'equipment' ? 'equipment' : 'items';
         renderInventory();
-        saveState();
-      }
+            }
     });
 
     ui.themeToggle.addEventListener('click', () => {
       state.theme = state.theme === 'dark' ? 'light' : 'dark';
+      saveThemePreference(state.theme);
       applyTheme();
-      saveState();
     });
 
     ui.areaToggle.addEventListener('click', () => {
       state.lakesideExpanded = !state.lakesideExpanded;
       renderNavigation();
-      saveState();
-    });
+        });
 
     ui.characterBar.addEventListener('click', () => {
       state.skillsOpen = !state.skillsOpen;
@@ -496,6 +666,48 @@
       state.inventoryOpen = false;
       renderDrawers();
       ui.inventoryToggle.focus();
+    });
+
+    document.addEventListener('dragstart', (event) => {
+      const item = event.target.closest('[data-drag-item]');
+      if (!item) return;
+      const key = item.dataset.dragItem;
+      if (!SAWMILL_RECIPES[key] || state.inventory[key] <= 0) {
+        event.preventDefault();
+        return;
+      }
+      runtime.draggedItem = key;
+      item.classList.add('is-dragging');
+      document.body.classList.add('is-dragging-log');
+      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.setData('text/plain', key);
+    });
+
+    document.addEventListener('dragend', (event) => {
+      event.target.closest('[data-drag-item]')?.classList.remove('is-dragging');
+      runtime.draggedItem = null;
+      document.body.classList.remove('is-dragging-log');
+      ui.sawmillDrop?.classList.remove('is-dragover');
+    });
+
+    ui.sawmillDrop?.addEventListener('dragover', (event) => {
+      if (!runtime.draggedItem || !SAWMILL_RECIPES[runtime.draggedItem]) return;
+      event.preventDefault();
+      event.dataTransfer.dropEffect = 'move';
+      ui.sawmillDrop.classList.add('is-dragover');
+    });
+
+    ui.sawmillDrop?.addEventListener('dragleave', (event) => {
+      if (!ui.sawmillDrop.contains(event.relatedTarget)) ui.sawmillDrop.classList.remove('is-dragover');
+    });
+
+    ui.sawmillDrop?.addEventListener('drop', (event) => {
+      event.preventDefault();
+      ui.sawmillDrop.classList.remove('is-dragover');
+      const key = event.dataTransfer.getData('text/plain') || runtime.draggedItem;
+      runtime.draggedItem = null;
+      document.body.classList.remove('is-dragging-log');
+      startSawmill(key);
     });
 
     window.addEventListener('resize', () => {
@@ -526,6 +738,23 @@
     }
   }
 
+  function loadThemePreference() {
+    try {
+      const saved = localStorage.getItem(THEME_KEY);
+      if (saved === 'dark' || saved === 'light') return saved;
+    } catch (error) {
+    }
+
+    return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+
+  function saveThemePreference(theme) {
+    try {
+      localStorage.setItem(THEME_KEY, theme);
+    } catch (error) {
+    }
+  }
+
   function applyTheme() {
     document.body.classList.toggle('dark', state.theme === 'dark');
     ui.themeIcon.textContent = state.theme === 'dark' ? '☾' : '☀';
@@ -547,18 +776,20 @@
   }
 
   function setLocation(location) {
-    if (!['lakeside', 'forest', 'mines'].includes(location)) return;
+    if (!['lakeside', 'forest', 'mines', 'town', 'lumbermill'].includes(location)) return;
     hideResourceHoverBar();
     state.location = location;
     state.inventoryOpen = false;
+    if (location !== 'lumbermill') runtime.lumberShopOpen = false;
     renderNavigation();
+    renderLumberShop();
     renderDrawers();
-    saveState();
-  }
+    }
 
   function renderHUD() {
     ui.username.textContent = state.username;
     updateProgressUI(state.overall, ui.overallLevel, ui.overallXp, ui.overallFill, true);
+    renderWallet();
 
     ['woodcutting', 'mining'].forEach((skill) => {
       const data = state.skills[skill];
@@ -573,7 +804,7 @@
     const needed = xpNeeded(progress.level);
     const percent = clamp((progress.xp / needed) * 100, 0, 100);
     levelNode.textContent = overall ? String(progress.level) : `Level ${progress.level}`;
-    xpNode.textContent = `${progress.xp} / ${needed} XP`;
+    xpNode.textContent = `${overall ? formatXp(progress.xp) : progress.xp} / ${needed} XP`;
 
     if (overall) {
       fillNode.style.transform = `scaleX(${percent / 100})`;
@@ -600,57 +831,267 @@
     ui.inventoryDrawer.classList.toggle('equipment-mode', state.inventoryTab === 'equipment');
 
     const items = [
-      { key: 'oakWood', name: 'Oak Wood', icon: '<span class="mini-log"></span>' },
-      { key: 'birchWood', name: 'Birch Wood', icon: '<span class="mini-birch"></span>' },
+      { key: 'oakWood', name: 'Oak Wood', icon: '<span class="mini-log"></span>', draggable: true },
+      { key: 'birchWood', name: 'Birch Wood', icon: '<span class="mini-birch"></span>', draggable: true },
+      { key: 'oakPlanks', name: 'Oak Planks', icon: '<span class="mini-plank oak"></span>' },
+      { key: 'birchPlanks', name: 'Birch Planks', icon: '<span class="mini-plank birch"></span>' },
+      { key: 'sawdust', name: 'Sawdust', icon: '<span class="mini-sawdust"></span>' },
+      { key: 'basicWoodcuttersAxe', name: "Basic Woodcutter's Axe", icon: '<span aria-hidden="true">🪓</span>', equip: true },
       { key: 'apples', name: 'Apple', icon: '<span aria-hidden="true">🍎</span>' },
       { key: 'acorns', name: 'Acorn', icon: '<span aria-hidden="true">🌰</span>' },
-      { key: 'stone', name: 'Stone', icon: '<span aria-hidden="true">◆</span>' },
+      { key: 'stone', name: 'Stone', icon: '<span class="mini-ore stone" aria-hidden="true"></span>' },
+      { key: 'coal', name: 'Coal', icon: '<span class="mini-ore coal" aria-hidden="true"></span>' },
+      { key: 'ironOre', name: 'Iron Ore', icon: '<span class="mini-ore iron" aria-hidden="true"></span>' },
+      { key: 'goldOre', name: 'Gold Ore', icon: '<span class="mini-ore gold" aria-hidden="true"></span>' },
+      { key: 'silverOre', name: 'Silver Ore', icon: '<span class="mini-ore silver" aria-hidden="true"></span>' },
+      { key: 'quartz', name: 'Quartz', icon: '<span class="mini-gem quartz" aria-hidden="true"></span>' },
+      { key: 'amethyst', name: 'Amethyst', icon: '<span class="mini-gem amethyst" aria-hidden="true"></span>' },
     ].filter((item) => state.inventory[item.key] > 0);
 
     ui.itemPane.innerHTML = items.length
-      ? `<div class="item-list">${items.map((item) => `
-          <div class="item-row">
+      ? `<div class="item-list">${items.map((item) => {
+          const isEquipped = item.key === 'basicWoodcuttersAxe' && state.equipment.axe === item.key;
+          const action = item.equip
+            ? `<button class="item-action" type="button" data-equip-item="${item.key}">${isEquipped ? 'Unequip' : 'Equip'}</button>`
+            : '';
+          return `<div class="item-row${item.draggable ? ' is-draggable' : ''}" ${item.draggable ? `draggable="true" data-drag-item="${item.key}"` : ''}>
             <span class="item-icon">${item.icon}</span>
-            <span class="item-name">${item.name}</span>
-            <span class="item-count">${state.inventory[item.key]}</span>
-          </div>`).join('')}</div>`
+            <span class="item-name">${item.name}${isEquipped ? '<small>Equipped · +1 tree damage</small>' : ''}</span>
+            <span class="item-actions"><span class="item-count">${state.inventory[item.key]}</span>${action}</span>
+          </div>`;
+        }).join('')}</div>`
       : '<div class="item-empty">No items yet.</div>';
+
+    renderEquipment();
+  }
+
+
+  function coinBreakdown(totalCopper) {
+    let remaining = Math.max(0, Math.floor(totalCopper));
+    const platinum = Math.floor(remaining / COIN_RATES.platinum);
+    remaining %= COIN_RATES.platinum;
+    const gold = Math.floor(remaining / COIN_RATES.gold);
+    remaining %= COIN_RATES.gold;
+    const silver = Math.floor(remaining / COIN_RATES.silver);
+    const copper = remaining % COIN_RATES.silver;
+    return { copper, silver, gold, platinum };
+  }
+
+  function renderWallet() {
+    const coins = coinBreakdown(state.wallet.copper);
+    ui.walletCopper.textContent = coins.copper;
+    ui.walletSilver.textContent = coins.silver;
+    ui.walletGold.textContent = coins.gold;
+    ui.walletPlatinum.textContent = coins.platinum;
+    ui.walletXelium.textContent = state.wallet.xelium;
+  }
+
+  function formatCoinPrice(copperValue) {
+    const coins = coinBreakdown(copperValue);
+    return [
+      coins.platinum ? `${coins.platinum} Platinum` : '',
+      coins.gold ? `${coins.gold} Gold` : '',
+      coins.silver ? `${coins.silver} Silver` : '',
+      coins.copper ? `${coins.copper} Copper` : '',
+    ].filter(Boolean).join(' ') || '0 Copper';
+  }
+
+  function renderLumberShop() {
+    if (!ui.lumberShop || !ui.lumberShopBody) return;
+    ui.lumberShop.classList.toggle('is-open', runtime.lumberShopOpen);
+    if (!runtime.lumberShopOpen) return;
+
+    const sellRows = Object.entries(LUMBER_SELL_PRICES).map(([key, item]) => {
+      const count = state.inventory[key] || 0;
+      return `
+        <div class="shop-sell-row">
+          <span class="shop-item-icon">${key === 'acorns' ? '🌰' : key === 'birchWood' ? '<span class="mini-birch"></span>' : '<span class="mini-log"></span>'}</span>
+          <span class="shop-item-copy"><strong>${item.name}</strong><small>${item.price} Copper each · You have ${count}</small></span>
+          <span class="shop-sell-actions">
+            <button type="button" data-sell-item="${key}" data-sell-mode="one" ${count < 1 ? 'disabled' : ''}>Sell 1</button>
+            <button type="button" data-sell-item="${key}" data-sell-mode="all" ${count < 1 ? 'disabled' : ''}>All</button>
+          </span>
+        </div>`;
+    }).join('');
+
+    const axeOwned = state.inventory.basicWoodcuttersAxe > 0;
+    const affordable = state.wallet.copper >= BASIC_AXE_PRICE;
+    ui.lumberShopBody.innerHTML = `
+      <section class="shop-section">
+        <div class="shop-section-head"><strong>Sell Timber</strong><span>Garrick buys logs & acorns</span></div>
+        <div class="shop-sell-list">${sellRows}</div>
+      </section>
+      <section class="shop-section buy-section">
+        <div class="shop-section-head"><strong>Tools</strong><span>Starter equipment</span></div>
+        <div class="shop-product">
+          <span class="shop-product-icon">🪓</span>
+          <span class="shop-product-copy"><strong>Basic Woodcutter's Axe</strong><small>+1 damage to trees when equipped</small></span>
+          <span class="shop-product-buy"><b>${formatCoinPrice(BASIC_AXE_PRICE)}</b><button type="button" data-buy-basic-axe ${axeOwned || !affordable ? 'disabled' : ''}>${axeOwned ? 'Owned' : affordable ? 'Buy' : 'Need coins'}</button></span>
+        </div>
+      </section>`;
+  }
+
+  function sellLumberItem(key, sellAll) {
+    const listing = LUMBER_SELL_PRICES[key];
+    if (!listing) return;
+    const owned = state.inventory[key] || 0;
+    if (owned <= 0) return;
+    const amount = sellAll ? owned : 1;
+    state.inventory[key] -= amount;
+    const earned = amount * listing.price;
+    state.wallet.copper += earned;
+    renderWallet();
+    renderInventory();
+    renderLumberShop();
+    showToast('Sold', `${amount} ${listing.name}${amount === 1 ? '' : ' items'} · +${formatCoinPrice(earned)}`, '¢');
+  }
+
+  function buyBasicAxe() {
+    if (state.inventory.basicWoodcuttersAxe > 0) return;
+    if (state.wallet.copper < BASIC_AXE_PRICE) {
+      showToast('Not enough coins', `The axe costs ${formatCoinPrice(BASIC_AXE_PRICE)}.`, '¢');
+      return;
+    }
+    state.wallet.copper -= BASIC_AXE_PRICE;
+    state.inventory.basicWoodcuttersAxe = 1;
+    renderWallet();
+    renderInventory();
+    renderLumberShop();
+    showToast('Purchased', "Basic Woodcutter's Axe added to your inventory.", '🪓');
+  }
+
+  function toggleEquipItem(key) {
+    if (key !== 'basicWoodcuttersAxe' || state.inventory[key] <= 0) return;
+    state.equipment.axe = state.equipment.axe === key ? null : key;
+    renderInventory();
+    showToast(
+      state.equipment.axe ? 'Axe equipped' : 'Axe unequipped',
+      state.equipment.axe ? '+1 damage to every tree hit.' : 'Tree damage returned to normal.',
+      '🪓'
+    );
+  }
+
+  function renderEquipment() {
+    const axeSlot = document.querySelector('[data-equipment-slot="axe"]');
+    if (!axeSlot) return;
+    const equipped = state.equipment.axe === 'basicWoodcuttersAxe';
+    axeSlot.classList.toggle('is-equipped', equipped);
+    axeSlot.setAttribute('aria-label', equipped ? "Axe, Basic Woodcutter's Axe equipped" : 'Axe, empty');
+    const stateNode = axeSlot.querySelector('.equipment-slot-state');
+    if (stateNode) stateNode.textContent = equipped ? "Basic Woodcutter's Axe · +1 dmg" : 'Empty';
+  }
+
+  function getTreeDamage() {
+    return state.equipment.axe === 'basicWoodcuttersAxe' ? 2 : 1;
+  }
+
+  function startSawmill(key) {
+    const recipe = SAWMILL_RECIPES[key];
+    if (!recipe || state.location !== 'lumbermill') return;
+    if (runtime.sawmillJob) {
+      showToast('Sawmill busy', 'Wait for the current log to finish.', '⚙');
+      return;
+    }
+    if ((state.inventory[key] || 0) <= 0) {
+      showToast('No logs', `You do not have any ${recipe.name}.`, '▤');
+      return;
+    }
+
+    state.inventory[key] -= 1;
+    const startedAt = performance.now();
+    runtime.sawmillJob = { key, recipe, startedAt, endsAt: startedAt + recipe.duration };
+    renderInventory();
+    renderLumberShop();
+    ui.sawmillMachine.classList.add('is-running');
+    ui.sawmillDrop.classList.add('is-processing');
+    ui.sawmillStatus.textContent = `Cutting ${recipe.name}…`;
+    updateSawmillProgress();
+    runtime.sawmillTimer = window.setInterval(updateSawmillProgress, 80);
+  }
+
+  function updateSawmillProgress() {
+    const job = runtime.sawmillJob;
+    if (!job) {
+      ui.sawmillFill.style.width = '0%';
+      return;
+    }
+    const now = performance.now();
+    const progress = clamp((now - job.startedAt) / job.recipe.duration, 0, 1);
+    ui.sawmillFill.style.width = `${progress * 100}%`;
+    if (progress >= 1) finishSawmill();
+  }
+
+  function finishSawmill() {
+    const job = runtime.sawmillJob;
+    if (!job) return;
+    window.clearInterval(runtime.sawmillTimer);
+    runtime.sawmillTimer = null;
+    runtime.sawmillJob = null;
+
+    state.inventory[job.recipe.plankKey] += job.recipe.planks;
+    state.inventory.sawdust += job.recipe.sawdust;
+    ui.sawmillMachine.classList.remove('is-running');
+    ui.sawmillDrop.classList.remove('is-processing');
+    ui.sawmillOutput.classList.remove('is-ejecting');
+    void ui.sawmillOutput.offsetWidth;
+    ui.sawmillOutput.classList.add('is-ejecting');
+    ui.sawmillFill.style.width = '100%';
+    ui.sawmillStatus.textContent = `${job.recipe.plankName} ready`;
+    renderInventory();
+    showToast('Sawmill finished', `+${job.recipe.planks} ${job.recipe.plankName} · +${job.recipe.sawdust} Sawdust`, '▤');
+
+    window.setTimeout(() => {
+      ui.sawmillOutput.classList.remove('is-ejecting');
+      ui.sawmillFill.style.width = '0%';
+      ui.sawmillStatus.textContent = 'Drag a log here';
+    }, 1050);
   }
 
   function xpNeeded(level) {
     return 100 + ((level - 1) * 25);
   }
 
+  function formatXp(value) {
+    const rounded = Math.round(value * 10) / 10;
+    return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+  }
+
   function gainSkillXp(skill, amount) {
     const skillData = state.skills[skill];
+    const startFraction = skillData.xp / xpNeeded(skillData.level);
+    const oldOverallLevel = state.overall.level;
+
     const skillLevelsGained = addXp(skillData, amount);
+    const endFraction = skillData.xp / xpNeeded(skillData.level);
+
+    // One complete skill level is still worth exactly 25 Overall XP.
+    // Award that same value continuously as the skill bar advances.
+    const overallProgress = skillLevelsGained + endFraction - startFraction;
+    const overallXpAward = Math.max(0, overallProgress * OVERALL_XP_PER_SKILL_LEVEL);
+    addXp(state.overall, overallXpAward);
 
     if (skillLevelsGained > 0) {
-      const oldOverallLevel = state.overall.level;
-      addXp(state.overall, skillLevelsGained * OVERALL_XP_PER_SKILL_LEVEL);
-
       showToast(
         'Level up',
-        `${capitalize(skill)} reached level ${skillData.level}. +${skillLevelsGained * OVERALL_XP_PER_SKILL_LEVEL} Overall XP.`,
+        `${capitalize(skill)} reached level ${skillData.level}.`,
         skill === 'woodcutting' ? '🪓' : '⛏'
       );
+    }
 
-      if (state.overall.level > oldOverallLevel) {
-        showToast('Overall level up', `Overall Level ${state.overall.level}`, '✦');
-      }
+    if (state.overall.level > oldOverallLevel) {
+      showToast('Overall level up', `Overall Level ${state.overall.level}`, '✦');
     }
 
     renderHUD();
-    saveState();
   }
 
   function addXp(progress, amount) {
     const startingLevel = progress.level;
-    progress.xp += amount;
+    progress.xp = Math.round((progress.xp + amount) * 1000000) / 1000000;
     let needed = xpNeeded(progress.level);
 
-    while (progress.xp >= needed) {
-      progress.xp -= needed;
+    while (progress.xp + 0.000001 >= needed) {
+      progress.xp = Math.max(0, Math.round((progress.xp - needed) * 1000000) / 1000000);
       progress.level += 1;
       needed = xpNeeded(progress.level);
     }
@@ -658,18 +1099,6 @@
     return progress.level - startingLevel;
   }
 
-  function progressFromTotalXp(totalXp) {
-    const progress = { level: 1, xp: Math.max(0, totalXp) };
-    let needed = xpNeeded(progress.level);
-
-    while (progress.xp >= needed) {
-      progress.xp -= needed;
-      progress.level += 1;
-      needed = xpNeeded(progress.level);
-    }
-
-    return progress;
-  }
 
   function spawnInitialForest() {
     const count = Math.min(6, treeSlots.length);
@@ -712,6 +1141,7 @@
     const node = createTreeNode(tree);
     tree.node = node;
     ui.forestStage.appendChild(node);
+    window.setTimeout(() => node.classList.remove('is-spawning'), 460);
     updateTreeNode(tree);
   }
 
@@ -737,7 +1167,7 @@
   function createTreeNode(tree) {
     const node = document.createElement('button');
     node.type = 'button';
-    node.className = `tree-node ${tree.variant === 'birch' ? 'birch' : 'oak'}`;
+    node.className = `tree-node is-spawning ${tree.variant === 'birch' ? 'birch' : 'oak'}`;
     node.style.left = `${tree.x}%`;
     node.style.top = `${tree.y}%`;
     node.style.setProperty('--scale', tree.renderScale);
@@ -801,18 +1231,11 @@
     setResourceHoverBar(tree.node, treeName(tree), `${tree.logs} log${tree.logs === 1 ? '' : 's'}`, health, `tree:${tree.id}`);
   }
 
-  function showRockHoverBar() {
-    const rock = runtime.rock;
-    if (!rock?.node?.isConnected || rock.node.disabled) return;
-    const remainingWork = (rock.stones * rock.hitsPerStone) - rock.hits;
-    const health = clamp((remainingWork / rock.maxWork) * 100, 0, 100);
-    setResourceHoverBar(rock.node, 'Stone Deposit', `${rock.stones} stone`, health, 'rock');
-  }
-
   function updateTreeNode(tree) {
-    if (!tree.node?.isConnected) return;
+    if (!tree?.node?.isConnected) return;
     const remainingWork = (tree.logs * tree.hitsPerLog) - tree.hits;
     const health = clamp((remainingWork / tree.maxWork) * 100, 0, 100);
+
     if (runtime.hoverResource?.key === `tree:${tree.id}`) {
       ui.resourceHoverName.textContent = treeName(tree);
       ui.resourceHoverMeta.textContent = `${tree.logs} log${tree.logs === 1 ? '' : 's'}`;
@@ -822,15 +1245,20 @@
   }
 
   function chopTree(tree) {
-    if (!runtime.trees.has(tree.id) || tree.node.disabled) return;
+    if (
+      !runtime.trees.has(tree.id) ||
+      tree.node.disabled ||
+      tree.node.classList.contains('is-spawning')
+    ) return;
 
     tree.alternate = !tree.alternate;
     pulseNode(tree.node, tree.alternate ? 'is-hit-left' : 'is-hit-right');
     createTreeChips(tree);
 
-    tree.hits += 1;
-    if (tree.hits >= tree.hitsPerLog) {
-      tree.hits = 0;
+    const damage = getTreeDamage();
+    tree.hits += damage;
+    while (tree.logs > 0 && tree.hits >= tree.hitsPerLog) {
+      tree.hits -= tree.hitsPerLog;
       harvestTreeLog(tree);
     }
 
@@ -868,7 +1296,6 @@
     }
 
     renderInventory();
-    saveState();
     showLoot(tree.node, rewards.join(' · '));
   }
 
@@ -878,6 +1305,7 @@
     runtime.occupiedSlots.delete(tree.slotIndex);
     tree.node.disabled = true;
     tree.node.classList.add('is-depleted');
+
     window.setTimeout(() => tree.node.remove(), 460);
     window.setTimeout(() => spawnTree(), randomInt(800, 1400));
   }
@@ -894,86 +1322,159 @@
     }
   }
 
-  function spawnRock() {
-    const stoneCount = randomInt(8, 14);
-    const rock = {
-      stones: stoneCount,
-      initialStones: stoneCount,
+  function showMiningHoverBar(mineNode) {
+    if (!mineNode?.node?.isConnected || mineNode.node.disabled) return;
+    const remainingWork = (mineNode.units * mineNode.hitsPerUnit) - mineNode.hits;
+    const health = clamp((remainingWork / mineNode.maxWork) * 100, 0, 100);
+    setResourceHoverBar(
+      mineNode.node,
+      mineNode.type.name,
+      `${mineNode.units} remaining`,
+      health,
+      `mine:${mineNode.id}`
+    );
+  }
+
+  function updateMiningNode(mineNode) {
+    if (!mineNode?.node?.isConnected) return;
+    const remainingWork = (mineNode.units * mineNode.hitsPerUnit) - mineNode.hits;
+    const health = clamp((remainingWork / mineNode.maxWork) * 100, 0, 100);
+
+    if (runtime.hoverResource?.key === `mine:${mineNode.id}`) {
+      ui.resourceHoverName.textContent = mineNode.type.name;
+      ui.resourceHoverMeta.textContent = `${mineNode.units} remaining`;
+      ui.resourceHoverFill.style.width = `${health}%`;
+      positionResourceHoverBar(mineNode.node);
+    }
+  }
+
+  function spawnInitialMineNodes() {
+    const count = Math.min(5, mineSlots.length);
+    for (let i = 0; i < count; i += 1) spawnMineNode();
+  }
+
+  function chooseMiningType() {
+    const totalWeight = miningTypes.reduce((sum, type) => sum + type.weight, 0);
+    let roll = Math.random() * totalWeight;
+
+    for (const type of miningTypes) {
+      roll -= type.weight;
+      if (roll < 0) return type;
+    }
+
+    return miningTypes[0];
+  }
+
+  function getFreeMineSlot() {
+    const free = mineSlots
+      .map((_, index) => index)
+      .filter((index) => !runtime.occupiedMineSlots.has(index));
+    return free.length ? free[randomInt(0, free.length - 1)] : null;
+  }
+
+  function spawnMineNode() {
+    const slotIndex = getFreeMineSlot();
+    if (slotIndex === null) return;
+
+    runtime.occupiedMineSlots.add(slotIndex);
+    const slot = mineSlots[slotIndex];
+    const type = chooseMiningType();
+    const units = randomInt(type.minUnits, type.maxUnits);
+    const mineNode = {
+      id: ++runtime.mineNodeId,
+      slotIndex,
+      type,
+      units,
+      initialUnits: units,
       hits: 0,
-      hitsPerStone: 4,
-      maxWork: stoneCount * 4,
+      hitsPerUnit: type.hitsPerUnit,
+      maxWork: units * type.hitsPerUnit,
       alternate: false,
     };
-    runtime.rock = rock;
 
-    ui.rockHost.innerHTML = `
-      <button class="rock-node" type="button" data-rock aria-label="Mine stone deposit">
-        <span class="rock-shell">${rockSvg()}</span>
-      </button>
-    `;
+    const node = document.createElement('button');
+    node.type = 'button';
+    node.className = `mine-node is-spawning mine-${type.key}`;
+    node.style.left = `${slot.x}%`;
+    node.style.top = `${slot.y}%`;
+    node.style.setProperty('--mine-scale', slot.scale);
+    node.style.setProperty('--ore-color', type.color);
+    node.style.zIndex = String(Math.round(slot.y * 10));
+    node.setAttribute('aria-label', `Mine ${type.name}`);
+    node.innerHTML = `<span class="mine-node-shell">${oreNodeSvg(type.key)}</span>`;
 
-    rock.node = ui.rockHost.querySelector('[data-rock]');
-    rock.node.addEventListener('pointerenter', showRockHoverBar);
-    rock.node.addEventListener('pointermove', () => positionResourceHoverBar(rock.node));
-    rock.node.addEventListener('pointerleave', () => hideResourceHoverBar(rock.node));
-    rock.node.addEventListener('focus', showRockHoverBar);
-    rock.node.addEventListener('blur', () => hideResourceHoverBar(rock.node));
-    rock.node.addEventListener('click', mineRock);
-    updateRockNode();
+    mineNode.node = node;
+    runtime.mineNodes.set(mineNode.id, mineNode);
+    ui.mineStage.appendChild(node);
+    window.setTimeout(() => node.classList.remove('is-spawning'), 360);
+
+    node.addEventListener('pointerenter', () => showMiningHoverBar(mineNode));
+    node.addEventListener('pointermove', () => positionResourceHoverBar(node));
+    node.addEventListener('pointerleave', () => hideResourceHoverBar(node));
+    node.addEventListener('focus', () => showMiningHoverBar(mineNode));
+    node.addEventListener('blur', () => hideResourceHoverBar(node));
+    node.addEventListener('click', () => mineResourceNode(mineNode));
+    updateMiningNode(mineNode);
   }
 
-  function mineRock() {
-    const rock = runtime.rock;
-    if (!rock || rock.node.disabled) return;
+  function mineResourceNode(mineNode) {
+    if (
+      !runtime.mineNodes.has(mineNode.id) ||
+      mineNode.node.disabled ||
+      mineNode.node.classList.contains('is-spawning')
+    ) return;
 
-    rock.alternate = !rock.alternate;
-    pulseNode(rock.node, rock.alternate ? 'is-hit-left' : 'is-hit-right');
-    createRockChips(rock.node);
-    rock.hits += 1;
+    mineNode.alternate = !mineNode.alternate;
+    pulseNode(mineNode.node, mineNode.alternate ? 'is-hit-left' : 'is-hit-right');
+    createRockChips(mineNode.node, mineNode.type.color);
+    mineNode.hits += 1;
 
-    if (rock.hits >= rock.hitsPerStone) {
-      rock.hits = 0;
-      rock.stones -= 1;
-      state.inventory.stone += 1;
-      gainSkillXp('mining', 5);
-      renderInventory();
-      saveState();
-      showLoot(rock.node, '+1 Stone');
+    if (mineNode.hits >= mineNode.hitsPerUnit) {
+      mineNode.hits = 0;
+      mineNode.units -= 1;
+      awardMiningDrop(mineNode);
     }
 
-    updateRockNode();
-    if (rock.stones <= 0) depleteRock();
+    updateMiningNode(mineNode);
+    if (mineNode.units <= 0) depleteMineNode(mineNode);
   }
 
-  function updateRockNode() {
-    const rock = runtime.rock;
-    if (!rock?.node?.isConnected) return;
-    const remainingWork = (rock.stones * rock.hitsPerStone) - rock.hits;
-    const health = clamp((remainingWork / rock.maxWork) * 100, 0, 100);
-    if (runtime.hoverResource?.key === 'rock') {
-      ui.resourceHoverName.textContent = 'Stone Deposit';
-      ui.resourceHoverMeta.textContent = `${rock.stones} stone`;
-      ui.resourceHoverFill.style.width = `${health}%`;
-      positionResourceHoverBar(rock.node);
+  function awardMiningDrop(mineNode) {
+    const { type } = mineNode;
+    let lootText = '';
+
+    if (type.key === 'geode') {
+      const amethystDrop = Math.random() < .24;
+      const inventoryKey = amethystDrop ? 'amethyst' : 'quartz';
+      const itemName = amethystDrop ? 'Amethyst' : 'Quartz';
+      state.inventory[inventoryKey] += 1;
+      lootText = `+1 ${itemName}`;
+    } else {
+      state.inventory[type.key] += 1;
+      lootText = `+1 ${type.itemName}`;
     }
+
+    gainSkillXp('mining', type.xp);
+    renderInventory();
+    showLoot(mineNode.node, lootText);
   }
 
-  function depleteRock() {
-    const rock = runtime.rock;
-    if (runtime.hoverResource?.node === rock.node) hideResourceHoverBar(rock.node);
-    rock.node.disabled = true;
-    rock.node.classList.add('is-depleted');
-    window.setTimeout(() => {
-      ui.rockHost.innerHTML = '';
-      runtime.rock = null;
-    }, 480);
-    window.setTimeout(() => spawnRock(), 1300);
+  function depleteMineNode(mineNode) {
+    if (runtime.hoverResource?.node === mineNode.node) hideResourceHoverBar(mineNode.node);
+    runtime.mineNodes.delete(mineNode.id);
+    runtime.occupiedMineSlots.delete(mineNode.slotIndex);
+    mineNode.node.disabled = true;
+    mineNode.node.classList.add('is-depleted');
+
+    window.setTimeout(() => mineNode.node.remove(), 460);
+    window.setTimeout(() => spawnMineNode(), randomInt(900, 1500));
   }
 
-  function createRockChips(node) {
+  function createRockChips(node, color = '#858a85') {
     for (let i = 0; i < 7; i += 1) {
       const chip = document.createElement('span');
       chip.className = 'rock-chip';
+      chip.style.background = color;
       chip.style.setProperty('--dx', `${randomInt(-78, 78)}px`);
       chip.style.setProperty('--dy', `${randomInt(-94, -35)}px`);
       chip.style.setProperty('--rot', `${randomInt(-240, 240)}deg`);
@@ -1058,18 +1559,28 @@
       </svg>`;
   }
 
-  function rockSvg() {
+  function oreNodeSvg(typeKey) {
+    const geodeCrystals = typeKey === 'geode' ? `
+      <path d="M129 142L145 100L160 142Z" fill="#e3dcf1" opacity=".92"/>
+      <path d="M155 145L174 91L189 145Z" fill="#a88ac8" opacity=".9"/>
+      <path d="M181 148L197 111L209 148Z" fill="#d8c8ea" opacity=".85"/>` : '';
+
     return `
-      <svg class="rock-art" viewBox="0 0 320 240" aria-hidden="true">
-        <ellipse cx="160" cy="214" rx="108" ry="18" fill="rgba(0,0,0,.18)"/>
-        <path d="M50 190L69 115L111 79L164 62L221 79L270 127L277 190L246 211H79Z" fill="#777e79"/>
-        <path d="M69 115L111 79L142 91L116 134L50 190Z" fill="#939894" opacity=".65"/>
-        <path d="M164 62L221 79L198 120L142 91Z" fill="#a0a49f" opacity=".52"/>
-        <path d="M221 79L270 127L233 151L198 120Z" fill="#626965" opacity=".72"/>
-        <path d="M116 134L142 91L198 120L174 164Z" fill="#858c87"/>
-        <path d="M174 164L198 120L233 151L246 211L188 202Z" fill="#676e6a"/>
-        <path d="M116 134L174 164L188 202L79 211L50 190Z" fill="#737a75"/>
-        <path d="M100 167L123 150M199 174L222 160M154 111L165 94" stroke="rgba(47,53,49,.5)" stroke-width="5" stroke-linecap="round"/>
+      <svg class="ore-node-art" viewBox="0 0 320 240" aria-hidden="true">
+        <ellipse cx="160" cy="214" rx="108" ry="18" fill="rgba(0,0,0,.22)"/>
+        <path d="M50 190L69 115L111 79L164 62L221 79L270 127L277 190L246 211H79Z" fill="#666d69"/>
+        <path d="M69 115L111 79L142 91L116 134L50 190Z" fill="#858b87" opacity=".72"/>
+        <path d="M164 62L221 79L198 120L142 91Z" fill="#929792" opacity=".58"/>
+        <path d="M221 79L270 127L233 151L198 120Z" fill="#505753" opacity=".8"/>
+        <path d="M116 134L142 91L198 120L174 164Z" fill="#747b76"/>
+        <path d="M174 164L198 120L233 151L246 211L188 202Z" fill="#555c58"/>
+        <path d="M116 134L174 164L188 202L79 211L50 190Z" fill="#636a66"/>
+        <g class="ore-veins" fill="none" stroke="var(--ore-color)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M93 167L125 145L151 159L178 128"/>
+          <path d="M192 174L216 153L238 163"/>
+          <path d="M145 105L164 91L182 112"/>
+        </g>
+        ${geodeCrystals}
       </svg>`;
   }
 
@@ -1107,6 +1618,16 @@
         </g>
         <path d="M227 225C342 219 438 239 523 287C604 334 678 322 795 278" fill="none" stroke="#806b4d" stroke-width="7" stroke-linecap="round" stroke-dasharray="4 14" opacity=".52"/>
         <path d="M485 468C571 502 677 491 782 431" fill="none" stroke="#806b4d" stroke-width="6" stroke-linecap="round" stroke-dasharray="4 14" opacity=".42"/>
+        <path d="M632 447C694 470 741 487 820 503" fill="none" stroke="#806b4d" stroke-width="6" stroke-linecap="round" stroke-dasharray="4 14" opacity=".44"/>
+        <g transform="translate(754 444)" opacity=".9">
+          <rect x="0" y="30" width="44" height="34" rx="3" fill="#b88d5e"/>
+          <path d="M-5 31L22 9L49 31Z" fill="#7a4e3a"/>
+          <rect x="58" y="21" width="50" height="40" rx="3" fill="#c4a074"/>
+          <path d="M53 23L83 -2L113 23Z" fill="#685048"/>
+          <rect x="116" y="34" width="40" height="30" rx="3" fill="#9a7956"/>
+          <path d="M112 35L136 15L160 35Z" fill="#5a4b42"/>
+          <rect x="72" y="43" width="11" height="18" fill="#684631"/>
+        </g>
         <g opacity=".22" filter="url(#soft)" fill="#223f2a">
           <ellipse cx="184" cy="222" rx="126" ry="53"/><ellipse cx="858" cy="196" rx="112" ry="46"/>
         </g>
