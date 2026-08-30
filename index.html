@@ -244,8 +244,43 @@
       transform: scale(.985);
     }
 
+    .area-parent-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 36px;
+      align-items: stretch;
+      gap: 5px;
+    }
+
     .location.parent-location {
       min-height: 52px;
+    }
+
+    .area-collapse {
+      width: 36px;
+      min-height: 52px;
+      border: 1px solid transparent;
+      border-radius: 12px;
+      background: transparent;
+      color: var(--sidebar-muted);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: background .18s ease, color .18s ease;
+    }
+
+    .area-collapse:hover {
+      background: rgba(255,255,255,.07);
+      color: var(--sidebar-text);
+    }
+
+    .area-collapse-chevron {
+      display: block;
+      font-size: 16px;
+      transition: transform .2s ease;
+    }
+
+    .area-collapse[aria-expanded="false"] .area-collapse-chevron {
+      transform: rotate(-90deg);
     }
 
     .location.child-location {
@@ -271,6 +306,17 @@
       display: grid;
       gap: 7px;
       padding-top: 2px;
+      overflow: hidden;
+      max-height: 180px;
+      opacity: 1;
+      transition: max-height .22s ease, opacity .16s ease, padding .22s ease;
+    }
+
+    .area-children.collapsed {
+      max-height: 0;
+      opacity: 0;
+      padding-top: 0;
+      pointer-events: none;
     }
 
     .location.active {
@@ -377,13 +423,192 @@
 
     .topbar {
       position: relative;
-      z-index: 20;
+      z-index: 65;
       margin-left: 215px;
       display: flex;
-      align-items: center;
-      justify-content: flex-end;
+      align-items: flex-start;
+      justify-content: space-between;
       gap: 16px;
-      padding: 22px 24px;
+      padding: 16px 24px;
+      pointer-events: none;
+    }
+
+    .topbar > * {
+      pointer-events: auto;
+    }
+
+    .character-hud {
+      position: relative;
+      width: min(430px, calc(100% - 150px));
+      min-width: 0;
+    }
+
+    .character-main {
+      width: 100%;
+      min-height: 62px;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: var(--panel);
+      color: var(--text);
+      padding: 9px 12px 10px 10px;
+      display: grid;
+      grid-template-columns: 42px minmax(0, 1fr) 26px;
+      align-items: center;
+      gap: 10px;
+      text-align: left;
+      cursor: pointer;
+      box-shadow: 0 12px 34px var(--shadow);
+      backdrop-filter: blur(16px);
+    }
+
+    .character-avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 13px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(145deg, rgba(93,151,82,.24), rgba(63,103,74,.12));
+      border: 1px solid var(--border);
+      font-size: 18px;
+      font-weight: 900;
+    }
+
+    .character-info {
+      min-width: 0;
+    }
+
+    .character-name {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 13px;
+      font-weight: 850;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .overall-line {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 5px;
+      color: var(--muted);
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    .overall-level-value {
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .level-track {
+      height: 6px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(105,120,105,.15);
+    }
+
+    .level-fill {
+      height: 100%;
+      width: 18%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #6f9e64, #91bd71);
+    }
+
+    .character-chevron {
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      font-size: 17px;
+      transition: transform .2s ease;
+    }
+
+    .character-main[aria-expanded="true"] .character-chevron {
+      transform: rotate(180deg);
+    }
+
+    .skills-drawer {
+      position: absolute;
+      z-index: 90;
+      top: calc(100% + 8px);
+      left: 0;
+      right: 0;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 17px;
+      background: var(--panel);
+      box-shadow: 0 18px 46px var(--shadow);
+      backdrop-filter: blur(18px);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-8px) scale(.985);
+      transform-origin: 50% 0;
+      transition: opacity .17s ease, transform .2s ease, visibility 0s linear .2s;
+    }
+
+    .skills-drawer.open {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0) scale(1);
+      transition: opacity .17s ease, transform .2s ease, visibility 0s;
+    }
+
+    .skills-title {
+      padding: 2px 4px 8px;
+      color: var(--muted);
+      font-size: 9px;
+      font-weight: 850;
+      letter-spacing: .11em;
+      text-transform: uppercase;
+    }
+
+    .skill-row {
+      display: grid;
+      grid-template-columns: 34px minmax(0,1fr) auto;
+      align-items: center;
+      gap: 9px;
+      min-height: 50px;
+      padding: 7px 8px;
+      border-radius: 13px;
+    }
+
+    .skill-row + .skill-row {
+      border-top: 1px solid var(--border);
+      border-top-left-radius: 0;
+      border-top-right-radius: 0;
+    }
+
+    .skill-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      background: var(--panel-soft);
+      border: 1px solid var(--border);
+      font-size: 16px;
+    }
+
+    .skill-copy {
+      min-width: 0;
+    }
+
+    .skill-name {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .skill-level {
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 800;
+      white-space: nowrap;
     }
 
     .inventory-toggle {
@@ -422,7 +647,7 @@
       position: absolute;
       inset: 80px 0 0 215px;
       z-index: 5;
-      overflow: hidden;
+      overflow: visible;
     }
 
     .location-view {
@@ -494,132 +719,143 @@
 
     .area-map {
       position: relative;
-      height: min(430px, 55vh);
-      min-height: 315px;
+      height: min(500px, 61vh);
+      min-height: 350px;
       overflow: hidden;
       border-radius: 22px;
       border: 1px solid var(--border);
       background:
-        radial-gradient(ellipse at 44% 60%, #7cb5bd 0 16%, #77aeb6 17% 23%, transparent 24%),
-        radial-gradient(circle at 15% 27%, rgba(62,112,65,.22) 0 11%, transparent 12%),
-        radial-gradient(circle at 24% 37%, rgba(62,112,65,.26) 0 13%, transparent 14%),
-        radial-gradient(circle at 74% 23%, rgba(102,92,73,.18) 0 13%, transparent 14%),
-        radial-gradient(circle at 83% 33%, rgba(102,92,73,.20) 0 15%, transparent 16%),
-        linear-gradient(145deg, #b9cf91 0 48%, #a9c183 49% 100%);
+        linear-gradient(rgba(255,255,255,.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px),
+        linear-gradient(145deg, #a9c981, #8fb66f);
+      background-size: 32px 32px, 32px 32px, auto;
+      box-shadow: inset 0 0 60px rgba(44,70,43,.10);
+      isolation: isolate;
     }
 
     body.dark .area-map {
       background:
-        radial-gradient(ellipse at 44% 60%, #477a83 0 16%, #416f77 17% 23%, transparent 24%),
-        radial-gradient(circle at 15% 27%, rgba(45,91,51,.54) 0 11%, transparent 12%),
-        radial-gradient(circle at 24% 37%, rgba(45,91,51,.58) 0 13%, transparent 14%),
-        radial-gradient(circle at 74% 23%, rgba(83,72,58,.48) 0 13%, transparent 14%),
-        radial-gradient(circle at 83% 33%, rgba(83,72,58,.52) 0 15%, transparent 16%),
-        linear-gradient(145deg, #506844 0 48%, #445c3b 49% 100%);
+        linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.02) 1px, transparent 1px),
+        linear-gradient(145deg, #4f6a45, #3c5538);
+      background-size: 32px 32px, 32px 32px, auto;
     }
 
-    .map-water {
+    .world-map-art {
       position: absolute;
-      left: 25%;
-      top: 44%;
-      width: 39%;
-      height: 31%;
-      border-radius: 48% 52% 55% 45% / 58% 43% 57% 42%;
-      background: linear-gradient(145deg, #8ac5cc, #5d9ca8);
-      box-shadow: inset 0 0 0 8px rgba(255,255,255,.10);
-      transform: rotate(-7deg);
+      inset: 0;
+      width: 100%;
+      height: 100%;
     }
 
-    .map-water:after {
-      content: "";
+    .map-land-highlight { fill: rgba(239,244,198,.26); }
+    .map-land-shadow { fill: rgba(49,83,45,.15); }
+    .map-lake { fill: #67aab7; }
+    .map-lake-inner { fill: #7bbbc5; opacity: .78; }
+    .map-river {
+      fill: none;
+      stroke: #70afbb;
+      stroke-width: 22;
+      stroke-linecap: round;
+    }
+    .map-river-light {
+      fill: none;
+      stroke: rgba(210,243,244,.28);
+      stroke-width: 5;
+      stroke-linecap: round;
+    }
+    .map-road {
+      fill: none;
+      stroke: rgba(111,83,49,.48);
+      stroke-width: 8;
+      stroke-linecap: round;
+      stroke-dasharray: 4 14;
+    }
+    .map-road-edge {
+      fill: none;
+      stroke: rgba(244,224,175,.33);
+      stroke-width: 14;
+      stroke-linecap: round;
+    }
+    .map-forest-zone { fill: rgba(49,102,49,.20); }
+    .map-mine-zone { fill: rgba(102,91,73,.20); }
+    .map-tree-trunk { fill: #6f4c31; }
+    .map-tree-crown { fill: #3f7b47; }
+    .map-tree-crown-light { fill: #5a9857; }
+    .map-mountain-back { fill: #777c70; }
+    .map-mountain-front { fill: #626960; }
+    .map-mountain-snow { fill: rgba(240,242,228,.70); }
+    .map-dock { fill: #785536; }
+    .map-cabin { fill: #865c3a; }
+    .map-roof { fill: #594231; }
+    .map-cave { fill: #303832; }
+
+    body.dark .map-land-highlight { fill: rgba(211,224,177,.08); }
+    body.dark .map-land-shadow { fill: rgba(18,37,22,.22); }
+    body.dark .map-lake { fill: #427681; }
+    body.dark .map-lake-inner { fill: #538994; }
+    body.dark .map-forest-zone { fill: rgba(27,67,33,.38); }
+    body.dark .map-mine-zone { fill: rgba(76,68,56,.38); }
+    body.dark .map-tree-crown { fill: #295d35; }
+    body.dark .map-tree-crown-light { fill: #397443; }
+    body.dark .map-mountain-back { fill: #555b53; }
+    body.dark .map-mountain-front { fill: #444b45; }
+    body.dark .map-mountain-snow { fill: rgba(215,222,207,.34); }
+
+    .map-contour {
       position: absolute;
-      left: 17%;
-      right: 18%;
-      top: 37%;
-      height: 3px;
-      border-radius: 999px;
-      background: rgba(255,255,255,.38);
-      box-shadow: 38px 18px 0 -1px rgba(255,255,255,.26);
-    }
-
-    .map-trees,
-    .map-mountains {
-      position: absolute;
-      font-size: clamp(28px, 4vw, 46px);
-      letter-spacing: -12px;
-      filter: saturate(.78);
-      user-select: none;
-      pointer-events: none;
-    }
-
-    .map-trees {
-      left: 8%;
-      top: 18%;
-      transform: rotate(-5deg);
-    }
-
-    .map-mountains {
-      right: 8%;
-      top: 16%;
-      letter-spacing: -8px;
-    }
-
-    .map-path {
-      position: absolute;
-      left: 36%;
-      top: 31%;
-      width: 43%;
-      height: 43%;
-      border: 5px dashed rgba(116,91,59,.35);
-      border-left-color: transparent;
-      border-bottom-color: transparent;
+      border: 1px solid rgba(63,91,54,.10);
       border-radius: 50%;
-      transform: rotate(12deg);
       pointer-events: none;
     }
+
+    .map-contour.c1 { left: 3%; top: 10%; width: 33%; height: 48%; transform: rotate(14deg); }
+    .map-contour.c2 { right: 4%; top: 8%; width: 31%; height: 47%; transform: rotate(-18deg); }
+    .map-contour.c3 { left: 30%; bottom: 2%; width: 34%; height: 28%; transform: rotate(-8deg); }
 
     .map-node {
       position: absolute;
-      min-width: 124px;
-      min-height: 50px;
-      border: 1px solid rgba(255,255,255,.55);
+      z-index: 8;
+      min-width: 136px;
+      min-height: 54px;
+      border: 1px solid rgba(255,255,255,.58);
       border-radius: 16px;
       padding: 8px 11px;
       display: flex;
       align-items: center;
       gap: 9px;
-      background: rgba(249,250,244,.90);
+      background: rgba(249,250,244,.94);
       color: #26392c;
-      box-shadow: 0 12px 28px rgba(55,72,49,.16);
+      box-shadow: 0 13px 30px rgba(55,72,49,.18);
       cursor: pointer;
       text-align: left;
       transition: transform .18s ease, box-shadow .18s ease;
     }
 
     body.dark .map-node {
-      background: rgba(26,36,29,.92);
+      background: rgba(26,36,29,.94);
       color: #eff4ed;
       border-color: rgba(255,255,255,.12);
     }
 
     .map-node:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 16px 34px rgba(55,72,49,.20);
+      transform: translateY(-3px);
+      box-shadow: 0 18px 36px rgba(55,72,49,.23);
     }
 
     .map-node.forest-node {
-      left: 10%;
-      top: 24%;
+      left: 8%;
+      top: 17%;
     }
 
     .map-node.mine-node {
-      right: 9%;
-      top: 24%;
+      right: 7%;
+      top: 18%;
     }
 
     .map-node-icon {
-      width: 32px;
-      height: 32px;
+      width: 34px;
+      height: 34px;
       border-radius: 10px;
       display: grid;
       place-items: center;
@@ -637,6 +873,60 @@
       margin-top: 2px;
       font-size: 9px;
       color: var(--muted);
+    }
+
+    .map-area-name {
+      position: absolute;
+      z-index: 4;
+      left: 50%;
+      bottom: 7%;
+      transform: translateX(-50%);
+      color: rgba(54,72,51,.70);
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: clamp(20px, 3vw, 31px);
+      font-weight: 800;
+      font-style: italic;
+      letter-spacing: .03em;
+      text-shadow: 0 1px 0 rgba(255,255,255,.3);
+      pointer-events: none;
+    }
+
+    body.dark .map-area-name { color: rgba(232,239,220,.50); }
+
+    .map-compass {
+      position: absolute;
+      z-index: 5;
+      right: 17px;
+      bottom: 14px;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: 1px solid rgba(53,69,48,.24);
+      display: grid;
+      place-items: center;
+      background: rgba(246,244,219,.48);
+      color: rgba(62,72,56,.68);
+      font-family: Georgia, serif;
+      font-size: 10px;
+      font-weight: 900;
+      box-shadow: inset 0 0 0 4px rgba(255,255,255,.14);
+    }
+
+    body.dark .map-compass {
+      background: rgba(27,36,29,.38);
+      color: rgba(235,240,225,.6);
+      border-color: rgba(255,255,255,.12);
+    }
+
+    .map-compass:before {
+      content: '';
+      width: 0;
+      height: 0;
+      position: absolute;
+      top: 6px;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-bottom: 14px solid #7d4b3b;
     }
 
     .mine-view {
@@ -755,6 +1045,135 @@
     .mine-rock.r1 { left: 7%; transform: rotate(8deg); }
     .mine-rock.r2 { right: 8%; width: 118px; height: 72px; transform: rotate(-8deg); }
 
+
+    .mine-gather-wrap {
+      position: absolute;
+      z-index: 8;
+      left: 50%;
+      bottom: 22px;
+      width: min(360px, 82%);
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .mine-prompt {
+      width: min(330px, 100%);
+      border: 1px solid rgba(255,255,255,.11);
+      background: rgba(22,28,24,.86);
+      color: #eef2ed;
+      backdrop-filter: blur(12px);
+      border-radius: 17px;
+      padding: 10px 13px;
+      box-shadow: 0 12px 34px rgba(0,0,0,.22);
+    }
+
+    .mine-prompt .prompt-row {
+      color: #eef2ed;
+    }
+
+    .mine-prompt .progress-track {
+      background: rgba(255,255,255,.12);
+    }
+
+    .stone-progress-fill {
+      width: 0%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #8b9290, #c0c8c3);
+      transition: width .16s ease;
+    }
+
+    .rock-button {
+      position: relative;
+      width: min(300px, 80vw);
+      aspect-ratio: 1.42;
+      border: 0;
+      padding: 0;
+      background: transparent;
+      cursor: pointer;
+      transform-origin: 50% 86%;
+      filter: drop-shadow(0 18px 14px rgba(0,0,0,.30));
+    }
+
+    .rock-button:focus-visible {
+      outline: 4px solid rgba(200,211,205,.72);
+      outline-offset: 6px;
+      border-radius: 42%;
+    }
+
+    .rock-button.mine-left { animation: mineLeft .2s ease; }
+    .rock-button.mine-right { animation: mineRight .2s ease; }
+    .rock-button.harvest { animation: rockHarvest .34s ease; }
+
+    @keyframes mineLeft {
+      0%,100% { transform: rotate(0deg) scale(1); }
+      48% { transform: rotate(-2.5deg) scale(.985); }
+    }
+
+    @keyframes mineRight {
+      0%,100% { transform: rotate(0deg) scale(1); }
+      48% { transform: rotate(2.5deg) scale(.985); }
+    }
+
+    @keyframes rockHarvest {
+      0%,100% { transform: scale(1); }
+      45% { transform: scale(1.035); }
+    }
+
+    .rock-art {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+
+    .rock-base { fill: #666d68; }
+    .rock-mid { fill: #7b827d; }
+    .rock-light { fill: #969d98; }
+    .rock-dark { fill: #4c534f; }
+    .rock-crack {
+      fill: none;
+      stroke: #434946;
+      stroke-width: 5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      opacity: .72;
+    }
+
+    .stone-flash {
+      position: absolute;
+      left: 51%;
+      top: 53%;
+      width: 96px;
+      height: 96px;
+      transform: translate(-50%,-50%) scale(.4);
+      border-radius: 50%;
+      border: 4px solid rgba(235,240,235,.88);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .stone-flash.show { animation: flash .34s ease-out; }
+
+    .stone-particle {
+      position: absolute;
+      z-index: 30;
+      left: 50%;
+      top: 52%;
+      width: 10px;
+      height: 9px;
+      border-radius: 42% 58% 38% 62%;
+      background: #858d88;
+      pointer-events: none;
+      animation: chip .58s ease-out forwards;
+    }
+
+    .stone-reward {
+      top: 56%;
+    }
+
     .tree-wrap {
       width: min(470px, calc(100vw - 245px));
       display: flex;
@@ -807,8 +1226,8 @@
 
     .tree-button {
       position: relative;
-      width: min(520px, calc(100vw - 285px));
-      height: 930px;
+      width: min(650px, calc(100vw - 255px));
+      height: 1040px;
       border: 0;
       padding: 0;
       background: transparent;
@@ -816,8 +1235,8 @@
       touch-action: manipulation;
       filter: drop-shadow(0 32px 24px rgba(27,43,29,.20));
       transform-origin: 50% 84%;
-      margin-top: -565px;
-      margin-bottom: -210px;
+      margin-top: -590px;
+      margin-bottom: -255px;
     }
 
     .tree-button:focus-visible {
@@ -878,7 +1297,7 @@
     .hit-flash {
       position: absolute;
       left: 50%;
-      top: 735px;
+      top: 820px;
       width: 122px;
       height: 122px;
       transform: translate(-50%,-50%) scale(.5);
@@ -1070,6 +1489,13 @@
     .wood-icon:before { left: 4px; }
     .wood-icon:after { right: 4px; }
 
+    .stone-logo {
+      color: #7d8782;
+      font-size: 24px;
+      background: rgba(111,122,117,.11);
+      border-color: rgba(111,122,117,.16);
+    }
+
     .inventory-name {
       min-width: 0;
       flex: 1;
@@ -1103,11 +1529,14 @@
       .sidebar-brand span { display: none; }
       .sidebar-brand strong { font-size: 13px; }
       .hill { left: 170px; }
-      .topbar { margin-left: 170px; padding: 16px; }
+      .topbar { margin-left: 170px; padding: 12px 14px; }
+      .character-hud { width: min(330px, calc(100% - 126px)); }
+      .character-main { min-height: 58px; grid-template-columns: 36px minmax(0,1fr) 20px; padding: 8px; }
+      .character-avatar { width: 36px; height: 36px; }
       .game-area { inset: 68px 0 0 170px; }
       .tree-wrap { width: min(420px, calc(100vw - 185px)); margin-top: 175px; }
       .prompt { width: min(320px, calc(100vw - 190px)); }
-      .tree-button { width: min(490px, calc(100vw - 190px)); margin-top: -545px; margin-bottom: -205px; }
+      .tree-button { width: min(570px, calc(100vw - 165px)); margin-top: -585px; margin-bottom: -245px; }
       .inventory { right: 12px; top: 12px; bottom: 12px; width: 340px; max-width: calc(100vw - 194px); }
       .location { padding-inline: 8px; }
       .location-icon { width: 28px; height: 28px; flex-basis: 28px; }
@@ -1124,20 +1553,33 @@
       .location-meta { font-size: 8px; }
       .theme-toggle span:first-child { font-size: 10px; }
       .hill { left: 132px; }
-      .topbar { margin-left: 132px; padding: 12px; }
-      .inventory-toggle { padding: 8px 10px; font-size: 12px; }
+      .topbar { margin-left: 132px; padding: 8px; gap: 7px; }
+      .character-hud { width: min(235px, calc(100% - 104px)); }
+      .character-main { min-height: 52px; grid-template-columns: 30px minmax(0,1fr) 17px; gap: 7px; padding: 7px; border-radius: 14px; }
+      .character-avatar { width: 30px; height: 30px; border-radius: 9px; font-size: 13px; }
+      .character-name { font-size: 10px; margin-bottom: 3px; }
+      .overall-line { font-size: 7px; margin-bottom: 3px; }
+      .level-track { height: 4px; }
+      .skills-drawer { padding: 7px; }
+      .skill-row { grid-template-columns: 28px minmax(0,1fr) auto; gap: 6px; padding: 6px 4px; }
+      .skill-icon { width: 28px; height: 28px; font-size: 13px; }
+      .skill-name { font-size: 9px; }
+      .skill-level { font-size: 8px; }
+      .inventory-toggle { padding: 7px 8px; font-size: 0; gap: 5px; }
+      .inventory-toggle > span:first-child { font-size: 16px; }
+      .count-pill { font-size: 10px; min-width: 24px; height: 24px; }
       .game-area { inset: 62px 0 0 132px; }
       .tree-wrap { width: calc(100vw - 138px); margin-top: 195px; }
       .prompt { width: calc(100vw - 150px); padding-inline: 10px; }
       .prompt-row { font-size: 10px; }
-      .tree-button { width: max(300px, calc(100vw - 140px)); margin-top: -530px; margin-bottom: -210px; }
+      .tree-button { width: max(350px, calc(100vw - 110px)); margin-top: -580px; margin-bottom: -250px; }
       .inventory { right: 8px; top: 8px; bottom: 8px; width: calc(100vw - 148px); max-width: none; padding: 16px; }
     }
 
 
     @media (max-width: 700px) {
       .map-shell { width: calc(100% - 20px); padding: 14px; }
-      .area-map { min-height: 300px; }
+      .area-map { min-height: 330px; height: min(460px, 60vh); }
       .map-node { min-width: 108px; padding: 7px 9px; }
       .map-node.forest-node { left: 5%; }
       .map-node.mine-node { right: 5%; }
@@ -1149,7 +1591,7 @@
       .map-heading strong { font-size: 18px; }
       .map-heading span { font-size: 10px; }
       .map-label { display: none; }
-      .area-map { height: 340px; min-height: 280px; }
+      .area-map { height: 365px; min-height: 300px; }
       .map-node { min-width: 94px; border-radius: 13px; }
       .map-node-icon { display: none; }
       .map-node.forest-node { left: 4%; top: 20%; }
@@ -1160,6 +1602,323 @@
       .mine-track { width: 210px; }
     }
 
+
+
+    /* Dynamic Forest */
+    .forest-view {
+      overflow: hidden;
+      padding: 0;
+      background:
+        radial-gradient(ellipse at 50% 94%, rgba(54,88,45,.24) 0 34%, transparent 35%),
+        linear-gradient(180deg, transparent 0 52%, rgba(84,121,64,.10) 53% 100%);
+    }
+
+    .forest-stage {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    .forest-stage:before {
+      content: "";
+      position: absolute;
+      left: -8%;
+      right: -8%;
+      bottom: -15%;
+      height: 63%;
+      border-radius: 50% 50% 0 0 / 23% 23% 0 0;
+      background:
+        radial-gradient(circle at 16% 36%, rgba(255,255,255,.10) 0 4%, transparent 4.5%),
+        radial-gradient(circle at 73% 48%, rgba(47,78,42,.11) 0 4%, transparent 4.5%),
+        radial-gradient(circle at 42% 64%, rgba(47,78,42,.10) 0 5%, transparent 5.5%),
+        linear-gradient(180deg, var(--ground), var(--ground-dark));
+      z-index: 0;
+    }
+
+    .forest-stage:after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 23%;
+      pointer-events: none;
+      background:
+        linear-gradient(180deg, transparent, rgba(33,55,31,.08)),
+        repeating-linear-gradient(112deg, transparent 0 36px, rgba(255,255,255,.025) 36px 38px);
+      z-index: 1;
+    }
+
+    .forest-status {
+      position: absolute;
+      z-index: 2000;
+      left: 50%;
+      top: 14px;
+      width: min(390px, calc(100% - 36px));
+      transform: translateX(-50%);
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+      backdrop-filter: blur(14px);
+      border-radius: 18px;
+      padding: 11px 13px;
+      box-shadow: 0 12px 34px var(--shadow);
+    }
+
+    .forest-status-main {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 7px;
+    }
+
+    .forest-status-name {
+      min-width: 0;
+      font-size: 12px;
+      font-weight: 820;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .forest-status-detail {
+      flex: 0 0 auto;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 720;
+    }
+
+    .forest-progress-fill {
+      width: 0%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #8b603e, #c78955);
+      transition: width .14s ease;
+    }
+
+    .forest-tree {
+      position: absolute;
+      width: 255px;
+      height: 430px;
+      border: 0;
+      padding: 0;
+      background: transparent;
+      cursor: pointer;
+      touch-action: manipulation;
+      transform:
+        translate(-50%, -100%)
+        scale(var(--tree-render-scale));
+      transform-origin: 50% 100%;
+      filter: drop-shadow(0 18px 14px rgba(31,50,31,.18));
+      outline: none;
+    }
+
+    .forest-tree:focus-visible .forest-tree-shell {
+      filter: drop-shadow(0 0 0 rgba(0,0,0,0));
+      outline: 4px solid rgba(113,157,105,.88);
+      outline-offset: 5px;
+      border-radius: 45%;
+    }
+
+    .forest-tree-shell {
+      position: absolute;
+      inset: 0;
+      transform-origin: 50% 94%;
+      animation: treePopIn .42s cubic-bezier(.2,.9,.2,1.15) both;
+    }
+
+    .forest-tree-shell.hit-left { animation: treeHitLeft .18s ease; }
+    .forest-tree-shell.hit-right { animation: treeHitRight .18s ease; }
+    .forest-tree-shell.depleted { animation: treeDepleted .42s ease forwards; }
+
+    @keyframes treePopIn {
+      0% { opacity: 0; transform: translateY(36px) scale(.62,.42); }
+      70% { opacity: 1; transform: translateY(-5px) scale(1.03,1.04); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @keyframes treeHitLeft {
+      0%,100% { transform: rotate(0deg); }
+      45% { transform: rotate(-2.6deg); }
+    }
+
+    @keyframes treeHitRight {
+      0%,100% { transform: rotate(0deg); }
+      45% { transform: rotate(2.6deg); }
+    }
+
+    @keyframes treeDepleted {
+      0% { opacity: 1; transform: translateY(0) scale(1); }
+      52% { opacity: 1; transform: translateY(8px) scale(1.04,.88); }
+      100% { opacity: 0; transform: translateY(45px) scale(.58,.20); }
+    }
+
+    .forest-tree-art {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      pointer-events: none;
+    }
+
+    .forest-tree-art .tree-shadow { fill: rgba(28,46,27,.18); }
+    .forest-tree-art .oak-trunk { fill: #765039; }
+    .forest-tree-art .oak-trunk-light { fill: #9b6b45; opacity: .72; }
+    .forest-tree-art .oak-bark { fill: none; stroke: rgba(58,36,25,.30); stroke-width: 6; stroke-linecap: round; }
+    .forest-tree-art .oak-canopy { fill: #427a48; }
+    .forest-tree-art .oak-canopy-shadow { fill: #315f3b; opacity: .70; }
+    .forest-tree-art .oak-canopy-light { fill: #6ba563; opacity: .56; }
+    .forest-tree-art .birch-trunk { fill: #e9e7da; }
+    .forest-tree-art .birch-trunk-shadow { fill: #c8c7ba; opacity: .75; }
+    .forest-tree-art .birch-mark { fill: rgba(47,49,43,.72); }
+    .forest-tree-art .birch-canopy { fill: #6ea65c; }
+    .forest-tree-art .birch-canopy-shadow { fill: #4f8648; opacity: .72; }
+    .forest-tree-art .birch-canopy-light { fill: #8bc475; opacity: .58; }
+    .forest-tree-art .apple { fill: #d95346; stroke: rgba(116,40,34,.28); stroke-width: 2; }
+    .forest-tree-art .apple-shine { fill: rgba(255,255,255,.44); }
+
+    .tree-type-tag {
+      position: absolute;
+      left: 50%;
+      bottom: 20px;
+      transform: translateX(-50%);
+      padding: 5px 8px;
+      border-radius: 999px;
+      background: rgba(26,40,29,.72);
+      color: white;
+      font-size: 9px;
+      font-weight: 800;
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity .16s ease, transform .16s ease;
+      pointer-events: none;
+    }
+
+    .forest-tree:hover .tree-type-tag,
+    .forest-tree:focus-visible .tree-type-tag {
+      opacity: 1;
+      transform: translate(-50%, -4px);
+    }
+
+    .tree-chip {
+      position: absolute;
+      z-index: 8;
+      left: 50%;
+      top: 73%;
+      width: 10px;
+      height: 7px;
+      border-radius: 2px 6px 2px 6px;
+      background: #b77b48;
+      pointer-events: none;
+      animation: forestChip .55s ease-out forwards;
+    }
+
+    .birch .tree-chip {
+      background: #ddd9ca;
+    }
+
+    @keyframes forestChip {
+      from { opacity: 1; transform: translate(-50%,-50%) rotate(0deg); }
+      to { opacity: 0; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) rotate(var(--rot)); }
+    }
+
+    .tree-reward-burst {
+      position: absolute;
+      z-index: 90;
+      left: 50%;
+      top: 48%;
+      max-width: 190px;
+      transform: translate(-50%,-50%);
+      padding: 8px 11px;
+      border-radius: 999px;
+      background: var(--panel-solid);
+      border: 1px solid var(--border);
+      box-shadow: 0 12px 28px var(--shadow);
+      color: var(--text);
+      font-size: 10px;
+      font-weight: 850;
+      white-space: nowrap;
+      pointer-events: none;
+      animation: treeRewardFloat .9s ease-out forwards;
+    }
+
+    @keyframes treeRewardFloat {
+      0% { opacity: 0; transform: translate(-50%, 4px) scale(.76); }
+      18% { opacity: 1; transform: translate(-50%, -7px) scale(1); }
+      72% { opacity: 1; transform: translate(-50%, -38px) scale(1); }
+      100% { opacity: 0; transform: translate(-50%, -64px) scale(.94); }
+    }
+
+    .forest-floor-detail {
+      position: absolute;
+      z-index: 2;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 38%;
+      pointer-events: none;
+      opacity: .54;
+      background:
+        radial-gradient(ellipse at 14% 70%, rgba(43,76,38,.22) 0 3%, transparent 3.5%),
+        radial-gradient(ellipse at 37% 82%, rgba(43,76,38,.20) 0 2.6%, transparent 3.1%),
+        radial-gradient(ellipse at 68% 69%, rgba(43,76,38,.20) 0 2.8%, transparent 3.3%),
+        radial-gradient(ellipse at 84% 88%, rgba(43,76,38,.22) 0 3.2%, transparent 3.7%);
+    }
+
+    .birch-wood-icon {
+      width: 32px;
+      height: 21px;
+      border-radius: 7px;
+      position: relative;
+      background: linear-gradient(90deg, #c9c8bd, #f0eee2 44%, #dad8cc 70%, #b9b8ad);
+      box-shadow: inset 0 0 0 2px rgba(75,77,70,.16);
+    }
+
+    .birch-wood-icon:before,
+    .birch-wood-icon:after {
+      content: "";
+      position: absolute;
+      left: 6px;
+      width: 10px;
+      height: 2px;
+      border-radius: 999px;
+      background: rgba(46,49,45,.42);
+    }
+
+    .birch-wood-icon:before { top: 6px; }
+    .birch-wood-icon:after { bottom: 6px; left: 17px; width: 8px; }
+
+    .item-emoji {
+      font-size: 23px;
+      line-height: 1;
+    }
+
+    @media (max-width: 700px) {
+      .forest-tree {
+        width: 220px;
+        height: 372px;
+      }
+
+      .forest-status {
+        width: min(340px, calc(100% - 24px));
+      }
+    }
+
+    @media (max-width: 500px) {
+      .forest-tree {
+        width: 185px;
+        height: 313px;
+      }
+
+      .forest-status {
+        top: 10px;
+        width: calc(100% - 16px);
+      }
+
+      .forest-status-name { font-size: 10px; }
+      .forest-status-detail { font-size: 9px; }
+    }
 
     .launch-splash {
       position: fixed;
@@ -1222,6 +1981,25 @@
       place-items: center;
       text-align: center;
       padding: 32px;
+    }
+
+
+    .splash-logo {
+      width: clamp(90px, 12vw, 145px);
+      height: clamp(90px, 12vw, 145px);
+      object-fit: contain;
+      margin-bottom: 25px;
+      filter: drop-shadow(0 14px 20px rgba(0,0,0,.32));
+      opacity: 0;
+      transform: translateY(-28px) scale(.72);
+      animation: splashLogoIn .48s .14s cubic-bezier(.2,.9,.25,1.15) forwards;
+    }
+
+    @keyframes splashLogoIn {
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
     }
 
     .splash-title {
@@ -1363,6 +2141,7 @@
     <button class="splash-enter" id="splashEnter" type="button" aria-label="Enter Clicklands Online">
       <span class="splash-title-wrap">
         <span class="splash-shockwave" aria-hidden="true"></span>
+        <img class="splash-logo" src="CL-logo.png" alt="">
         <span class="splash-title">Clicklands Online</span>
         <span class="splash-subtitle">Click to enter</span>
       </span>
@@ -1382,15 +2161,20 @@
       <div class="sidebar-section-title">Locations</div>
 
       <nav class="locations" aria-label="Location list">
-        <button class="location parent-location" type="button" data-location="lakeside" aria-current="false">
-          <div class="location-icon" aria-hidden="true">🌊</div>
-          <div class="location-copy">
-            <span class="location-name">Lakeside</span>
-            <span class="location-meta">Area map</span>
-          </div>
-        </button>
+        <div class="area-parent-row">
+          <button class="location parent-location" type="button" data-location="lakeside" aria-current="false">
+            <div class="location-icon" aria-hidden="true">🌊</div>
+            <div class="location-copy">
+              <span class="location-name">Lakeside</span>
+              <span class="location-meta">Area map</span>
+            </div>
+          </button>
+          <button class="area-collapse" type="button" aria-label="Collapse Lakeside locations" aria-expanded="true">
+            <span class="area-collapse-chevron" aria-hidden="true">⌄</span>
+          </button>
+        </div>
 
-        <div class="area-children">
+        <div class="area-children" id="lakesideChildren">
           <button class="location child-location active" type="button" data-location="forest" aria-current="page">
             <div class="location-icon" aria-hidden="true">🌳</div>
             <div class="location-copy">
@@ -1423,10 +2207,42 @@
     <div class="hill" aria-hidden="true"></div>
 
     <header class="topbar">
+      <div class="character-hud">
+        <button class="character-main" type="button" aria-expanded="false" aria-controls="skillsDrawer">
+          <span class="character-avatar" aria-hidden="true">U</span>
+          <span class="character-info">
+            <span class="character-name">Username</span>
+            <span class="overall-line"><span>Overall Level</span><span class="overall-level-value">1</span></span>
+            <span class="level-track" aria-hidden="true"><span class="level-fill"></span></span>
+          </span>
+          <span class="character-chevron" aria-hidden="true">⌄</span>
+        </button>
+
+        <div class="skills-drawer" id="skillsDrawer">
+          <div class="skills-title">Skills</div>
+          <div class="skill-row">
+            <div class="skill-icon" aria-hidden="true">🪓</div>
+            <div class="skill-copy">
+              <span class="skill-name">Woodcutting</span>
+              <div class="level-track" aria-hidden="true"><div class="level-fill" style="width: 12%"></div></div>
+            </div>
+            <div class="skill-level">Level 1</div>
+          </div>
+          <div class="skill-row">
+            <div class="skill-icon" aria-hidden="true">⛏️</div>
+            <div class="skill-copy">
+              <span class="skill-name">Mining</span>
+              <div class="level-track" aria-hidden="true"><div class="level-fill" style="width: 8%"></div></div>
+            </div>
+            <div class="skill-level">Level 1</div>
+          </div>
+        </div>
+      </div>
+
       <button class="inventory-toggle" type="button" aria-expanded="false">
         <span aria-hidden="true">🎒</span>
         Inventory
-        <span class="count-pill" data-wood-top>0</span>
+        <span class="count-pill" data-inventory-total>0</span>
       </button>
     </header>
 
@@ -1442,16 +2258,94 @@
           </div>
 
           <div class="area-map" aria-label="Lakeside area map">
-            <div class="map-water" aria-hidden="true"></div>
-            <div class="map-trees" aria-hidden="true">🌲🌳🌲</div>
-            <div class="map-mountains" aria-hidden="true">⛰️⛰️</div>
-            <div class="map-path" aria-hidden="true"></div>
+            <svg class="world-map-art" viewBox="0 0 760 430" aria-hidden="true">
+              <path class="map-land-highlight" d="M0 0H760V430H0Z M52 70C140 26 216 50 266 104C306 149 339 130 381 96C432 56 496 35 567 54C647 75 707 143 760 200V0H0Z" fill-rule="evenodd"/>
+              <path class="map-land-shadow" d="M0 332C84 298 145 311 208 348C287 394 363 397 428 354C498 308 581 292 760 333V430H0Z"/>
+              <path class="map-forest-zone" d="M25 55C111 18 219 39 276 111C309 152 283 214 218 236C145 261 56 231 24 165C6 128 6 87 25 55Z"/>
+              <path class="map-mine-zone" d="M506 42C591 14 694 64 735 137C757 176 734 231 679 250C612 272 530 240 493 179C462 127 467 67 506 42Z"/>
+
+              <path class="map-river" d="M384 430C374 391 365 360 386 326C405 295 460 281 469 244C477 210 448 187 454 156"/>
+              <path class="map-river-light" d="M384 430C374 391 365 360 386 326C405 295 460 281 469 244C477 210 448 187 454 156"/>
+              <path class="map-lake" d="M255 166C296 124 360 111 413 126C466 140 503 184 495 231C488 272 450 294 411 309C368 325 320 318 286 289C247 255 224 199 255 166Z"/>
+              <path class="map-lake-inner" d="M282 170C317 143 366 136 406 148C447 160 469 190 462 222C456 251 429 267 398 279C362 292 325 286 299 265C269 240 256 190 282 170Z"/>
+
+              <path class="map-road-edge" d="M145 132C211 155 245 173 282 201C324 233 365 233 402 214C453 187 499 154 568 139"/>
+              <path class="map-road" d="M145 132C211 155 245 173 282 201C324 233 365 233 402 214C453 187 499 154 568 139"/>
+              <path class="map-road-edge" d="M384 287C349 315 324 344 301 389"/>
+              <path class="map-road" d="M384 287C349 315 324 344 301 389"/>
+
+              <g transform="translate(70 88)">
+                <rect class="map-tree-trunk" x="12" y="31" width="8" height="18" rx="3"/>
+                <circle class="map-tree-crown" cx="16" cy="19" r="17"/>
+                <circle class="map-tree-crown-light" cx="10" cy="15" r="10"/>
+              </g>
+              <g transform="translate(112 58) scale(.82)">
+                <rect class="map-tree-trunk" x="12" y="31" width="8" height="18" rx="3"/>
+                <circle class="map-tree-crown" cx="16" cy="19" r="17"/>
+                <circle class="map-tree-crown-light" cx="10" cy="15" r="10"/>
+              </g>
+              <g transform="translate(155 102) scale(.95)">
+                <rect class="map-tree-trunk" x="12" y="31" width="8" height="18" rx="3"/>
+                <circle class="map-tree-crown" cx="16" cy="19" r="17"/>
+                <circle class="map-tree-crown-light" cx="10" cy="15" r="10"/>
+              </g>
+              <g transform="translate(202 72) scale(.72)">
+                <rect class="map-tree-trunk" x="12" y="31" width="8" height="18" rx="3"/>
+                <circle class="map-tree-crown" cx="16" cy="19" r="17"/>
+                <circle class="map-tree-crown-light" cx="10" cy="15" r="10"/>
+              </g>
+              <g transform="translate(94 166) scale(.75)">
+                <rect class="map-tree-trunk" x="12" y="31" width="8" height="18" rx="3"/>
+                <circle class="map-tree-crown" cx="16" cy="19" r="17"/>
+                <circle class="map-tree-crown-light" cx="10" cy="15" r="10"/>
+              </g>
+              <g transform="translate(188 162) scale(.82)">
+                <rect class="map-tree-trunk" x="12" y="31" width="8" height="18" rx="3"/>
+                <circle class="map-tree-crown" cx="16" cy="19" r="17"/>
+                <circle class="map-tree-crown-light" cx="10" cy="15" r="10"/>
+              </g>
+
+              <g transform="translate(538 72)">
+                <path class="map-mountain-back" d="M0 78L46 0L91 78Z"/>
+                <path class="map-mountain-snow" d="M46 0L30 28L42 23L48 33L57 23L65 31Z"/>
+              </g>
+              <g transform="translate(605 87) scale(.88)">
+                <path class="map-mountain-front" d="M0 78L46 0L91 78Z"/>
+                <path class="map-mountain-snow" d="M46 0L30 28L42 23L48 33L57 23L65 31Z"/>
+              </g>
+              <g transform="translate(650 57) scale(.62)">
+                <path class="map-mountain-back" d="M0 78L46 0L91 78Z"/>
+                <path class="map-mountain-snow" d="M46 0L30 28L42 23L48 33L57 23L65 31Z"/>
+              </g>
+
+              <g transform="translate(538 169)">
+                <path class="map-cave" d="M0 40C2 16 17 0 39 0C62 0 78 17 80 40Z"/>
+                <rect class="map-mine-zone" x="12" y="30" width="56" height="8" rx="4"/>
+              </g>
+
+              <g transform="translate(322 306)">
+                <rect class="map-dock" x="0" y="0" width="8" height="60" rx="2" transform="rotate(25 0 0)"/>
+                <rect class="map-dock" x="13" y="5" width="8" height="60" rx="2" transform="rotate(25 13 5)"/>
+              </g>
+
+              <g transform="translate(252 343)">
+                <rect class="map-cabin" x="8" y="20" width="46" height="34" rx="3"/>
+                <path class="map-roof" d="M0 25L31 0L63 25Z"/>
+                <rect class="map-land-highlight" x="26" y="34" width="10" height="20" rx="1"/>
+              </g>
+            </svg>
+
+            <span class="map-contour c1" aria-hidden="true"></span>
+            <span class="map-contour c2" aria-hidden="true"></span>
+            <span class="map-contour c3" aria-hidden="true"></span>
+            <div class="map-area-name" aria-hidden="true">Lakeside</div>
+            <div class="map-compass" aria-hidden="true">N</div>
 
             <button class="map-node forest-node" type="button" data-nav-target="forest">
               <span class="map-node-icon" aria-hidden="true">🌳</span>
               <span>
                 <strong>Forest</strong>
-                <span>Gather wood</span>
+                <span>Woodcutting grounds</span>
               </span>
             </button>
 
@@ -1459,7 +2353,7 @@
               <span class="map-node-icon" aria-hidden="true">⛏️</span>
               <span>
                 <strong>Mines</strong>
-                <span>Explore the mine</span>
+                <span>Stone deposits</span>
               </span>
             </button>
           </div>
@@ -1467,120 +2361,18 @@
       </div>
 
       <div class="location-view forest-view active" data-view="forest" aria-hidden="false">
-<div class="tree-wrap">
-        <div class="prompt" aria-live="polite">
-          <div class="prompt-row">
-            <span data-status>Click the tree to chop</span>
-            <span data-hit-label>0 / 5</span>
+        <div class="forest-stage" id="forestStage">
+          <div class="forest-status" aria-live="polite">
+            <div class="forest-status-main">
+              <span class="forest-status-name" data-forest-status>Choose a tree to start chopping</span>
+              <span class="forest-status-detail" data-forest-detail>Oak is most common</span>
+            </div>
+            <div class="progress-track" aria-hidden="true">
+              <div class="forest-progress-fill"></div>
+            </div>
           </div>
-          <div class="progress-track" aria-hidden="true">
-            <div class="progress-fill"></div>
-          </div>
+          <div class="forest-floor-detail" aria-hidden="true"></div>
         </div>
-
-        <button class="tree-button" type="button" aria-label="Chop the tree">
-          <svg class="tree-art" viewBox="0 0 500 930" role="img" aria-label="A tall leafy tree">
-            <ellipse cx="250" cy="892" rx="122" ry="23" fill="rgba(31,46,29,.17)"/>
-
-            <path class="bark-main" d="
-              M214 930
-              C216 836 212 760 218 682
-              C221 635 218 591 209 550
-              C196 491 174 451 144 414
-              C184 428 215 451 238 489
-              C244 445 262 406 293 365
-              C298 412 290 458 278 505
-              C312 466 349 442 392 431
-              C348 465 314 504 286 552
-              C267 586 259 626 260 682
-              C261 758 267 838 270 930
-              Z"/>
-
-            <path class="bark-light" d="
-              M234 930
-              C235 834 231 754 236 683
-              C240 620 236 571 225 526
-              C217 494 207 469 194 447
-              C216 461 234 480 246 506
-              C249 459 264 419 285 390
-              C281 442 268 494 258 544
-              C250 589 248 630 249 682
-              C251 766 253 845 253 930
-              Z"/>
-
-            <path class="bark-dark" d="M220 528 C198 493 170 468 139 455 C173 457 202 472 229 501 Z"/>
-            <path class="bark-dark" d="M258 510 C287 474 319 452 355 441 C326 467 300 497 274 535 Z"/>
-            <path class="bark-dark" d="M237 488 C217 454 196 431 170 415 C198 425 223 443 246 469 Z"/>
-
-            <path class="bark-line" d="M229 842 C216 790 222 739 220 690"/>
-            <path class="bark-line" d="M255 814 C264 757 256 706 260 658"/>
-            <path class="bark-line" d="M238 636 C233 610 235 582 242 553"/>
-
-            <path class="canopy-main" d="
-              M73 401
-              C38 374 29 327 51 289
-              C30 250 42 202 77 178
-              C78 131 111 97 153 94
-              C171 48 217 25 259 44
-              C294 14 349 28 369 71
-              C414 72 446 107 444 150
-              C478 170 492 215 472 252
-              C497 286 487 337 451 361
-              C452 405 414 442 370 441
-              C343 475 295 487 257 467
-              C222 495 167 485 143 447
-              C112 452 85 435 73 401
-              Z"/>
-
-            <path class="canopy-shadow" d="
-              M64 308
-              C83 353 126 381 174 382
-              C148 405 123 425 143 447
-              C112 452 85 435 73 401
-              C38 374 29 327 51 289
-              C48 283 45 276 43 269
-              C46 286 53 299 64 308
-              Z"/>
-
-            <path class="canopy-shadow" d="
-              M289 454
-              C332 449 367 424 383 391
-              C410 397 435 388 451 361
-              C452 405 414 442 370 441
-              C343 475 295 487 257 467
-              C268 463 279 459 289 454
-              Z"/>
-
-            <path class="canopy-light" d="
-              M113 164
-              C132 119 177 93 218 102
-              C194 120 178 143 170 170
-              C150 164 131 163 113 164
-              Z"/>
-
-            <path class="canopy-light" d="
-              M258 70
-              C291 41 337 48 357 82
-              C323 80 293 90 269 110
-              C268 95 264 82 258 70
-              Z"/>
-
-            <path class="canopy-light" d="
-              M329 182
-              C367 150 414 161 435 197
-              C397 190 366 200 340 222
-              C339 208 335 195 329 182
-              Z"/>
-
-            <path class="leaf-line" d="M106 265 C140 241 175 238 205 249"/>
-            <path class="leaf-line" d="M207 139 C238 118 272 115 303 128"/>
-            <path class="leaf-line" d="M283 319 C319 299 354 299 384 315"/>
-          </svg>
-          <span class="hit-flash"></span>
-        </button>
-
-        <div class="reward-pop" aria-live="polite">+1 Wood</div>
-      </div>
       </div>
 
       <div class="location-view mine-view" data-view="mines" aria-hidden="true">
@@ -1594,6 +2386,34 @@
           <div class="mine-track" aria-hidden="true"></div>
           <div class="mine-rock r1" aria-hidden="true"></div>
           <div class="mine-rock r2" aria-hidden="true"></div>
+
+          <div class="mine-gather-wrap">
+            <div class="mine-prompt" aria-live="polite">
+              <div class="prompt-row">
+                <span data-mining-status>Click the rock to mine</span>
+                <span data-stone-hit-label>0 / 5</span>
+              </div>
+              <div class="progress-track" aria-hidden="true">
+                <div class="stone-progress-fill"></div>
+              </div>
+            </div>
+
+            <button class="rock-button" type="button" aria-label="Mine the rock">
+              <svg class="rock-art" viewBox="0 0 320 220" role="img" aria-label="A large mineable rock">
+                <ellipse cx="161" cy="193" rx="128" ry="18" fill="rgba(0,0,0,.20)"/>
+                <path class="rock-base" d="M30 174L49 85L103 30L192 20L267 64L296 143L260 188L82 199Z"/>
+                <path class="rock-mid" d="M49 85L103 30L142 83L105 150L30 174Z"/>
+                <path class="rock-light" d="M103 30L192 20L212 82L142 83Z"/>
+                <path class="rock-dark" d="M212 82L267 64L296 143L232 151Z"/>
+                <path class="rock-mid" d="M105 150L142 83L212 82L232 151L185 191L82 199Z"/>
+                <path class="rock-crack" d="M169 71L151 104L166 119L147 151"/>
+                <path class="rock-crack" d="M221 101L198 122L207 145"/>
+              </svg>
+              <span class="stone-flash"></span>
+            </button>
+
+            <div class="reward-pop stone-reward" aria-live="polite">+1 Stone</div>
+          </div>
         </div>
       </div>
     </section>
@@ -1611,13 +2431,37 @@
       <div class="inventory-list">
         <div class="inventory-row">
           <div class="inventory-logo" aria-hidden="true"><div class="wood-icon"></div></div>
-          <div class="inventory-name">Wood</div>
-          <div class="inventory-count" data-wood-side>0</div>
+          <div class="inventory-name">Oak Wood</div>
+          <div class="inventory-count" data-oak-wood-side>0</div>
+        </div>
+
+        <div class="inventory-row">
+          <div class="inventory-logo" aria-hidden="true"><div class="birch-wood-icon"></div></div>
+          <div class="inventory-name">Birch Wood</div>
+          <div class="inventory-count" data-birch-wood-side>0</div>
+        </div>
+
+        <div class="inventory-row">
+          <div class="inventory-logo" aria-hidden="true"><span class="item-emoji">🍎</span></div>
+          <div class="inventory-name">Apple</div>
+          <div class="inventory-count" data-apple-side>0</div>
+        </div>
+
+        <div class="inventory-row">
+          <div class="inventory-logo" aria-hidden="true"><span class="item-emoji">🌰</span></div>
+          <div class="inventory-name">Acorn</div>
+          <div class="inventory-count" data-acorn-side>0</div>
+        </div>
+
+        <div class="inventory-row">
+          <div class="inventory-logo stone-logo" aria-hidden="true">◆</div>
+          <div class="inventory-name">Stone</div>
+          <div class="inventory-count" data-stone-side>0</div>
         </div>
       </div>
 
       <div class="inventory-note">
-        Keep chopping to build your wood supply. This is the beginning of a larger gathering and crafting loop.
+        Resources gathered around Lakeside appear here.
       </div>
     </aside>
   </main>
@@ -1646,41 +2490,167 @@
 
     splashEnter.addEventListener('click', dismissLaunchSplash);
 
-    const tree = document.querySelector('.tree-button');
+    const forestStage = document.getElementById('forestStage');
+    const forestProgressFill = document.querySelector('.forest-progress-fill');
+    const forestStatus = document.querySelector('[data-forest-status]');
+    const forestDetail = document.querySelector('[data-forest-detail]');
     const inventory = document.querySelector('.inventory');
     const inventoryToggle = document.querySelector('.inventory-toggle');
     const closeInventory = document.querySelector('.close-inventory');
-    const progressFill = document.querySelector('.progress-fill');
-    const hitLabel = document.querySelector('[data-hit-label]');
-    const status = document.querySelector('[data-status]');
-    const woodTop = document.querySelector('[data-wood-top]');
-    const woodSide = document.querySelector('[data-wood-side]');
-    const reward = document.querySelector('.reward-pop');
-    const flash = document.querySelector('.hit-flash');
+    const inventoryTotal = document.querySelector('[data-inventory-total]');
+    const oakWoodSide = document.querySelector('[data-oak-wood-side]');
+    const birchWoodSide = document.querySelector('[data-birch-wood-side]');
+    const appleSide = document.querySelector('[data-apple-side]');
+    const acornSide = document.querySelector('[data-acorn-side]');
+    const stoneSide = document.querySelector('[data-stone-side]');
     const themeToggle = document.querySelector('.theme-toggle');
     const themeLabel = document.querySelector('.theme-label');
     const themeIcon = document.querySelector('.theme-icon');
     const locationButtons = Array.from(document.querySelectorAll('[data-location]'));
     const locationViews = Array.from(document.querySelectorAll('[data-view]'));
     const mapDestinationButtons = Array.from(document.querySelectorAll('[data-nav-target]'));
+    const areaCollapse = document.querySelector('.area-collapse');
+    const areaChildren = document.getElementById('lakesideChildren');
+    const characterMain = document.querySelector('.character-main');
+    const skillsDrawer = document.getElementById('skillsDrawer');
+    const rock = document.querySelector('.rock-button');
+    const stoneProgressFill = document.querySelector('.stone-progress-fill');
+    const stoneHitLabel = document.querySelector('[data-stone-hit-label]');
+    const miningStatus = document.querySelector('[data-mining-status]');
+    const stoneReward = document.querySelector('.stone-reward');
+    const stoneFlash = document.querySelector('.stone-flash');
 
-    const hitsNeeded = 5;
-    let hits = 0;
-    let wood = 0;
-    let alternate = false;
+    const miningHitsNeeded = 5;
+    let oakWood = 0;
+    let birchWood = 0;
+    let apples = 0;
+    let acorns = 0;
+    let stoneHits = 0;
+    let stone = 0;
+    let miningAlternate = false;
+    let selectedTree = null;
+    let treeId = 0;
+
+    const occupiedTreeSlots = new Set();
+    const activeTrees = new Map();
+
+    const treeSlots = [
+      { x: 13, y: 73 },
+      { x: 29, y: 84 },
+      { x: 45, y: 69 },
+      { x: 61, y: 84 },
+      { x: 78, y: 71 },
+      { x: 91, y: 86 },
+      { x: 24, y: 59 },
+      { x: 55, y: 57 },
+      { x: 84, y: 58 }
+    ];
+
+    const treeSizes = {
+      small:  { scale: .76, minWood: 2, maxWood: 4, hitsPerWood: 2, label: 'Small' },
+      medium: { scale: .98, minWood: 4, maxWood: 7, hitsPerWood: 3, label: 'Medium' },
+      large:  { scale: 1.22, minWood: 7, maxWood: 11, hitsPerWood: 4, label: 'Large' }
+    };
+
+    function randomInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function chooseTreeSize() {
+      const roll = Math.random();
+      if (roll < .28) return 'small';
+      if (roll < .78) return 'medium';
+      return 'large';
+    }
+
+    function chooseTreeVariant() {
+      const roll = Math.random();
+      if (roll < .035) return 'apple-oak';
+      if (roll < .105) return 'birch';
+      return 'oak';
+    }
+
+    function treeDisplayName(treeData) {
+      if (treeData.variant === 'birch') return `${treeData.sizeLabel} Birch`;
+      if (treeData.variant === 'apple-oak') return `${treeData.sizeLabel} Apple Oak`;
+      return `${treeData.sizeLabel} Oak`;
+    }
+
+    function oakTreeSvg(hasApples) {
+      const appleMarkup = hasApples ? `
+        <g>
+          <circle class="apple" cx="112" cy="146" r="10"/><circle class="apple-shine" cx="108" cy="142" r="3"/>
+          <circle class="apple" cx="201" cy="109" r="10"/><circle class="apple-shine" cx="197" cy="105" r="3"/>
+          <circle class="apple" cx="254" cy="164" r="10"/><circle class="apple-shine" cx="250" cy="160" r="3"/>
+          <circle class="apple" cx="170" cy="208" r="10"/><circle class="apple-shine" cx="166" cy="204" r="3"/>
+          <circle class="apple" cx="279" cy="225" r="9"/><circle class="apple-shine" cx="276" cy="222" r="2.7"/>
+        </g>` : '';
+
+      return `
+        <svg class="forest-tree-art" viewBox="0 0 360 520" aria-hidden="true">
+          <ellipse class="tree-shadow" cx="180" cy="482" rx="86" ry="16"/>
+          <path class="oak-trunk" d="M148 478C153 415 154 362 158 320C160 288 154 258 144 229C132 197 112 173 89 151C121 162 145 178 164 204C169 174 184 145 205 120C207 153 202 187 194 221C218 194 245 178 276 169C247 191 223 216 204 246C190 270 186 295 187 323C189 368 194 420 198 478Z"/>
+          <path class="oak-trunk-light" d="M166 477C168 411 169 359 171 320C173 281 168 249 157 222C169 230 179 241 187 255C188 213 195 174 203 143C201 187 192 226 184 258C179 284 179 309 180 328C182 374 184 423 184 478Z"/>
+          <path class="oak-bark" d="M165 401C158 365 162 332 160 303M186 390C191 348 186 316 190 280M173 288C169 269 171 250 178 229"/>
+          <path class="oak-canopy" d="M57 236C31 216 25 181 42 153C28 122 39 87 67 72C72 39 100 19 132 24C150 2 187 -4 210 13C239 -1 276 13 285 44C317 48 337 75 331 104C354 121 359 155 343 178C360 204 350 239 324 254C321 286 293 307 263 304C244 329 208 336 181 320C154 338 117 329 103 302C78 302 58 281 57 257C49 251 49 243 57 236Z"/>
+          <path class="oak-canopy-shadow" d="M48 168C63 204 96 226 132 226C112 244 98 263 103 302C78 302 58 281 57 257C49 251 49 243 57 236C31 216 25 181 42 153C43 158 45 163 48 168Z"/>
+          <path class="oak-canopy-shadow" d="M211 315C244 306 269 284 280 257C299 264 314 262 324 254C321 286 293 307 263 304C244 329 208 336 181 320C192 319 202 317 211 315Z"/>
+          <path class="oak-canopy-light" d="M91 85C112 47 154 35 188 48C163 57 145 76 136 101C119 92 104 87 91 85Z"/>
+          <path class="oak-canopy-light" d="M204 44C231 21 266 31 280 57C252 52 229 60 211 78C211 65 209 54 204 44Z"/>
+          ${appleMarkup}
+        </svg>`;
+    }
+
+    function birchTreeSvg() {
+      return `
+        <svg class="forest-tree-art" viewBox="0 0 360 520" aria-hidden="true">
+          <ellipse class="tree-shadow" cx="180" cy="482" rx="78" ry="15"/>
+          <path class="birch-trunk" d="M156 478C160 419 160 371 160 328C160 288 155 250 149 218C145 196 135 174 120 151C143 166 158 181 169 203C171 169 180 135 194 104C198 144 195 183 188 221C204 197 226 181 252 171C228 193 210 218 197 249C187 273 184 297 185 328C187 373 190 422 194 478Z"/>
+          <path class="birch-trunk-shadow" d="M178 478C177 412 176 363 177 324C178 279 174 247 166 221C173 229 180 239 186 251C187 211 189 170 193 130C196 173 192 215 185 251C180 281 181 319 182 348C183 394 185 438 186 478Z"/>
+          <rect class="birch-mark" x="158" y="391" width="26" height="7" rx="3" transform="rotate(-6 171 394)"/>
+          <rect class="birch-mark" x="164" y="345" width="18" height="6" rx="3" transform="rotate(8 173 348)"/>
+          <rect class="birch-mark" x="151" y="299" width="29" height="7" rx="3" transform="rotate(-5 165 302)"/>
+          <rect class="birch-mark" x="174" y="252" width="18" height="6" rx="3" transform="rotate(7 183 255)"/>
+          <rect class="birch-mark" x="159" y="215" width="23" height="6" rx="3" transform="rotate(-8 170 218)"/>
+          <path class="birch-canopy" d="M63 240C39 219 37 184 55 160C40 131 52 99 77 84C76 53 100 30 128 31C146 7 181 1 206 18C231 4 264 14 278 40C307 41 329 63 328 91C352 104 361 135 347 158C363 181 357 215 334 232C337 260 313 285 284 286C267 311 233 320 207 307C181 328 144 322 126 297C97 303 68 282 65 253C60 249 59 244 63 240Z"/>
+          <path class="birch-canopy-shadow" d="M55 160C64 192 94 215 126 219C109 237 103 261 126 297C97 303 68 282 65 253C60 249 59 244 63 240C39 219 37 184 55 160Z"/>
+          <path class="birch-canopy-light" d="M95 84C114 51 151 41 181 51C158 62 144 79 137 102C121 93 107 87 95 84Z"/>
+        </svg>`;
+    }
 
     function updateUI() {
-      progressFill.style.width = `${(hits / hitsNeeded) * 100}%`;
-      hitLabel.textContent = `${hits} / ${hitsNeeded}`;
-      woodTop.textContent = String(wood);
-      woodSide.textContent = String(wood);
+      inventoryTotal.textContent = String(oakWood + birchWood + apples + acorns + stone);
+      oakWoodSide.textContent = String(oakWood);
+      birchWoodSide.textContent = String(birchWood);
+      appleSide.textContent = String(apples);
+      acornSide.textContent = String(acorns);
+      stoneSide.textContent = String(stone);
 
-      if (hits === 0) {
-        status.textContent = 'Click the tree to chop';
+      stoneProgressFill.style.width = `${(stoneHits / miningHitsNeeded) * 100}%`;
+      stoneHitLabel.textContent = `${stoneHits} / ${miningHitsNeeded}`;
+
+      if (stoneHits === 0) {
+        miningStatus.textContent = 'Click the rock to mine';
       } else {
-        const remaining = hitsNeeded - hits;
-        status.textContent = `Keep chopping — ${remaining} hit${remaining === 1 ? '' : 's'} left`;
+        const stoneRemaining = miningHitsNeeded - stoneHits;
+        miningStatus.textContent = `Keep mining — ${stoneRemaining} hit${stoneRemaining === 1 ? '' : 's'} left`;
       }
+
+      updateForestStatus();
+    }
+
+    function updateForestStatus() {
+      if (!selectedTree || !activeTrees.has(selectedTree.id)) {
+        forestStatus.textContent = 'Choose a tree to start chopping';
+        forestDetail.textContent = 'Oak is most common';
+        forestProgressFill.style.width = '0%';
+        return;
+      }
+
+      const remainingHits = selectedTree.hitsPerWood - selectedTree.hits;
+      forestStatus.textContent = treeDisplayName(selectedTree);
+      forestDetail.textContent = `${selectedTree.woodRemaining} log${selectedTree.woodRemaining === 1 ? '' : 's'} left · ${remainingHits} hit${remainingHits === 1 ? '' : 's'} to gather`;
+      forestProgressFill.style.width = `${(selectedTree.hits / selectedTree.hitsPerWood) * 100}%`;
     }
 
     function restartAnimation(node, className) {
@@ -1689,44 +2659,225 @@
       node.classList.add(className);
     }
 
-    function makeChips() {
-      for (let i = 0; i < 6; i += 1) {
-        const chip = document.createElement('span');
-        chip.className = 'particle';
+    function getFreeTreeSlot() {
+      const free = treeSlots
+        .map((slot, index) => index)
+        .filter((index) => !occupiedTreeSlots.has(index));
 
-        const dx = Math.round((Math.random() - 0.5) * 140);
-        const dy = Math.round(-40 - Math.random() * 90);
-        const rot = Math.round((Math.random() - 0.5) * 460);
+      if (!free.length) return null;
+      return free[Math.floor(Math.random() * free.length)];
+    }
+
+    function createTreeElement(treeData) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = `forest-tree ${treeData.variant === 'birch' ? 'birch' : 'oak'} ${treeData.variant === 'apple-oak' ? 'apple-oak' : ''}`;
+      button.setAttribute('aria-label', `Chop ${treeDisplayName(treeData)}`);
+      button.style.left = `${treeData.x}%`;
+      button.style.top = `${treeData.y}%`;
+      button.style.setProperty('--tree-render-scale', String(treeData.scale * treeData.depthScale));
+      button.style.zIndex = String(Math.round(treeData.y * 10));
+
+      const shell = document.createElement('span');
+      shell.className = 'forest-tree-shell';
+      shell.innerHTML = treeData.variant === 'birch'
+        ? birchTreeSvg()
+        : oakTreeSvg(treeData.variant === 'apple-oak');
+
+      const tag = document.createElement('span');
+      tag.className = 'tree-type-tag';
+      tag.textContent = treeDisplayName(treeData);
+
+      button.append(shell, tag);
+      button.addEventListener('click', () => chopForestTree(treeData, button, shell));
+      return button;
+    }
+
+    function spawnTree() {
+      const slotIndex = getFreeTreeSlot();
+      if (slotIndex === null) return;
+
+      occupiedTreeSlots.add(slotIndex);
+
+      const slot = treeSlots[slotIndex];
+      const sizeKey = chooseTreeSize();
+      const sizeData = treeSizes[sizeKey];
+      const variant = chooseTreeVariant();
+
+      const xJitter = randomInt(-3, 3);
+      const yJitter = randomInt(-2, 2);
+      const y = Math.max(54, Math.min(90, slot.y + yJitter));
+      const depthScale = .90 + ((y - 54) / 36) * .15;
+      const woodRemaining = randomInt(sizeData.minWood, sizeData.maxWood);
+
+      const treeData = {
+        id: ++treeId,
+        slotIndex,
+        variant,
+        sizeKey,
+        sizeLabel: sizeData.label,
+        scale: sizeData.scale,
+        depthScale,
+        x: Math.max(7, Math.min(93, slot.x + xJitter)),
+        y,
+        hits: 0,
+        hitsPerWood: sizeData.hitsPerWood,
+        woodRemaining,
+        alternate: false
+      };
+
+      const element = createTreeElement(treeData);
+      treeData.element = element;
+      activeTrees.set(treeData.id, treeData);
+      forestStage.appendChild(element);
+    }
+
+    function spawnInitialForest() {
+      const desiredTrees = Math.min(5, treeSlots.length);
+      for (let i = 0; i < desiredTrees; i += 1) {
+        spawnTree();
+      }
+    }
+
+    function makeTreeChips(button, isBirch) {
+      for (let i = 0; i < 5; i += 1) {
+        const chip = document.createElement('span');
+        chip.className = 'tree-chip';
+        if (isBirch) chip.style.background = '#dedbd0';
+
+        const dx = randomInt(-72, 72);
+        const dy = randomInt(-92, -38);
+        const rot = randomInt(-220, 220);
 
         chip.style.setProperty('--dx', `${dx}px`);
         chip.style.setProperty('--dy', `${dy}px`);
         chip.style.setProperty('--rot', `${rot}deg`);
 
-        tree.appendChild(chip);
+        button.appendChild(chip);
         chip.addEventListener('animationend', () => chip.remove(), { once: true });
       }
     }
 
-    function chop() {
-      alternate = !alternate;
+    function showTreeReward(button, rewards) {
+      if (!rewards.length) return;
+      const pop = document.createElement('span');
+      pop.className = 'tree-reward-burst';
+      pop.textContent = rewards.join(' · ');
+      button.appendChild(pop);
+      pop.addEventListener('animationend', () => pop.remove(), { once: true });
+    }
 
-      const activeClass = alternate ? 'chop-left' : 'chop-right';
-      const inactiveClass = alternate ? 'chop-right' : 'chop-left';
+    function harvestOneWood(treeData, button) {
+      const rewards = [];
 
-      tree.classList.remove(inactiveClass);
-      restartAnimation(tree, activeClass);
-      restartAnimation(flash, 'show');
-      makeChips();
+      if (treeData.variant === 'birch') {
+        birchWood += 1;
+        rewards.push('+1 Birch Wood');
+      } else {
+        oakWood += 1;
+        rewards.push('+1 Oak Wood');
 
-      hits += 1;
+        if (treeData.variant === 'apple-oak') {
+          const appleDrop = Math.random() < .30 ? 2 : 1;
+          apples += appleDrop;
+          rewards.push(`+${appleDrop} Apple${appleDrop === 1 ? '' : 's'}`);
+        } else {
+          if (Math.random() < .12) {
+            acorns += 1;
+            rewards.push('+1 Acorn');
+          }
 
-      if (hits >= hitsNeeded) {
-        wood += 1;
-        hits = 0;
-        status.textContent = 'Wood gathered!';
-        restartAnimation(tree, 'harvest');
-        restartAnimation(reward, 'show');
+          if (Math.random() < .015) {
+            apples += 1;
+            rewards.push('+1 Apple');
+          }
+        }
+      }
 
+      treeData.woodRemaining -= 1;
+      showTreeReward(button, rewards);
+    }
+
+    function depleteTree(treeData, button, shell) {
+      activeTrees.delete(treeData.id);
+      occupiedTreeSlots.delete(treeData.slotIndex);
+
+      if (selectedTree && selectedTree.id === treeData.id) {
+        selectedTree = null;
+      }
+
+      shell.classList.add('depleted');
+      button.disabled = true;
+
+      window.setTimeout(() => {
+        button.remove();
+      }, 430);
+
+      window.setTimeout(() => {
+        spawnTree();
+        updateUI();
+      }, randomInt(850, 1450));
+    }
+
+    function chopForestTree(treeData, button, shell) {
+      if (!activeTrees.has(treeData.id) || button.disabled) return;
+
+      selectedTree = treeData;
+      treeData.alternate = !treeData.alternate;
+
+      const activeClass = treeData.alternate ? 'hit-left' : 'hit-right';
+      const inactiveClass = treeData.alternate ? 'hit-right' : 'hit-left';
+      shell.classList.remove(inactiveClass);
+      restartAnimation(shell, activeClass);
+      makeTreeChips(button, treeData.variant === 'birch');
+
+      treeData.hits += 1;
+
+      if (treeData.hits >= treeData.hitsPerWood) {
+        treeData.hits = 0;
+        harvestOneWood(treeData, button);
+
+        if (treeData.woodRemaining <= 0) {
+          depleteTree(treeData, button, shell);
+        }
+      }
+
+      updateUI();
+    }
+
+    function makeStoneChips() {
+      for (let i = 0; i < 7; i += 1) {
+        const chip = document.createElement('span');
+        chip.className = 'stone-particle';
+        const dx = Math.round((Math.random() - 0.5) * 150);
+        const dy = Math.round(-38 - Math.random() * 92);
+        const rot = Math.round((Math.random() - 0.5) * 440);
+        chip.style.setProperty('--dx', `${dx}px`);
+        chip.style.setProperty('--dy', `${dy}px`);
+        chip.style.setProperty('--rot', `${rot}deg`);
+        rock.appendChild(chip);
+        chip.addEventListener('animationend', () => chip.remove(), { once: true });
+      }
+    }
+
+    function mineRock() {
+      miningAlternate = !miningAlternate;
+      const activeClass = miningAlternate ? 'mine-left' : 'mine-right';
+      const inactiveClass = miningAlternate ? 'mine-right' : 'mine-left';
+
+      rock.classList.remove(inactiveClass);
+      restartAnimation(rock, activeClass);
+      restartAnimation(stoneFlash, 'show');
+      makeStoneChips();
+
+      stoneHits += 1;
+
+      if (stoneHits >= miningHitsNeeded) {
+        stone += 1;
+        stoneHits = 0;
+        miningStatus.textContent = 'Stone gathered!';
+        restartAnimation(rock, 'harvest');
+        restartAnimation(stoneReward, 'show');
       }
 
       updateUI();
@@ -1743,6 +2894,22 @@
       }
     }
 
+
+    function setSkillsDrawer(open) {
+      skillsDrawer.classList.toggle('open', open);
+      characterMain.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+
+    function setLakesideExpanded(open) {
+      areaChildren.classList.toggle('collapsed', !open);
+      areaCollapse.setAttribute('aria-expanded', open ? 'true' : 'false');
+      areaCollapse.setAttribute('aria-label', open ? 'Collapse Lakeside locations' : 'Expand Lakeside locations');
+
+      try {
+        localStorage.setItem('clicklands-lakeside-expanded', open ? 'true' : 'false');
+      } catch (error) {
+      }
+    }
 
     function setLocation(locationName) {
       const validLocations = ['lakeside', 'forest', 'mines'];
@@ -1804,7 +2971,13 @@
       }
     }
 
-    tree.addEventListener('click', chop);
+    rock.addEventListener('click', mineRock);
+    characterMain.addEventListener('click', () => {
+      setSkillsDrawer(!skillsDrawer.classList.contains('open'));
+    });
+    areaCollapse.addEventListener('click', () => {
+      setLakesideExpanded(areaCollapse.getAttribute('aria-expanded') !== 'true');
+    });
     locationButtons.forEach((button) => {
       button.addEventListener('click', () => setLocation(button.dataset.location));
     });
@@ -1820,8 +2993,9 @@
     });
 
     document.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape' && inventory.classList.contains('open')) {
-        setInventory(false);
+      if (event.key === 'Escape') {
+        if (inventory.classList.contains('open')) setInventory(false);
+        if (skillsDrawer.classList.contains('open')) setSkillsDrawer(false);
       }
     });
 
@@ -1835,7 +3009,16 @@
     } catch (error) {
     }
 
+    let lakesideExpanded = true;
+
+    try {
+      lakesideExpanded = localStorage.getItem('clicklands-lakeside-expanded') !== 'false';
+    } catch (error) {
+    }
+
     setTheme(startDark);
+    setLakesideExpanded(lakesideExpanded);
+    spawnInitialForest();
     setLocation(startLocation);
     updateUI();
   </script>
