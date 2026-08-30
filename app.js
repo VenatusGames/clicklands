@@ -2,6 +2,8 @@
   const SAVE_KEY = 'clicklands-online-save-v2';
   const ENTER_SOUND = 'assets/sfx/CL-enter.wav';
   const LOGO = 'assets/images/CL-logo.png';
+  const PROGRESSION_MODEL = 3;
+  const OVERALL_XP_PER_SKILL_LEVEL = 25;
 
   const defaultState = {
     theme: 'light',
@@ -57,6 +59,7 @@
   renderDrawers();
   spawnInitialForest();
   spawnRock();
+  saveState();
 
   function loadState() {
     let saved = {};
@@ -87,6 +90,14 @@
 
     if (!saved.theme && oldTheme === 'dark') merged.theme = 'dark';
     if (!saved.location && ['lakeside', 'forest', 'mines'].includes(oldLocation)) merged.location = oldLocation;
+
+    if (saved.progressionModel !== PROGRESSION_MODEL) {
+      const earnedSkillLevels =
+        Math.max(0, merged.skills.woodcutting.level - 1) +
+        Math.max(0, merged.skills.mining.level - 1);
+      merged.overall = progressFromTotalXp(earnedSkillLevels * OVERALL_XP_PER_SKILL_LEVEL);
+    }
+
     merged.inventoryOpen = false;
     merged.skillsOpen = false;
     return merged;
@@ -99,6 +110,7 @@
       lakesideExpanded: state.lakesideExpanded,
       inventoryTab: state.inventoryTab,
       username: state.username,
+      progressionModel: PROGRESSION_MODEL,
       inventory: state.inventory,
       overall: state.overall,
       skills: state.skills,
@@ -207,7 +219,7 @@
                 <span class="xp-label">Overall XP</span>
                 <span class="xp-value" data-overall-xp>0 / 100 XP</span>
               </span>
-              <span class="progress-track"><span class="progress-fill" data-overall-fill></span></span>
+              <span class="progress-track overall-progress-track"><span class="progress-fill overall-progress-fill" data-overall-fill></span></span>
             </span>
             <span class="character-chevron">${chevronSvg()}</span>
           </button>
@@ -491,7 +503,12 @@
     const percent = clamp((progress.xp / needed) * 100, 0, 100);
     levelNode.textContent = overall ? String(progress.level) : `Level ${progress.level}`;
     xpNode.textContent = `${progress.xp} / ${needed} XP`;
-    requestAnimationFrame(() => { fillNode.style.width = `${percent}%`; });
+
+    if (overall) {
+      fillNode.style.transform = `scaleX(${percent / 100})`;
+    } else {
+      fillNode.style.width = `${percent}%`;
+    }
   }
 
   function renderDrawers() {
@@ -534,16 +551,21 @@
 
   function gainSkillXp(skill, amount) {
     const skillData = state.skills[skill];
-    const oldSkillLevel = skillData.level;
-    addXp(skillData, amount);
-    const oldOverallLevel = state.overall.level;
-    addXp(state.overall, amount);
+    const skillLevelsGained = addXp(skillData, amount);
 
-    if (skillData.level > oldSkillLevel) {
-      showToast('Level up', `${capitalize(skill)} reached level ${skillData.level}.`, skill === 'woodcutting' ? '🪓' : '⛏');
-    }
-    if (state.overall.level > oldOverallLevel) {
-      showToast('Overall level up', `Overall Level ${state.overall.level}`, '✦');
+    if (skillLevelsGained > 0) {
+      const oldOverallLevel = state.overall.level;
+      addXp(state.overall, skillLevelsGained * OVERALL_XP_PER_SKILL_LEVEL);
+
+      showToast(
+        'Level up',
+        `${capitalize(skill)} reached level ${skillData.level}. +${skillLevelsGained * OVERALL_XP_PER_SKILL_LEVEL} Overall XP.`,
+        skill === 'woodcutting' ? '🪓' : '⛏'
+      );
+
+      if (state.overall.level > oldOverallLevel) {
+        showToast('Overall level up', `Overall Level ${state.overall.level}`, '✦');
+      }
     }
 
     renderHUD();
@@ -551,13 +573,30 @@
   }
 
   function addXp(progress, amount) {
+    const startingLevel = progress.level;
     progress.xp += amount;
     let needed = xpNeeded(progress.level);
+
     while (progress.xp >= needed) {
       progress.xp -= needed;
       progress.level += 1;
       needed = xpNeeded(progress.level);
     }
+
+    return progress.level - startingLevel;
+  }
+
+  function progressFromTotalXp(totalXp) {
+    const progress = { level: 1, xp: Math.max(0, totalXp) };
+    let needed = xpNeeded(progress.level);
+
+    while (progress.xp >= needed) {
+      progress.xp -= needed;
+      progress.level += 1;
+      needed = xpNeeded(progress.level);
+    }
+
+    return progress;
   }
 
   function spawnInitialForest() {
