@@ -592,7 +592,7 @@ body.dark .forest-ground {
   position: absolute;
   z-index: 30;
   left: 50%;
-  top: 11px;
+  top: calc(11px + var(--bar-shift, 0px));
   width: 142px;
   padding: 7px 8px 8px;
   border-radius: 11px;
@@ -604,9 +604,9 @@ body.dark .forest-ground {
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transition: opacity .14s ease, visibility .14s ease;
+  transition: opacity .14s ease, visibility 0s linear .14s;
 }
-.tree-node.is-selected .node-bar, .tree-node:hover .node-bar, .tree-node:focus-visible .node-bar { opacity: 1; visibility: visible; }
+.tree-node:hover .node-bar, .tree-node:focus-visible .node-bar, .rock-node:hover .node-bar, .rock-node:focus-visible .node-bar { opacity: 1; visibility: visible; transition: opacity .14s ease, visibility 0s linear 0s; }
 .node-bar-line { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 5px; }
 .node-bar-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 8px; font-weight: 820; }
 .node-bar-meta { flex: 0 0 auto; color: var(--muted); font-size: 7px; font-variant-numeric: tabular-nums; }
@@ -718,7 +718,7 @@ body.dark .cave-wall { background: linear-gradient(145deg,#4b4e48,#343933 54%,#2
 .rock-node.is-hit-right .rock-shell { animation: rockHitRight .18s ease; }
 .rock-node.is-depleted .rock-shell { animation: rockDeplete .46s ease forwards; }
 .rock-art { width:100%; height:100%; overflow:visible; filter:drop-shadow(0 20px 14px rgba(0,0,0,.24)); }
-.rock-node .node-bar { top:-35px; width:158px; opacity:1; visibility:visible; }
+.rock-node .node-bar { top:calc(-35px + var(--bar-shift, 0px)); width:158px; }
 .rock-chip { left:50%; top:58%; width:11px; height:9px; border-radius:4px; background:#858a85; }
 @keyframes rockHitLeft { 0%,100% { transform:rotate(0); } 45% { transform:rotate(-2deg) scale(.99); } }
 @keyframes rockHitRight { 0%,100% { transform:rotate(0); } 45% { transform:rotate(2deg) scale(.99); } }

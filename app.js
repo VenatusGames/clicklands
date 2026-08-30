@@ -682,8 +682,32 @@
       <span class="tree-tag">${treeName(tree)}</span>
     `;
 
+    node.addEventListener('pointerenter', () => positionNodeBar(node));
+    node.addEventListener('focus', () => positionNodeBar(node));
     node.addEventListener('click', () => chopTree(tree));
     return node;
+  }
+
+  function positionNodeBar(node) {
+    const bar = node?.querySelector('.node-bar');
+    if (!bar) return;
+
+    bar.style.setProperty('--bar-shift', '0px');
+
+    requestAnimationFrame(() => {
+      if (!node.isConnected || !bar.isConnected) return;
+
+      const characterStack = document.querySelector('.character-stack');
+      const hudBottom = characterStack?.getBoundingClientRect().bottom ?? 86;
+      const safeTop = hudBottom + 8;
+      const barRect = bar.getBoundingClientRect();
+      const collision = safeTop - barRect.top;
+
+      if (collision <= 0) return;
+
+      const nodeScale = Number.parseFloat(getComputedStyle(node).getPropertyValue('--scale')) || 1;
+      bar.style.setProperty('--bar-shift', `${collision / nodeScale}px`);
+    });
   }
 
   function updateTreeNode(tree) {
@@ -698,8 +722,6 @@
   function chopTree(tree) {
     if (!runtime.trees.has(tree.id) || tree.node.disabled) return;
 
-    document.querySelectorAll('.tree-node.is-selected').forEach((node) => node.classList.remove('is-selected'));
-    tree.node.classList.add('is-selected');
     tree.alternate = !tree.alternate;
     pulseNode(tree.node, tree.alternate ? 'is-hit-left' : 'is-hit-right');
     createTreeChips(tree);
@@ -792,6 +814,8 @@
     `;
 
     rock.node = ui.rockHost.querySelector('[data-rock]');
+    rock.node.addEventListener('pointerenter', () => positionNodeBar(rock.node));
+    rock.node.addEventListener('focus', () => positionNodeBar(rock.node));
     rock.node.addEventListener('click', mineRock);
     updateRockNode();
   }
