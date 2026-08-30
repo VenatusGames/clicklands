@@ -2332,3 +2332,158 @@ body.is-dragging-log .sawmill-input { color:#d8efae; border-color:#b8d77d; backg
   .farmer-character-image { height: 325px; }
   .herbalist-character-image { height: 330px; }
 }
+
+
+/* Village NPC shops */
+.village-shop {
+  position: absolute;
+  z-index: 150;
+  left: 18px;
+  top: 150px;
+  bottom: 18px;
+  width: 390px;
+  padding: 13px;
+  border: 1px solid var(--line);
+  border-radius: 17px;
+  background: var(--surface);
+  box-shadow: 0 24px 58px rgba(0,0,0,.27);
+  backdrop-filter: blur(20px);
+  display: flex;
+  flex-direction: column;
+  transform: translateX(calc(-100% - 34px));
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: transform .28s var(--ease-spring), opacity .17s ease, visibility 0s linear .28s;
+}
+
+.village-shop.is-open {
+  transform: translateX(0);
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition: transform .28s var(--ease-spring), opacity .17s ease, visibility 0s;
+}
+
+.village-shop-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.village-shop-head small {
+  display: block;
+  color: var(--muted);
+  font-size: 7px;
+  font-weight: 850;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+}
+
+.village-shop-head strong {
+  display: block;
+  margin-top: 2px;
+  font-size: 15px;
+}
+
+.village-shop-head button {
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 9px;
+  background: var(--surface-quiet);
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.village-shop-body {
+  min-height: 0;
+  overflow-y: auto;
+  padding-top: 10px;
+  scrollbar-width: thin;
+}
+
+.shop-product-list {
+  display: grid;
+  gap: 6px;
+}
+
+.village-shop .shop-product {
+  border-color: rgba(103,121,95,.18);
+  background:
+    linear-gradient(135deg, rgba(113,143,99,.055), transparent 55%),
+    var(--surface-quiet);
+}
+
+.village-shop .shop-item-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: var(--surface-soft);
+  font-size: 16px;
+}
+
+.mushroom-icon.brown {
+  filter: sepia(.78) saturate(.55) brightness(.78);
+}
+
+.mushroom-icon.white {
+  filter: grayscale(1) brightness(1.45);
+}
+
+@media (max-width: 760px) {
+  .village-shop {
+    left: 8px;
+    right: 8px;
+    top: 150px;
+    bottom: 8px;
+    width: auto;
+  }
+}
+
+
+.gear-copy small {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+.straw-hat-icon {
+  position: relative;
+  width: 28px;
+  height: 18px;
+  display: inline-block;
+  border-radius: 50% 50% 42% 42%;
+  background: linear-gradient(180deg, #e9c66e 0 38%, #c99a43 39% 100%);
+  box-shadow: inset 0 -2px rgba(107,75,31,.16);
+}
+.straw-hat-icon::before {
+  content: "";
+  position: absolute;
+  left: 5px;
+  right: 5px;
+  top: -7px;
+  height: 15px;
+  border-radius: 50% 50% 34% 34%;
+  background: linear-gradient(180deg, #ebce79, #d3a74f);
+  box-shadow: inset 0 -3px rgba(128,83,34,.12);
+}
+.straw-hat-icon::after {
+  content: "";
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  top: 5px;
+  height: 4px;
+  border-radius: 4px;
+  background: #a93d37;
+  box-shadow: 0 1px rgba(82,32,29,.18);
+}

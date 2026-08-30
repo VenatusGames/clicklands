@@ -10,6 +10,70 @@
     birchWood: { name: 'Birch Wood', price: 20 },
     acorns: { name: 'Acorn', price: 6 },
   };
+  const VILLAGE_SHOPS = {
+    farmer: {
+      kicker: "Farmer's Counter",
+      title: "Farmer's Market",
+      sellHeading: 'Sell Produce',
+      sellNote: 'The farmer buys useful farm byproducts',
+      buyHeading: 'Farm Goods',
+      buyNote: 'Food, crops & simple clothing',
+      sell: {
+        apples: { name: 'Apple', price: 8, icon: '🍎' },
+        sawdust: { name: 'Sawdust', price: 2, icon: '<span class="mini-sawdust"></span>' },
+      },
+      buy: {
+        bread: { name: 'Bread', price: 25, icon: '🍞', description: 'A simple loaf of fresh bread.' },
+        wheat: { name: 'Wheat', price: 8, icon: '🌾', description: 'A bundle of wheat.' },
+        strawHat: { name: 'Straw Hat', price: 120, icon: '<span class="straw-hat-icon" aria-hidden="true"></span>', description: 'Straw hat with a red band · Helmet slot', unique: true },
+      },
+    },
+    'foragers-hut': {
+      kicker: "Herbalist's Counter",
+      title: "Herbalist's Shop",
+      sellHeading: 'Sell Foraged Goods',
+      sellNote: 'Wild plants, fungi & acorns',
+      buyHeading: 'Herbal Supplies',
+      buyNote: 'Potions & trail snacks',
+      sell: {
+        acorns: { name: 'Acorn', price: 6, icon: '🌰' },
+        redMushroom: { name: 'Red Mushroom', price: 12, icon: '🍄' },
+        brownMushroom: { name: 'Brown Mushroom', price: 10, icon: '🍄' },
+        whiteMushroom: { name: 'White Mushroom', price: 14, icon: '🍄' },
+        onionGrass: { name: 'Onion Grass', price: 7, icon: '🧅' },
+      },
+      buy: {
+        smallHealthPotion: { name: 'Small Health Potion', price: 45, icon: '🧪', description: 'A small restorative potion. Healing use comes later.' },
+        cookies: { name: 'Cookie', price: 15, icon: '🍪', description: 'A sweet trail snack.' },
+      },
+    },
+    blacksmith: {
+      kicker: "Blacksmith's Counter",
+      title: 'Blacksmith Shop',
+      sellHeading: 'Sell Ore & Minerals',
+      sellNote: 'Stone, ore, coal, quartz & gems',
+      buyHeading: 'Weapons & Armor',
+      buyNote: 'Basic forged equipment',
+      sell: {
+        stone: { name: 'Stone', price: 4, icon: '<span class="mini-ore stone"></span>' },
+        coal: { name: 'Coal', price: 7, icon: '<span class="mini-ore coal"></span>' },
+        ironOre: { name: 'Iron Ore', price: 16, icon: '<span class="mini-ore iron"></span>' },
+        goldOre: { name: 'Gold Ore', price: 42, icon: '<span class="mini-ore gold"></span>' },
+        silverOre: { name: 'Silver Ore', price: 90, icon: '<span class="mini-ore silver"></span>' },
+        quartz: { name: 'Quartz', price: 26, icon: '<span class="mini-gem quartz"></span>' },
+        amethyst: { name: 'Amethyst', price: 72, icon: '<span class="mini-gem amethyst"></span>' },
+      },
+      buy: {
+        basicSword: { name: 'Basic Sword', price: 250, icon: '⚔', description: 'Starter sword · Main Hand', unique: true },
+        basicShield: { name: 'Basic Shield', price: 220, icon: '◈', description: 'Starter shield · Off Hand', unique: true },
+        basicHammer: { name: 'Basic Hammer', price: 180, icon: '🔨', description: 'Starter smithing hammer · Main Hand', unique: true },
+        chainmailHelmet: { name: 'Chainmail Helmet', price: 300, icon: '⛓', description: 'Chainmail armor · Helmet slot', unique: true },
+        chainmailChestplate: { name: 'Chainmail Chestplate', price: 500, icon: '⛓', description: 'Chainmail armor · Chestplate slot', unique: true },
+        chainmailLeggings: { name: 'Chainmail Leggings', price: 400, icon: '⛓', description: 'Chainmail armor · Leggings slot', unique: true },
+        chainmailBoots: { name: 'Chainmail Boots', price: 250, icon: '⛓', description: 'Chainmail armor · Boots slot', unique: true },
+      },
+    },
+  };
   const SAWMILL_RECIPES = {
     oakWood: { name: 'Oak Wood', plankKey: 'oakPlanks', plankName: 'Oak Planks', duration: 3200, planks: 2, sawdust: 1 },
     birchWood: { name: 'Birch Wood', plankKey: 'birchPlanks', plankName: 'Birch Planks', duration: 5200, planks: 2, sawdust: 1 },
@@ -21,6 +85,62 @@
       slot: 'axe',
       icon: '🪓',
       bonus: '+1 tree damage',
+    },
+    strawHat: {
+      name: 'Straw Hat',
+      shortName: 'Straw Hat',
+      slot: 'helmet',
+      icon: '<span class="straw-hat-icon" aria-hidden="true"></span>',
+      bonus: 'Cosmetic helmet · no stats yet',
+    },
+    basicSword: {
+      name: 'Basic Sword',
+      shortName: 'Basic Sword',
+      slot: 'main-hand',
+      icon: '⚔',
+      bonus: 'Starter melee weapon · combat stats later',
+    },
+    basicShield: {
+      name: 'Basic Shield',
+      shortName: 'Basic Shield',
+      slot: 'off-hand',
+      icon: '◈',
+      bonus: 'Starter shield · combat stats later',
+    },
+    basicHammer: {
+      name: 'Basic Hammer',
+      shortName: 'Basic Hammer',
+      slot: 'main-hand',
+      icon: '🔨',
+      bonus: 'Starter smithing hammer · no bonus yet',
+    },
+    chainmailHelmet: {
+      name: 'Chainmail Helmet',
+      shortName: 'Chain Helm',
+      slot: 'helmet',
+      icon: '⛓',
+      bonus: 'Chainmail armor · stats later',
+    },
+    chainmailChestplate: {
+      name: 'Chainmail Chestplate',
+      shortName: 'Chain Chest',
+      slot: 'chestplate',
+      icon: '⛓',
+      bonus: 'Chainmail armor · stats later',
+    },
+    chainmailLeggings: {
+      name: 'Chainmail Leggings',
+      shortName: 'Chain Legs',
+      slot: 'leggings',
+      icon: '⛓',
+      bonus: 'Chainmail armor · stats later',
+    },
+    chainmailBoots: {
+      name: 'Chainmail Boots',
+      shortName: 'Chain Boots',
+      slot: 'boots',
+      icon: '⛓',
+      bonus: 'Chainmail armor · stats later',
     },
   };
   const EQUIPMENT_SLOT_LABELS = {
@@ -55,7 +175,23 @@
       oakPlanks: 0,
       birchPlanks: 0,
       sawdust: 0,
+      redMushroom: 0,
+      brownMushroom: 0,
+      whiteMushroom: 0,
+      onionGrass: 0,
+      bread: 0,
+      wheat: 0,
+      smallHealthPotion: 0,
+      cookies: 0,
       basicWoodcuttersAxe: 0,
+      strawHat: 0,
+      basicSword: 0,
+      basicShield: 0,
+      basicHammer: 0,
+      chainmailHelmet: 0,
+      chainmailChestplate: 0,
+      chainmailLeggings: 0,
+      chainmailBoots: 0,
     },
     wallet: { copper: 0, xelium: 0 },
     equipment: {
@@ -126,6 +262,7 @@
     hoverResource: null,
     entered: false,
     lumberShopOpen: false,
+    villageShopOpen: null,
     sawmillJob: null,
     sawmillTimer: null,
     draggedItem: null,
@@ -140,6 +277,7 @@
   renderInventory();
   renderDrawers();
   renderLumberShop();
+  renderVillageShop();
   spawnInitialForest();
   spawnInitialMineNodes();
 
@@ -167,6 +305,7 @@
           ${townMarkup()}
           ${lumbermillMarkup()}
           ${villageInteriorsMarkup()}
+          ${villageShopMarkup()}
         </section>
         ${inventoryMarkup()}
         ${resourceHoverBarMarkup()}
@@ -530,7 +669,7 @@
       'foragers-hut': { file: 'herbalist.png', className: 'herbalist-character-image' },
     };
 
-    const interior = ({ key, title, subtitle, role, note, decor }) => {
+    const interior = ({ key, title, subtitle, role, note, decor, shopKey = '' }) => {
       const artwork = npcArtwork[key];
 
       return `
@@ -543,21 +682,33 @@
           </div>
           <button class="mill-back interior-back" type="button" data-location="town">‹ Lakeshore Village</button>
           <div class="interior-title"><span>Lakeshore Village</span><strong>${title}</strong><small>${subtitle}</small></div>
-          <button class="village-npc npc-${key}" type="button" data-building-npc data-npc-title="${role}" data-npc-note="${note}">
+          <button class="village-npc npc-${key}" type="button" data-building-npc data-npc-shop="${shopKey}" data-npc-title="${role}" data-npc-note="${note}">
             <span class="village-npc-shadow" aria-hidden="true"></span>
             <img class="village-npc-character-image ${artwork.className}" src="assets/images/npcs/${artwork.file}" alt="" aria-hidden="true">
-            <span class="village-npc-label"><strong>${role}</strong><small>Click to talk</small></span>
+            <span class="village-npc-label"><strong>${role}</strong><small>${shopKey ? 'Click to trade' : 'Click to talk'}</small></span>
           </button>
         </div>
       `;
     };
 
     return [
-      interior({ key:'blacksmith', title:'Blacksmith', subtitle:'Forge, metalwork & repairs', role:'Blacksmith', note:'The forge is hot, but blacksmith services are still being built.', decor:'forge-decor' }),
+      interior({ key:'blacksmith', title:'Blacksmith', subtitle:'Forge, metalwork & repairs', role:'Blacksmith', note:'Weapons, armor, ore and mineral trading.', decor:'forge-decor', shopKey:'blacksmith' }),
       interior({ key:'strange-shack', title:'Strange Shack', subtitle:'Arcane clutter & stranger business', role:'Wizard', note:'The wizard watches you carefully. Arcane services are coming later.', decor:'wizard-decor' }),
-      interior({ key:'farmer', title:'Farmer', subtitle:'Crops, produce & farm goods', role:'Farmer', note:'The farmer is arranging fresh produce. Trading will be added later.', decor:'farm-decor' }),
-      interior({ key:'foragers-hut', title:"Forager's Hut", subtitle:'Wild herbs, fungi & gathered goods', role:'Forager', note:'The forager is sorting today\'s finds. Trading will be added later.', decor:'forager-decor' }),
+      interior({ key:'farmer', title:'Farmer', subtitle:'Crops, produce & farm goods', role:'Farmer', note:'Fresh food, wheat and simple farm clothing.', decor:'farm-decor', shopKey:'farmer' }),
+      interior({ key:'foragers-hut', title:"Forager's Hut", subtitle:'Wild herbs, fungi & gathered goods', role:'Herbalist', note:'Foraged goods, potions and trail snacks.', decor:'forager-decor', shopKey:'foragers-hut' }),
     ].join('');
+  }
+
+  function villageShopMarkup() {
+    return `
+      <aside class="village-shop" data-village-shop aria-label="Village shop">
+        <div class="village-shop-head">
+          <div><small data-village-shop-kicker>Shop</small><strong data-village-shop-title>Village Shop</strong></div>
+          <button type="button" data-village-shop-close aria-label="Close shop">×</button>
+        </div>
+        <div class="village-shop-body" data-village-shop-body></div>
+      </aside>
+    `;
   }
 
   function resourceHoverBarMarkup() {
@@ -703,6 +854,10 @@
       walletXelium: document.querySelector('[data-wallet-xelium]'),
       lumberShop: document.querySelector('[data-lumber-shop]'),
       lumberShopBody: document.querySelector('[data-lumber-shop-body]'),
+      villageShop: document.querySelector('[data-village-shop]'),
+      villageShopKicker: document.querySelector('[data-village-shop-kicker]'),
+      villageShopTitle: document.querySelector('[data-village-shop-title]'),
+      villageShopBody: document.querySelector('[data-village-shop-body]'),
       sawmillDrop: document.querySelector('[data-sawmill-drop]'),
       sawmillMachine: document.querySelector('[data-sawmill-machine]'),
       sawmillStatus: document.querySelector('[data-sawmill-status]'),
@@ -750,7 +905,34 @@
 
       const villageNpc = event.target.closest('[data-building-npc]');
       if (villageNpc) {
-        showToast(villageNpc.dataset.npcTitle, villageNpc.dataset.npcNote, '⌂');
+        const shopKey = villageNpc.dataset.npcShop;
+        if (shopKey && VILLAGE_SHOPS[shopKey]) {
+          runtime.villageShopOpen = shopKey;
+          renderVillageShop();
+        } else {
+          showToast(villageNpc.dataset.npcTitle, villageNpc.dataset.npcNote, '⌂');
+        }
+        return;
+      }
+
+      if (event.target.closest('[data-village-shop-close]')) {
+        runtime.villageShopOpen = null;
+        renderVillageShop();
+        return;
+      }
+
+      const villageSellButton = event.target.closest('[data-village-sell-item]');
+      if (villageSellButton) {
+        sellVillageShopItem(
+          villageSellButton.dataset.villageSellItem,
+          villageSellButton.dataset.sellMode === 'all'
+        );
+        return;
+      }
+
+      const villageBuyButton = event.target.closest('[data-village-buy-item]');
+      if (villageBuyButton) {
+        buyVillageShopItem(villageBuyButton.dataset.villageBuyItem);
         return;
       }
 
@@ -896,7 +1078,13 @@
 
     document.addEventListener('keydown', (event) => {
       if (event.key !== 'Escape') return;
-      if (state.inventoryOpen) {
+      if (runtime.villageShopOpen) {
+        runtime.villageShopOpen = null;
+        renderVillageShop();
+      } else if (runtime.lumberShopOpen) {
+        runtime.lumberShopOpen = false;
+        renderLumberShop();
+      } else if (state.inventoryOpen) {
         state.inventoryOpen = false;
         renderDrawers();
       } else if (state.skillsOpen) {
@@ -961,8 +1149,10 @@
     state.location = location;
     state.inventoryOpen = false;
     if (location !== 'lumbermill') runtime.lumberShopOpen = false;
+    runtime.villageShopOpen = null;
     renderNavigation();
     renderLumberShop();
+    renderVillageShop();
     renderDrawers();
     }
 
@@ -1041,6 +1231,14 @@
       { key: 'birchPlanks', name: 'Birch Planks', icon: '<span class="mini-plank birch"></span>' },
       { key: 'sawdust', name: 'Sawdust', icon: '<span class="mini-sawdust"></span>' },
       { key: 'apples', name: 'Apple', icon: '<span aria-hidden="true">🍎</span>' },
+      { key: 'bread', name: 'Bread', icon: '<span aria-hidden="true">🍞</span>' },
+      { key: 'wheat', name: 'Wheat', icon: '<span aria-hidden="true">🌾</span>' },
+      { key: 'smallHealthPotion', name: 'Small Health Potion', icon: '<span aria-hidden="true">🧪</span>' },
+      { key: 'cookies', name: 'Cookie', icon: '<span aria-hidden="true">🍪</span>' },
+      { key: 'redMushroom', name: 'Red Mushroom', icon: '<span class="mushroom-icon red" aria-hidden="true">🍄</span>' },
+      { key: 'brownMushroom', name: 'Brown Mushroom', icon: '<span class="mushroom-icon brown" aria-hidden="true">🍄</span>' },
+      { key: 'whiteMushroom', name: 'White Mushroom', icon: '<span class="mushroom-icon white" aria-hidden="true">🍄</span>' },
+      { key: 'onionGrass', name: 'Onion Grass', icon: '<span aria-hidden="true">🧅</span>' },
       { key: 'acorns', name: 'Acorn', icon: '<span aria-hidden="true">🌰</span>' },
       { key: 'stone', name: 'Stone', icon: '<span class="mini-ore stone" aria-hidden="true"></span>' },
       { key: 'coal', name: 'Coal', icon: '<span class="mini-ore coal" aria-hidden="true"></span>' },
@@ -1150,6 +1348,114 @@
           <span class="shop-product-buy"><b>${formatCoinPrice(BASIC_AXE_PRICE)}</b><button type="button" data-buy-basic-axe ${axeOwned || !affordable ? 'disabled' : ''}>${axeOwned ? 'Owned' : affordable ? 'Buy' : 'Need coins'}</button></span>
         </div>
       </section>`;
+  }
+
+  function renderVillageShop() {
+    if (!ui.villageShop || !ui.villageShopBody) return;
+
+    const shopKey = runtime.villageShopOpen;
+    const shop = shopKey ? VILLAGE_SHOPS[shopKey] : null;
+    const visible = Boolean(shop) && state.location === shopKey;
+
+    ui.villageShop.classList.toggle('is-open', visible);
+    if (!visible) return;
+
+    ui.villageShopKicker.textContent = shop.kicker;
+    ui.villageShopTitle.textContent = shop.title;
+
+    const sellRows = Object.entries(shop.sell).map(([key, item]) => {
+      const count = state.inventory[key] || 0;
+      return `
+        <div class="shop-sell-row">
+          <span class="shop-item-icon">${item.icon}</span>
+          <span class="shop-item-copy">
+            <strong>${item.name}</strong>
+            <small>${item.price} Copper each · You have ${count}</small>
+          </span>
+          <span class="shop-sell-actions">
+            <button type="button" data-village-sell-item="${key}" data-sell-mode="one" ${count < 1 ? 'disabled' : ''}>Sell 1</button>
+            <button type="button" data-village-sell-item="${key}" data-sell-mode="all" ${count < 1 ? 'disabled' : ''}>All</button>
+          </span>
+        </div>`;
+    }).join('');
+
+    const buyRows = Object.entries(shop.buy).map(([key, item]) => {
+      const owned = state.inventory[key] || 0;
+      const ownedUnique = item.unique && owned > 0;
+      const affordable = state.wallet.copper >= item.price;
+      const buttonText = ownedUnique ? 'Owned' : affordable ? 'Buy' : 'Need coins';
+
+      return `
+        <div class="shop-product">
+          <span class="shop-product-icon">${item.icon}</span>
+          <span class="shop-product-copy">
+            <strong>${item.name}</strong>
+            <small>${item.description}</small>
+          </span>
+          <span class="shop-product-buy">
+            <b>${formatCoinPrice(item.price)}</b>
+            <button type="button" data-village-buy-item="${key}" ${ownedUnique || !affordable ? 'disabled' : ''}>${buttonText}</button>
+          </span>
+        </div>`;
+    }).join('');
+
+    ui.villageShopBody.innerHTML = `
+      <section class="shop-section">
+        <div class="shop-section-head"><strong>${shop.sellHeading}</strong><span>${shop.sellNote}</span></div>
+        <div class="shop-sell-list">${sellRows}</div>
+      </section>
+      <section class="shop-section buy-section">
+        <div class="shop-section-head"><strong>${shop.buyHeading}</strong><span>${shop.buyNote}</span></div>
+        <div class="shop-product-list">${buyRows}</div>
+      </section>
+    `;
+  }
+
+  function sellVillageShopItem(key, sellAll) {
+    const shop = runtime.villageShopOpen ? VILLAGE_SHOPS[runtime.villageShopOpen] : null;
+    const listing = shop?.sell?.[key];
+    if (!listing) return;
+
+    const owned = state.inventory[key] || 0;
+    if (owned <= 0) return;
+
+    const amount = sellAll ? owned : 1;
+    state.inventory[key] -= amount;
+    const earned = amount * listing.price;
+    state.wallet.copper += earned;
+
+    renderWallet();
+    renderInventory();
+    renderVillageShop();
+    showToast('Sold', `${amount} ${listing.name}${amount === 1 ? '' : ' items'} · +${formatCoinPrice(earned)}`, '¢');
+  }
+
+  function buyVillageShopItem(key) {
+    const shop = runtime.villageShopOpen ? VILLAGE_SHOPS[runtime.villageShopOpen] : null;
+    const listing = shop?.buy?.[key];
+    if (!listing) return;
+
+    if (listing.unique && (state.inventory[key] || 0) > 0) {
+      showToast('Already owned', `${listing.name} is already in your Gear inventory.`, listing.icon);
+      return;
+    }
+
+    if (state.wallet.copper < listing.price) {
+      showToast('Not enough coins', `${listing.name} costs ${formatCoinPrice(listing.price)}.`, '¢');
+      return;
+    }
+
+    state.wallet.copper -= listing.price;
+    state.inventory[key] = (state.inventory[key] || 0) + 1;
+
+    renderWallet();
+    renderInventory();
+    renderVillageShop();
+    showToast(
+      'Purchased',
+      GEAR_ITEMS[key] ? `${listing.name} added to Gear.` : `${listing.name} added to your inventory.`,
+      listing.icon
+    );
   }
 
   function sellLumberItem(key, sellAll) {
