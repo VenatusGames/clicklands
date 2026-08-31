@@ -249,6 +249,20 @@
     { key: 'silverOre', name: 'Silver Vein', itemName: 'Silver Ore', weight: 1, minUnits: 1, maxUnits: 3, hitsPerUnit: 6, xp: 18, color: '#d5dbe0' },
   ];
 
+
+  const forageTypes = [
+    { key: 'redMushroom', name: 'Red Mushroom', className: 'red', weight: 34 },
+    { key: 'brownMushroom', name: 'Brown Mushroom', className: 'brown', weight: 40 },
+    { key: 'whiteMushroom', name: 'White Mushroom', className: 'white', weight: 26 },
+  ];
+
+  const forageSlots = [
+    { x: 9, y: 86, scale: .82 }, { x: 18, y: 91, scale: .74 }, { x: 29, y: 82, scale: .84 },
+    { x: 38, y: 90, scale: .78 }, { x: 48, y: 84, scale: .88 }, { x: 58, y: 92, scale: .77 },
+    { x: 68, y: 83, scale: .85 }, { x: 78, y: 91, scale: .75 }, { x: 88, y: 85, scale: .83 },
+    { x: 95, y: 92, scale: .72 }, { x: 24, y: 75, scale: .72 }, { x: 73, y: 75, scale: .74 },
+  ];
+
   const state = JSON.parse(JSON.stringify(defaultState));
   state.theme = loadThemePreference();
 
@@ -259,6 +273,10 @@
     mineNodes: new Map(),
     occupiedMineSlots: new Set(),
     mineNodeId: 0,
+    forageNodes: new Map(),
+    occupiedForageSlots: new Set(),
+    forageNodeId: 0,
+    forageSpawnTimer: null,
     hoverResource: null,
     entered: false,
     lumberShopOpen: false,
@@ -280,6 +298,7 @@
   renderVillageShop();
   spawnInitialForest();
   spawnInitialMineNodes();
+  startForageSpawner();
 
   function mountApp() {
     const root = document.getElementById('app');
@@ -1154,6 +1173,9 @@
     renderLumberShop();
     renderVillageShop();
     renderDrawers();
+    if (location === 'forest' && runtime.forageNodes.size < 2) {
+      scheduleNextForageSpawn(randomInt(1200, 2600));
+    }
     }
 
   function renderHUD() {
@@ -1667,6 +1689,111 @@
   function spawnInitialForest() {
     const count = Math.min(6, treeSlots.length);
     for (let i = 0; i < count; i += 1) spawnTree();
+  }
+
+  function startForageSpawner() {
+    scheduleNextForageSpawn(randomInt(1800, 3600));
+  }
+
+  function scheduleNextForageSpawn(delay = randomInt(3800, 7200)) {
+    if (runtime.forageSpawnTimer) window.clearTimeout(runtime.forageSpawnTimer);
+    runtime.forageSpawnTimer = window.setTimeout(() => {
+      if (
+        state.location === 'forest' &&
+        runtime.forageNodes.size < 4 &&
+        Math.random() < .64
+      ) {
+        spawnForageNode();
+      }
+      scheduleNextForageSpawn();
+    }, delay);
+  }
+
+  function chooseForageType() {
+    const totalWeight = forageTypes.reduce((sum, type) => sum + type.weight, 0);
+    let roll = Math.random() * totalWeight;
+    for (const type of forageTypes) {
+      roll -= type.weight;
+      if (roll <= 0) return type;
+    }
+    return forageTypes[0];
+  }
+
+  function getFreeForageSlot() {
+    const free = forageSlots
+      .map((_, index) => index)
+      .filter((index) => !runtime.occupiedForageSlots.has(index));
+    return free.length ? free[randomInt(0, free.length - 1)] : null;
+  }
+
+  function spawnForageNode() {
+    const slotIndex = getFreeForageSlot();
+    if (slotIndex === null) return;
+
+    const slot = forageSlots[slotIndex];
+    const type = chooseForageType();
+    const forage = {
+      id: ++runtime.forageNodeId,
+      slotIndex,
+      type,
+      harvested: false,
+      expireTimer: null,
+    };
+
+    runtime.occupiedForageSlots.add(slotIndex);
+    runtime.forageNodes.set(forage.id, forage);
+
+    const node = document.createElement('button');
+    node.type = 'button';
+    node.className = `forest-forage-node forage-${type.className} is-spawning`;
+    node.style.left = `${clamp(slot.x + randomInt(-2, 2), 5, 96)}%`;
+    node.style.top = `${clamp(slot.y + randomInt(-1, 1), 73, 93)}%`;
+    node.style.setProperty('--forage-scale', String(slot.scale * (randomInt(94, 108) / 100)));
+    node.style.zIndex = String(Math.round(slot.y * 10) + 4);
+    node.setAttribute('aria-label', `Harvest ${type.name}`);
+    node.innerHTML = `
+      <span class="forage-ground-shadow" aria-hidden="true"></span>
+      <span class="forage-mushroom-art" aria-hidden="true">
+        <span class="forage-cap"><i></i><i></i><i></i></span>
+        <span class="forage-stem"></span>
+      </span>
+      <span class="forage-name">${type.name}</span>
+    `;
+
+    forage.node = node;
+    ui.forestStage.appendChild(node);
+    window.setTimeout(() => node.classList.remove('is-spawning'), 280);
+
+    node.addEventListener('click', () => harvestForageNode(forage));
+
+    const lifetime = randomInt(8000, 14500);
+    forage.expireTimer = window.setTimeout(() => expireForageNode(forage), lifetime);
+  }
+
+  function harvestForageNode(forage) {
+    if (!forage || forage.harvested || !runtime.forageNodes.has(forage.id)) return;
+    forage.harvested = true;
+    if (forage.expireTimer) window.clearTimeout(forage.expireTimer);
+
+    state.inventory[forage.type.key] = (state.inventory[forage.type.key] || 0) + 1;
+    renderInventory();
+    showLoot(forage.node, `+1 ${forage.type.name}`);
+    removeForageNode(forage, 'is-harvested');
+  }
+
+  function expireForageNode(forage) {
+    if (!forage || forage.harvested || !runtime.forageNodes.has(forage.id)) return;
+    removeForageNode(forage, 'is-expiring');
+  }
+
+  function removeForageNode(forage, animationClass) {
+    runtime.forageNodes.delete(forage.id);
+    runtime.occupiedForageSlots.delete(forage.slotIndex);
+    if (!forage.node?.isConnected) return;
+
+    forage.node.disabled = true;
+    forage.node.classList.add(animationClass);
+    window.setTimeout(() => forage.node.remove(), 320);
   }
 
   function spawnTree() {

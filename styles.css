@@ -995,8 +995,156 @@ body.dark .town-ground {
 }
 
 .forest-node-stage .tree-node,
+.forest-node-stage .forest-forage-node,
 .mine-node-stage .mine-node {
   pointer-events: auto;
+}
+
+.forest-forage-node {
+  position: absolute;
+  width: 72px;
+  height: 68px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  touch-action: manipulation;
+  transform: translate(-50%, -100%) scale(var(--forage-scale, 1));
+  transform-origin: 50% 100%;
+  transition: filter .14s ease, transform .14s ease;
+}
+
+.forest-forage-node:hover,
+.forest-forage-node:focus-visible {
+  filter: brightness(1.08);
+  transform: translate(-50%, -100%) scale(calc(var(--forage-scale, 1) * 1.08));
+}
+
+.forest-forage-node:focus-visible {
+  outline: 2px solid rgba(237,244,220,.82);
+  outline-offset: 3px;
+  border-radius: 50%;
+}
+
+.forage-ground-shadow {
+  position: absolute;
+  left: 50%;
+  bottom: 1px;
+  width: 48px;
+  height: 11px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: rgba(31,52,29,.2);
+  filter: blur(3px);
+}
+
+.forage-mushroom-art {
+  position: absolute;
+  left: 50%;
+  bottom: 7px;
+  width: 48px;
+  height: 49px;
+  transform: translateX(-50%);
+  transform-origin: 50% 100%;
+  filter: drop-shadow(0 5px 4px rgba(33,48,28,.18));
+}
+
+.forage-cap {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  top: 3px;
+  width: 46px;
+  height: 26px;
+  transform: translateX(-50%);
+  border-radius: 50% 50% 42% 42% / 64% 64% 36% 36%;
+  background: linear-gradient(180deg, #d76755, #a83e35 78%);
+  box-shadow: inset 0 -5px rgba(83,38,31,.12), inset 0 2px rgba(255,255,255,.16);
+}
+
+.forage-cap i {
+  position: absolute;
+  width: 6px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(249,235,197,.86);
+}
+.forage-cap i:nth-child(1) { left: 9px; top: 8px; }
+.forage-cap i:nth-child(2) { right: 9px; top: 6px; width: 5px; height: 5px; }
+.forage-cap i:nth-child(3) { left: 21px; top: 14px; width: 4px; height: 3px; }
+
+.forage-stem {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 16px;
+  height: 30px;
+  transform: translateX(-50%);
+  border-radius: 48% 48% 34% 34%;
+  background: linear-gradient(90deg, #dccca7, #f0e2bd 48%, #c3b28f);
+  box-shadow: inset -3px 0 rgba(92,79,59,.1);
+}
+
+.forage-brown .forage-cap {
+  background: linear-gradient(180deg, #9b704b, #67452f 78%);
+}
+.forage-brown .forage-cap i { opacity: .18; }
+.forage-white .forage-cap {
+  background: linear-gradient(180deg, #f0eadc, #cfc7b7 78%);
+  box-shadow: inset 0 -5px rgba(91,84,73,.08), inset 0 2px rgba(255,255,255,.5);
+}
+.forage-white .forage-cap i { background: rgba(156,145,125,.26); }
+
+.forage-name {
+  position: absolute;
+  left: 50%;
+  bottom: -11px;
+  transform: translateX(-50%) translateY(3px);
+  min-width: 78px;
+  padding: 3px 5px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--surface-solid);
+  color: var(--text);
+  box-shadow: 0 5px 12px rgba(29,43,28,.14);
+  font-size: 6.5px;
+  font-weight: 800;
+  text-align: center;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .1s ease, transform .1s ease, visibility 0s linear .1s;
+}
+.forest-forage-node:hover .forage-name,
+.forest-forage-node:focus-visible .forage-name {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+  transition: opacity .1s ease, transform .1s ease, visibility 0s;
+}
+
+.forest-forage-node.is-spawning .forage-mushroom-art {
+  animation: foragePopIn .26s var(--ease-spring) both;
+}
+.forest-forage-node.is-harvested .forage-mushroom-art {
+  animation: forageHarvest .28s ease forwards;
+}
+.forest-forage-node.is-expiring .forage-mushroom-art {
+  animation: forageExpire .3s ease forwards;
+}
+
+@keyframes foragePopIn {
+  0% { opacity: 0; transform: translateX(-50%) translateY(12px) scale(.45,.28); }
+  72% { opacity: 1; transform: translateX(-50%) translateY(-2px) scale(1.08); }
+  100% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
+@keyframes forageHarvest {
+  0% { opacity: 1; transform: translateX(-50%) scale(1); }
+  45% { opacity: 1; transform: translateX(-50%) translateY(-9px) scale(1.14); }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-16px) scale(.55); }
+}
+@keyframes forageExpire {
+  to { opacity: 0; transform: translateX(-50%) translateY(7px) scale(.72); filter: saturate(.35); }
 }
 
 /* Forest */
@@ -2337,20 +2485,21 @@ body.is-dragging-log .sawmill-input { color:#d8efae; border-color:#b8d77d; backg
 /* Village NPC shops */
 .village-shop {
   position: absolute;
-  z-index: 150;
-  left: 18px;
-  top: 150px;
+  z-index: 190;
+  left: auto;
+  right: 18px;
+  top: 92px;
   bottom: 18px;
   width: 390px;
   padding: 13px;
   border: 1px solid var(--line);
-  border-radius: 17px;
+  border-radius: 18px;
   background: var(--surface);
-  box-shadow: 0 24px 58px rgba(0,0,0,.27);
+  box-shadow: 0 24px 64px rgba(0,0,0,.3);
   backdrop-filter: blur(20px);
   display: flex;
   flex-direction: column;
-  transform: translateX(calc(-100% - 34px));
+  transform: translateX(calc(100% + 34px));
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
@@ -2439,11 +2588,11 @@ body.is-dragging-log .sawmill-input { color:#d8efae; border-color:#b8d77d; backg
 
 @media (max-width: 760px) {
   .village-shop {
-    left: 8px;
-    right: 8px;
-    top: 150px;
-    bottom: 8px;
-    width: auto;
+    left: auto;
+    right: 7px;
+    top: 118px;
+    bottom: 7px;
+    width: calc(100vw - var(--sidebar-w) - 14px);
   }
 }
 
