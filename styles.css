@@ -1303,29 +1303,49 @@ body.dark .forest-ground {
 .tree-chip { left: 50%; top: 73%; width: 10px; height: 7px; border-radius: 2px 6px 2px 6px; background: #b47c4f; }
 .tree-node.birch .tree-chip { background: #dedbd0; }
 .loot-pop {
-  position: absolute;
-  z-index: 80;
-  left: 50%;
-  top: 48%;
-  transform: translate(-50%,-50%);
-  padding: 7px 10px;
-  border-radius: 999px;
-  border: 1px solid var(--line);
-  background: var(--surface-solid);
+  position: fixed;
+  z-index: 980;
+  transform: translate(-50%, -50%);
+  min-height: 27px;
+  padding: 5px 7px 5px 9px;
+  border: 1px solid rgba(108,122,111,.16);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--surface-solid) 94%, transparent);
   color: var(--text);
-  box-shadow: 0 12px 28px var(--shadow);
-  font-size: 9px;
-  font-weight: 850;
+  box-shadow: 0 6px 16px rgba(27,39,29,.12);
+  backdrop-filter: blur(10px);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
   white-space: nowrap;
   pointer-events: none;
-  animation: lootFloat .9s ease-out forwards;
+  opacity: 0;
+  animation: lootFloat .72s ease-out var(--loot-delay, 0ms) forwards;
+}
+.loot-name {
+  font-size: 8px;
+  line-height: 1;
+  font-weight: 760;
+  color: var(--text);
+}
+.loot-amount {
+  min-width: 22px;
+  padding: 3px 5px;
+  border-radius: 6px;
+  background: var(--surface-soft);
+  color: var(--muted);
+  font-size: 7.5px;
+  line-height: 1;
+  font-weight: 880;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
 }
 @keyframes nodeSpawn { 0% { opacity:0; transform: translateY(32px) scale(.62,.45); } 72% { opacity:1; transform: translateY(-4px) scale(1.03); } 100% { opacity:1; transform:none; } }
 @keyframes treeHitLeft { 0%,100% { transform:rotate(0); } 45% { transform:rotate(-2.4deg); } }
 @keyframes treeHitRight { 0%,100% { transform:rotate(0); } 45% { transform:rotate(2.4deg); } }
 @keyframes nodeDeplete { 0% { opacity:1; transform:none; } 50% { transform:translateY(8px) scale(1.03,.87); } 100% { opacity:0; transform:translateY(45px) scale(.56,.2); } }
 @keyframes chipBurst { from { opacity:1; transform:translate(-50%,-50%) rotate(0); } to { opacity:0; transform:translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) rotate(var(--rot)); } }
-@keyframes lootFloat { 0% { opacity:0; transform:translate(-50%,4px) scale(.78); } 18% { opacity:1; transform:translate(-50%,-7px) scale(1); } 75% { opacity:1; transform:translate(-50%,-38px); } 100% { opacity:0; transform:translate(-50%,-64px) scale(.94); } }
+@keyframes lootFloat { 0% { opacity:0; transform:translate(-50%,-45%) translateY(5px); } 16% { opacity:1; transform:translate(-50%,-50%) translateY(0); } 72% { opacity:1; transform:translate(-50%,-50%) translateY(-13px); } 100% { opacity:0; transform:translate(-50%,-50%) translateY(-23px); } }
 
 /* Mines */
 .mines-view {

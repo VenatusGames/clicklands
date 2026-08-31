@@ -1628,7 +1628,8 @@
     ui.sawmillFill.style.width = '100%';
     ui.sawmillStatus.textContent = `${job.recipe.plankName} ready`;
     renderInventory();
-    showToast('Sawmill finished', `+${plankOutput} ${job.recipe.plankName} · +${sawdustOutput} Sawdust`, '▤');
+    showLoot(ui.sawmillOutput, job.recipe.plankName, plankOutput);
+    showLoot(ui.sawmillOutput, 'Sawdust', sawdustOutput, 120);
 
     window.setTimeout(() => {
       ui.sawmillOutput.classList.remove('is-ejecting');
@@ -1649,7 +1650,6 @@
   function gainSkillXp(skill, amount) {
     const skillData = state.skills[skill];
     const startFraction = skillData.xp / xpNeeded(skillData.level);
-    const oldOverallLevel = state.overall.level;
 
     const skillLevelsGained = addXp(skillData, amount);
     const endFraction = skillData.xp / xpNeeded(skillData.level);
@@ -1660,18 +1660,7 @@
     const overallXpAward = Math.max(0, overallProgress * OVERALL_XP_PER_SKILL_LEVEL);
     addXp(state.overall, overallXpAward);
 
-    if (skillLevelsGained > 0) {
-      showToast(
-        'Level up',
-        `${capitalize(skill)} reached level ${skillData.level}.`,
-        skill === 'woodcutting' ? '🪓' : '⛏'
-      );
-    }
-
-    if (state.overall.level > oldOverallLevel) {
-      showToast('Overall level up', `Overall Level ${state.overall.level}`, '✦');
-    }
-
+    // XP feedback stays in the HUD only; harvesting never creates XP pop-ups.
     renderHUD();
   }
 
@@ -1781,7 +1770,7 @@
     state.inventory[forage.type.key] = (state.inventory[forage.type.key] || 0) + 1;
     gainSkillXp('foraging', forage.type.xp);
     renderInventory();
-    showLoot(forage.node, `+1 ${forage.type.name} · +${forage.type.xp} Foraging XP`);
+    showLoot(forage.node, forage.type.name, 1);
     removeForageNode(forage, 'is-harvested');
   }
 
@@ -1963,35 +1952,39 @@
 
   function harvestTreeLog(tree) {
     tree.logs -= 1;
-    const rewards = [];
+    let lootDelay = 0;
+
+    const addLootPopup = (name, amount = 1) => {
+      showLoot(tree.node, name, amount, lootDelay);
+      lootDelay += 110;
+    };
 
     if (tree.variant === 'birch') {
       state.inventory.birchWood += 1;
-      rewards.push('+1 Birch Wood');
+      addLootPopup('Birch Wood');
       gainSkillXp('woodcutting', 7);
     } else {
       state.inventory.oakWood += 1;
-      rewards.push('+1 Oak Wood');
+      addLootPopup('Oak Wood');
       gainSkillXp('woodcutting', 5);
 
       if (tree.variant === 'apple-oak') {
         const appleCount = Math.random() < .3 ? 2 : 1;
         state.inventory.apples += appleCount;
-        rewards.push(`+${appleCount} Apple${appleCount === 1 ? '' : 's'}`);
+        addLootPopup('Apple', appleCount);
       } else {
         if (Math.random() < .13) {
           state.inventory.acorns += 1;
-          rewards.push('+1 Acorn');
+          addLootPopup('Acorn');
         }
         if (Math.random() < .018) {
           state.inventory.apples += 1;
-          rewards.push('+1 Apple');
+          addLootPopup('Apple');
         }
       }
     }
 
     renderInventory();
-    showLoot(tree.node, rewards.join(' · '));
   }
 
   function depleteTree(tree) {
@@ -2136,22 +2129,20 @@
 
   function awardMiningDrop(mineNode) {
     const { type } = mineNode;
-    let lootText = '';
+    let itemName = type.itemName;
 
     if (type.key === 'geode') {
       const amethystDrop = Math.random() < .24;
       const inventoryKey = amethystDrop ? 'amethyst' : 'quartz';
-      const itemName = amethystDrop ? 'Amethyst' : 'Quartz';
+      itemName = amethystDrop ? 'Amethyst' : 'Quartz';
       state.inventory[inventoryKey] += 1;
-      lootText = `+1 ${itemName}`;
     } else {
       state.inventory[type.key] += 1;
-      lootText = `+1 ${type.itemName}`;
     }
 
     gainSkillXp('mining', type.xp);
     renderInventory();
-    showLoot(mineNode.node, lootText);
+    showLoot(mineNode.node, itemName, 1);
   }
 
   function depleteMineNode(mineNode) {
@@ -2186,11 +2177,18 @@
     window.setTimeout(() => node.classList.remove(className), 200);
   }
 
-  function showLoot(node, text) {
+  function showLoot(node, itemName, amount = 1, delay = 0) {
+    if (!node?.isConnected || !itemName || amount <= 0) return;
+
+    const rect = node.getBoundingClientRect();
     const pop = document.createElement('span');
     pop.className = 'loot-pop';
-    pop.textContent = text;
-    node.appendChild(pop);
+    pop.style.left = `${clamp(rect.left + (rect.width / 2), 92, window.innerWidth - 92)}px`;
+    pop.style.top = `${clamp(rect.top + (rect.height * .42), 92, window.innerHeight - 72)}px`;
+    pop.style.setProperty('--loot-delay', `${Math.max(0, delay)}ms`);
+    pop.innerHTML = `<span class="loot-name">${itemName}</span><span class="loot-amount">+${amount}</span>`;
+
+    document.body.appendChild(pop);
     pop.addEventListener('animationend', () => pop.remove(), { once: true });
   }
 
