@@ -1,7 +1,7 @@
 /* Ordered compatibility entry point. Keep imports in cascade order. */
-@import url('./src/styles/theme-shell.css');
-@import url('./src/styles/world.css');
-@import url('./src/styles/inventory.css');
-@import url('./src/styles/village.css');
-@import url('./src/styles/responsive.css');
-@import url('./src/styles/combat-devtools.css');
+@import url('./src/styles/theme-shell.css?v=20260831a');
+@import url('./src/styles/world.css?v=20260831a');
+@import url('./src/styles/inventory.css?v=20260831a');
+@import url('./src/styles/village.css?v=20260831a');
+@import url('./src/styles/responsive.css?v=20260831a');
+@import url('./src/styles/combat-devtools.css?v=20260831a');

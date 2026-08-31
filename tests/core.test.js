@@ -6,6 +6,7 @@ import { pointInsideRect, segmentIntersectsRect } from '../src/core/geometry.js'
 import { addXp, xpNeeded } from '../src/core/progression.js';
 import { createGameState, createRuntime } from '../src/core/state.js';
 import { analyzeStaffCircle } from '../src/systems/spell-recognition.js';
+import { ENEMY_TYPES, forageTypes } from '../src/data/game-data.js';
 
 test('progression handles exact and multi-level XP gains', () => {
   assert.equal(xpNeeded(1), 100);
@@ -60,4 +61,23 @@ test('staff recognition accepts circles and rejects rectangles', () => {
 
   assert.equal(analyzeStaffCircle(circle).accepted, true);
   assert.equal(analyzeStaffCircle(rectangle).accepted, false);
+});
+
+test('every enemy has a valid variable-health range', () => {
+  for (const enemy of Object.values(ENEMY_TYPES)) {
+    assert.ok(enemy.minHealth > 0);
+    assert.ok(enemy.maxHealth > enemy.minHealth);
+    assert.ok(['forest', 'mines'].includes(enemy.location));
+  }
+  assert.ok(ENEMY_TYPES.blueSlime.weight < ENEMY_TYPES.greenSlime.weight);
+  assert.ok(ENEMY_TYPES.skeleton.weight < ENEMY_TYPES.caveRat.weight);
+});
+
+test('mine forage table includes shared mushrooms and cave-only plants', () => {
+  const mineForage = forageTypes.filter((type) => type.weights?.mines > 0).map((type) => type.key);
+  assert.ok(mineForage.includes('redMushroom'));
+  assert.ok(mineForage.includes('brownMushroom'));
+  assert.ok(mineForage.includes('whiteMushroom'));
+  assert.ok(mineForage.includes('caveLichen'));
+  assert.ok(mineForage.includes('glowShroom'));
 });

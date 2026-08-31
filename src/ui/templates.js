@@ -20,6 +20,7 @@ export function mountApp() {
       ${hudMarkup()}
       <section class="world-host">
         ${lakesideMarkup()}
+        ${lakeMarkup()}
         ${forestMarkup()}
         ${combatMarkup()}
         ${minesMarkup()}
@@ -29,6 +30,7 @@ export function mountApp() {
         ${villageShopMarkup()}
       </section>
       ${inventoryMarkup()}
+      ${chatMarkup()}
       ${resourceHoverBarMarkup()}
       <div class="toast-stack" data-toasts aria-live="polite"></div>
     </main>
@@ -81,6 +83,13 @@ function sidebarMarkup() {
             <span class="nav-copy">
               <span class="nav-name">Mines</span>
               <span class="nav-meta">Mining</span>
+            </span>
+          </button>
+          <button class="nav-button child" type="button" data-location="lake">
+            <span class="nav-icon" aria-hidden="true">≈</span>
+            <span class="nav-copy">
+              <span class="nav-name">Lakeside Lake</span>
+              <span class="nav-meta">Waterfront & fishing</span>
             </span>
           </button>
         </div>
@@ -272,6 +281,29 @@ function lakesideMarkup() {
           <span class="map-node-icon" aria-hidden="true">⌂</span>
           <span><strong>Lakeshore Village</strong><small>Trade, craft & explore</small></span>
         </button>
+        <button class="map-node lake" type="button" data-location="lake">
+          <span class="map-node-icon" aria-hidden="true">≈</span>
+          <span><strong>Lakeside Lake</strong><small>Quiet water & fishing</small></span>
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function lakeMarkup() {
+  return `
+    <div class="world-view lake-view" data-view="lake">
+      <div class="lake-sky" aria-hidden="true"></div>
+      <div class="lake-distant-shore" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="lake-water" aria-hidden="true"><span></span><span></span><span></span></div>
+      <div class="lake-shore" aria-hidden="true"></div>
+      <div class="lake-reeds reeds-a" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="lake-reeds reeds-b" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+      <div class="lake-dock" aria-hidden="true"><span></span><span></span><span></span></div>
+      <div class="lake-location-card">
+        <small>Lakeside</small>
+        <strong>The Lake</strong>
+        <span>Fishing and waterfront activities are coming soon.</span>
       </div>
     </div>
   `;
@@ -283,9 +315,9 @@ function forestMarkup() {
       <div class="forest-horizon" aria-hidden="true"></div>
       <div class="forest-ground" aria-hidden="true"></div>
       <div class="forest-ground-detail" aria-hidden="true"></div>
-      <div class="forest-enemy-stage" data-slime-stage></div>
+      <div class="forest-enemy-stage" data-enemy-stage="forest"></div>
       <div class="forest-node-stage" data-forest-stage></div>
-      <div class="forest-forage-stage" data-forage-stage></div>
+      <div class="forest-forage-stage" data-forage-stage="forest"></div>
     </div>
   `;
 }
@@ -294,11 +326,16 @@ function forestMarkup() {
 function combatMarkup() {
   return `
     <div class="world-view combat-view" data-view="combat">
-      <button class="combat-exit" type="button" data-exit-combat>‹ Return to Forest</button>
+      <button class="combat-exit" type="button" data-exit-combat>‹ Return</button>
+
+      <div class="combat-no-weapon" data-combat-no-weapon hidden role="alert">
+        <span aria-hidden="true">!</span>
+        <strong>No weapon equipped!</strong>
+      </div>
 
       <div class="combat-enemy-stage" data-combat-stage>
         <div class="combat-enemy-card" aria-live="polite">
-          <div class="combat-slime" data-combat-enemy-target aria-label="Slime combat target">
+          <div class="combat-slime combat-enemy-art green-slime" data-combat-enemy-target aria-label="Enemy combat target">
             <span class="combat-hammer-rings" data-combat-hammer-rings hidden aria-hidden="true">
               <span class="combat-hammer-target-ring">
                 <span class="combat-hammer-release-label">RELEASE</span>
@@ -311,6 +348,14 @@ function combatMarkup() {
               <span class="combat-slime-eye eye-a"></span>
               <span class="combat-slime-eye eye-b"></span>
               <span class="combat-slime-mouth"></span>
+            </span>
+            <span class="combat-rat-body" aria-hidden="true">
+              <i class="rat-ear ear-a"></i><i class="rat-ear ear-b"></i>
+              <i class="rat-eye eye-a"></i><i class="rat-eye eye-b"></i><i class="rat-tail"></i>
+            </span>
+            <span class="combat-skeleton-body" aria-hidden="true">
+              <i class="skeleton-skull"><b></b><b></b></i>
+              <i class="skeleton-ribs"></i><i class="skeleton-arm arm-a"></i><i class="skeleton-arm arm-b"></i>
             </span>
           </div>
           <strong class="combat-enemy-title" data-combat-enemy-title>Slime</strong>
@@ -405,7 +450,10 @@ function minesMarkup() {
       <div class="cave-lantern lantern-b" aria-hidden="true"><span></span></div>
       <div class="cave-crystal crystal-a" aria-hidden="true"></div>
       <div class="cave-crystal crystal-b" aria-hidden="true"></div>
+      <div class="cave-mist" aria-hidden="true"></div>
+      <div class="mine-enemy-stage" data-enemy-stage="mines"></div>
       <div class="mine-node-stage" data-mine-stage></div>
+      <div class="mine-forage-stage" data-forage-stage="mines"></div>
     </div>
   `;
 }
@@ -612,6 +660,30 @@ function inventoryMarkup() {
   `;
 }
 
+function chatMarkup() {
+  return `
+    <section class="chat-panel" data-chat-panel aria-label="Player chat preview">
+      <header class="chat-head">
+        <span class="chat-status-dot" aria-hidden="true"></span>
+        <div><strong>Player Chat</strong><small>Preview · messaging coming later</small></div>
+      </header>
+      <div class="chat-channels" role="tablist" aria-label="Chat channels">
+        <button type="button" role="tab" aria-selected="true" class="is-active" data-chat-channel="global">Global</button>
+        <button type="button" role="tab" aria-selected="false" data-chat-channel="local">Local</button>
+        <button type="button" role="tab" aria-selected="false" data-chat-channel="trade">Trade</button>
+        <button type="button" role="tab" aria-selected="false" data-chat-channel="party">Party</button>
+      </div>
+      <div class="chat-log" data-chat-log aria-live="polite">
+        <div class="chat-system-message"><span>●</span><p><strong>Global Channel</strong><small>Messages from all players will appear here.</small></p></div>
+      </div>
+      <div class="chat-compose">
+        <input type="text" placeholder="Chat is coming soon…" aria-label="Chat message" disabled>
+        <button type="button" disabled aria-label="Send chat message">Send</button>
+      </div>
+    </section>
+  `;
+}
+
 function equipmentMarkup() {
   const slot = (slotName, icon, name, compact = false) => `
     <button class="equipment-slot${compact ? ' is-compact' : ''}" type="button" data-equipment-slot="${slotName}" aria-label="${name}, empty">
@@ -636,7 +708,7 @@ function equipmentMarkup() {
         <section class="equipment-group">
           <div class="equipment-group-head"><span>Tools</span><span class="equipment-group-count">2</span></div>
           <div class="equipment-grid two-col">
-            ${slot('axe', '🪓', 'Axe')}
+            ${slot('axe', '<span class="gear-art gear-art-axe"></span>', 'Axe')}
             ${slot('pickaxe', '⛏', 'Pickaxe')}
           </div>
         </section>
@@ -644,8 +716,8 @@ function equipmentMarkup() {
         <section class="equipment-group">
           <div class="equipment-group-head"><span>Weapons</span><span class="equipment-group-count">3</span></div>
           <div class="equipment-grid three-col weapon-equipment-grid">
-            ${slot('main-hand', '⚔', 'Main Hand')}
-            ${slot('off-hand', '◈', 'Off Hand')}
+            ${slot('main-hand', '<span class="gear-art gear-art-sword"></span>', 'Main Hand')}
+            ${slot('off-hand', '<span class="gear-art gear-art-shield"></span>', 'Off Hand')}
             ${slot('ammo', '➶', 'Ammo')}
           </div>
         </section>
@@ -653,10 +725,10 @@ function equipmentMarkup() {
         <section class="equipment-group equipment-group-wide">
           <div class="equipment-group-head"><span>Armor</span><span class="equipment-group-count">5</span></div>
           <div class="equipment-grid armor-grid">
-            ${slot('helmet', '⬡', 'Helmet')}
-            ${slot('chestplate', '▣', 'Chestplate')}
-            ${slot('leggings', 'Ⅱ', 'Leggings')}
-            ${slot('boots', '⌄', 'Boots')}
+            ${slot('helmet', '<span class="gear-art gear-art-chain-helmet"></span>', 'Helmet')}
+            ${slot('chestplate', '<span class="gear-art gear-art-chain-chest"></span>', 'Chestplate')}
+            ${slot('leggings', '<span class="gear-art gear-art-chain-legs"></span>', 'Leggings')}
+            ${slot('boots', '<span class="gear-art gear-art-chain-boots"></span>', 'Boots')}
             ${slot('back', '◇', 'Back')}
           </div>
         </section>

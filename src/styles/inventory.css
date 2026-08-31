@@ -400,3 +400,30 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Illustrated equipment icons */
+.gear-art { position:relative; display:inline-block; width:25px; height:25px; flex:0 0 25px; filter:drop-shadow(0 2px 2px rgba(0,0,0,.24)); }
+.gear-art::before,.gear-art::after { content:""; position:absolute; box-sizing:border-box; }
+.gear-art-sword::before { left:11px; top:1px; width:5px; height:19px; border-radius:3px 3px 1px 1px; background:linear-gradient(90deg,#8e9da4,#f4f7f2 48%,#89979d); transform:rotate(38deg); transform-origin:50% 82%; }
+.gear-art-sword::after { left:5px; top:15px; width:17px; height:5px; border-radius:3px; background:linear-gradient(#d2ad56,#745029); transform:rotate(38deg); }
+.gear-art-shield::before { inset:2px 3px 1px; clip-path:polygon(50% 0,94% 14%,86% 70%,50% 100%,14% 70%,6% 14%); background:linear-gradient(135deg,#c7d1d0,#65787a 54%,#35494d); box-shadow:inset 0 0 0 3px #c9a452; }
+.gear-art-shield::after { left:11px; top:5px; width:4px; height:15px; border-radius:2px; background:#d5b867; }
+.gear-art-axe::before { left:11px; top:3px; width:5px; height:22px; border-radius:3px; background:linear-gradient(90deg,#5e351d,#aa7140); transform:rotate(-35deg); }
+.gear-art-axe::after { left:3px; top:1px; width:17px; height:13px; border-radius:70% 25% 55% 25%; background:linear-gradient(135deg,#eff3ee,#829194 62%,#56666a); border:1px solid rgba(34,49,50,.36); transform:rotate(-13deg); }
+.gear-art-bow::before { left:4px; top:1px; width:18px; height:23px; border:4px solid #a8773f; border-left-color:transparent; border-radius:50%; transform:rotate(8deg); }
+.gear-art-bow::after { left:10px; top:1px; width:1px; height:23px; background:#e4dfc8; transform:rotate(-17deg); box-shadow:5px 10px 0 1px #c8d1cc; }
+.gear-art-staff::before { left:11px; top:5px; width:5px; height:21px; border-radius:3px; background:linear-gradient(90deg,#5d3427,#a56d42); transform:rotate(20deg); }
+.gear-art-staff::after { left:5px; top:0; width:13px; height:13px; clip-path:polygon(50% 0,92% 27%,78% 78%,50% 100%,18% 76%,6% 28%); background:radial-gradient(circle at 38% 28%,#eefbff,#74d7e7 28%,#6260bd 68%,#382f75); box-shadow:0 0 8px #72d8e5; }
+.gear-art-hammer::before { left:11px; top:7px; width:5px; height:19px; border-radius:2px; background:linear-gradient(90deg,#684027,#b17846); transform:rotate(-26deg); }
+.gear-art-hammer::after { left:3px; top:2px; width:20px; height:10px; border-radius:3px; background:linear-gradient(180deg,#c9d0cd,#626d6d); border:2px solid #414b4c; transform:rotate(-8deg); }
+.gear-art-chain-helmet::before { inset:2px 4px 3px; border-radius:50% 50% 30% 30%; background:radial-gradient(circle,#d3d8d4 0 18%,#788481 20% 43%,#c1c8c4 45% 62%,#65716f 64%); border:2px solid #53605e; clip-path:polygon(8% 0,92% 0,100% 70%,75% 100%,65% 65%,35% 65%,25% 100%,0 70%); }
+.gear-art-chain-chest::before { inset:2px 3px; clip-path:polygon(20% 0,38% 12%,62% 12%,80% 0,100% 29%,82% 43%,76% 100%,24% 100%,18% 43%,0 29%); background:radial-gradient(circle,#d3d8d4 0 14%,#74817e 16% 38%,#bdc5c1 40% 58%,#64716e 60%); border:2px solid #566360; }
+.gear-art-chain-legs::before { inset:2px 5px 1px; clip-path:polygon(0 0,100% 0,91% 45%,78% 100%,53% 100%,50% 52%,47% 52%,42% 100%,17% 100%,7% 45%); background:repeating-radial-gradient(circle,#c4cbc7 0 2px,#697572 2px 4px); border-top:3px solid #505c59; }
+.gear-art-chain-boots::before,.gear-art-chain-boots::after { bottom:2px; width:10px; height:20px; border-radius:3px 3px 6px 3px; background:repeating-radial-gradient(circle,#c3cac6 0 2px,#687471 2px 4px); border:1px solid #505b59; }.gear-art-chain-boots::before{left:2px;transform:rotate(4deg)}.gear-art-chain-boots::after{right:2px;transform:rotate(-4deg)}
+.gear-icon .gear-art,.shop-product-icon .gear-art { width:32px; height:32px; transform:scale(1.12); }
+.combat-loadout-slot .gear-art { width:21px; height:21px; transform:scale(.84); transform-origin:center; }
+
+.mini-lichen { display:inline-block; width:21px; height:14px; border-radius:70% 35% 65% 30%; background:linear-gradient(145deg,#a7c976,#547d50); box-shadow:-5px 3px 0 -1px #6c965f,5px 2px 0 -1px #88ab67; }
+.mini-bone { display:inline-block; width:21px; height:7px; border-radius:99px; background:#ddd8c2; box-shadow:-2px -2px 0 1px #ddd8c2,2px 2px 0 1px #bcb6a0; transform:rotate(-18deg); }
+.blue-goop-icon { display:inline-block; width:20px; height:17px; border-radius:54% 46% 52% 48%; background:radial-gradient(circle at 35% 28%,#d8fbff 0 8%,transparent 9%),linear-gradient(145deg,#79d9ed,#3d75c1); box-shadow:0 0 8px rgba(84,180,231,.55); }
+.mushroom-icon.glow { filter:hue-rotate(125deg) saturate(1.8) drop-shadow(0 0 5px #66e7e4); }

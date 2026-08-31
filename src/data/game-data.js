@@ -3,11 +3,20 @@ const ENTER_SOUND = 'assets/sfx/CL-enter.wav';
 const LOGO = 'assets/images/CL-logo.png';
 const THEME_KEY = 'clicklands-theme';
 const OVERALL_XP_PER_SKILL_LEVEL = 25;
-const SLIME_SWORDSMAN_XP = 20;
-const SLIME_RANGER_XP = 20;
-const SLIME_WIZARD_XP = 20;
 const COIN_RATES = { copper: 1, silver: 100, gold: 10000, platinum: 1000000 };
 const BASIC_AXE_PRICE = 150;
+const GEAR_ICONS = {
+  axe: '<span class="gear-art gear-art-axe" aria-hidden="true"></span>',
+  bow: '<span class="gear-art gear-art-bow" aria-hidden="true"></span>',
+  staff: '<span class="gear-art gear-art-staff" aria-hidden="true"></span>',
+  sword: '<span class="gear-art gear-art-sword" aria-hidden="true"></span>',
+  shield: '<span class="gear-art gear-art-shield" aria-hidden="true"></span>',
+  hammer: '<span class="gear-art gear-art-hammer" aria-hidden="true"></span>',
+  chainHelmet: '<span class="gear-art gear-art-chain-helmet" aria-hidden="true"></span>',
+  chainChest: '<span class="gear-art gear-art-chain-chest" aria-hidden="true"></span>',
+  chainLegs: '<span class="gear-art gear-art-chain-legs" aria-hidden="true"></span>',
+  chainBoots: '<span class="gear-art gear-art-chain-boots" aria-hidden="true"></span>',
+};
 const LUMBER_SELL_PRICES = {
   oakWood: { name: 'Oak Wood', price: 12 },
   birchWood: { name: 'Birch Wood', price: 20 },
@@ -59,7 +68,7 @@ const VILLAGE_SHOPS = {
     buyNote: 'Starter ranged equipment & ammunition',
     sell: {},
     buy: {
-      basicBow: { name: 'Basic Bow', price: 240, icon: '🏹', description: 'Starter bow · Main Hand', unique: true },
+        basicBow: { name: 'Basic Bow', price: 240, icon: GEAR_ICONS.bow, description: 'Starter bow · Main Hand', unique: true },
       arrows: { name: 'Arrows', price: 30, icon: '➶', description: 'Bundle of 20 arrows.', amount: 20 },
     },
   },
@@ -72,7 +81,7 @@ const VILLAGE_SHOPS = {
     buyNote: 'Simple magical equipment',
     sell: {},
     buy: {
-      basicMagicStaff: { name: 'Basic Magic Staff', price: 320, icon: '✦', description: 'Starter magic staff · Main Hand', unique: true },
+        basicMagicStaff: { name: 'Basic Magic Staff', price: 320, icon: GEAR_ICONS.staff, description: 'Starter magic staff · Main Hand', unique: true },
     },
   },
   blacksmith: {
@@ -92,13 +101,13 @@ const VILLAGE_SHOPS = {
       amethyst: { name: 'Amethyst', price: 72, icon: '<span class="mini-gem amethyst"></span>' },
     },
     buy: {
-      basicSword: { name: 'Basic Sword', price: 250, icon: '⚔', description: 'Starter sword · Main Hand', unique: true },
-      basicShield: { name: 'Basic Shield', price: 220, icon: '◈', description: 'Starter shield · Off Hand', unique: true },
-      basicHammer: { name: 'Basic Battle Hammer', price: 180, icon: '🔨', description: 'Heavy timing weapon · Main Hand', unique: true },
-      chainmailHelmet: { name: 'Chainmail Helmet', price: 300, icon: '⛓', description: 'Chainmail armor · Helmet slot', unique: true },
-      chainmailChestplate: { name: 'Chainmail Chestplate', price: 500, icon: '⛓', description: 'Chainmail armor · Chestplate slot', unique: true },
-      chainmailLeggings: { name: 'Chainmail Leggings', price: 400, icon: '⛓', description: 'Chainmail armor · Leggings slot', unique: true },
-      chainmailBoots: { name: 'Chainmail Boots', price: 250, icon: '⛓', description: 'Chainmail armor · Boots slot', unique: true },
+        basicSword: { name: 'Basic Sword', price: 250, icon: GEAR_ICONS.sword, description: 'Starter sword · Main Hand', unique: true },
+        basicShield: { name: 'Basic Shield', price: 220, icon: GEAR_ICONS.shield, description: 'Starter shield · Off Hand', unique: true },
+        basicHammer: { name: 'Basic Battle Hammer', price: 180, icon: GEAR_ICONS.hammer, description: 'Heavy timing weapon · Main Hand', unique: true },
+        chainmailHelmet: { name: 'Chainmail Helmet', price: 300, icon: GEAR_ICONS.chainHelmet, description: 'Chainmail armor · Helmet slot', unique: true },
+        chainmailChestplate: { name: 'Chainmail Chestplate', price: 500, icon: GEAR_ICONS.chainChest, description: 'Chainmail armor · Chestplate slot', unique: true },
+        chainmailLeggings: { name: 'Chainmail Leggings', price: 400, icon: GEAR_ICONS.chainLegs, description: 'Chainmail armor · Leggings slot', unique: true },
+        chainmailBoots: { name: 'Chainmail Boots', price: 250, icon: GEAR_ICONS.chainBoots, description: 'Chainmail armor · Boots slot', unique: true },
     },
   },
 };
@@ -111,7 +120,7 @@ const GEAR_ITEMS = {
     name: "Basic Woodcutter's Axe",
     shortName: 'Basic Axe',
     slot: 'axe',
-    icon: '🪓',
+    icon: GEAR_ICONS.axe,
     bonus: '+1 tree damage',
   },
   strawHat: {
@@ -125,7 +134,7 @@ const GEAR_ITEMS = {
     name: 'Basic Bow',
     shortName: 'Basic Bow',
     slot: 'main-hand',
-    icon: '🏹',
+    icon: GEAR_ICONS.bow,
     weaponType: 'bow',
     ammoType: 'arrows',
     minDamage: 4,
@@ -137,7 +146,7 @@ const GEAR_ITEMS = {
     name: 'Basic Magic Staff',
     shortName: 'Magic Staff',
     slot: 'main-hand',
-    icon: '✦',
+    icon: GEAR_ICONS.staff,
     weaponType: 'staff',
     spell: 'fireball',
     damage: 10,
@@ -147,7 +156,7 @@ const GEAR_ITEMS = {
     name: 'Basic Sword',
     shortName: 'Basic Sword',
     slot: 'main-hand',
-    icon: '⚔',
+    icon: GEAR_ICONS.sword,
     weaponType: 'sword',
     damage: 8,
     bonus: 'Sword · 8 combat damage per swipe',
@@ -156,14 +165,14 @@ const GEAR_ITEMS = {
     name: 'Basic Shield',
     shortName: 'Basic Shield',
     slot: 'off-hand',
-    icon: '◈',
+    icon: GEAR_ICONS.shield,
     bonus: 'Starter shield · combat stats later',
   },
   basicHammer: {
     name: 'Basic Battle Hammer',
     shortName: 'Battle Hammer',
     slot: 'main-hand',
-    icon: '🔨',
+    icon: GEAR_ICONS.hammer,
     weaponType: 'hammer',
     timingDuration: 1850,
     ringStart: 330,
@@ -179,28 +188,28 @@ const GEAR_ITEMS = {
     name: 'Chainmail Helmet',
     shortName: 'Chain Helm',
     slot: 'helmet',
-    icon: '⛓',
+    icon: GEAR_ICONS.chainHelmet,
     bonus: 'Chainmail armor · stats later',
   },
   chainmailChestplate: {
     name: 'Chainmail Chestplate',
     shortName: 'Chain Chest',
     slot: 'chestplate',
-    icon: '⛓',
+    icon: GEAR_ICONS.chainChest,
     bonus: 'Chainmail armor · stats later',
   },
   chainmailLeggings: {
     name: 'Chainmail Leggings',
     shortName: 'Chain Legs',
     slot: 'leggings',
-    icon: '⛓',
+    icon: GEAR_ICONS.chainLegs,
     bonus: 'Chainmail armor · stats later',
   },
   chainmailBoots: {
     name: 'Chainmail Boots',
     shortName: 'Chain Boots',
     slot: 'boots',
-    icon: '⛓',
+    icon: GEAR_ICONS.chainBoots,
     bonus: 'Chainmail armor · stats later',
   },
 };
@@ -222,6 +231,7 @@ const defaultState = {
   xpMenu: 'skills',
   devToolsOpen: false,
   freeShops: false,
+  chatChannel: 'global',
   username: 'Username',
   inventory: {
     oakWood: 0,
@@ -242,12 +252,15 @@ const defaultState = {
     brownMushroom: 0,
     whiteMushroom: 0,
     onionGrass: 0,
+    caveLichen: 0,
+    glowShroom: 0,
     bread: 0,
     wheat: 0,
     smallHealthPotion: 0,
     cookies: 0,
     arrows: 0,
     greenGoop: 0,
+    boneFragments: 0,
     basicWoodcuttersAxe: 0,
     basicBow: 0,
     basicMagicStaff: 0,
@@ -319,38 +332,52 @@ const miningTypes = [
 
 
 const forageTypes = [
-  { key: 'redMushroom', name: 'Red Mushroom', className: 'red', weight: 30, xp: 5, kind: 'mushroom' },
-  { key: 'brownMushroom', name: 'Brown Mushroom', className: 'brown', weight: 35, xp: 5, kind: 'mushroom' },
-  { key: 'whiteMushroom', name: 'White Mushroom', className: 'white', weight: 23, xp: 5, kind: 'mushroom' },
-  { key: 'onionGrass', name: 'Onion Grass', className: 'onion-grass', weight: 24, xp: 5, kind: 'grass' },
+  { key: 'redMushroom', name: 'Red Mushroom', className: 'red', weights: { forest: 30, mines: 24 }, xp: 5, kind: 'mushroom' },
+  { key: 'brownMushroom', name: 'Brown Mushroom', className: 'brown', weights: { forest: 35, mines: 28 }, xp: 5, kind: 'mushroom' },
+  { key: 'whiteMushroom', name: 'White Mushroom', className: 'white', weights: { forest: 23, mines: 20 }, xp: 5, kind: 'mushroom' },
+  { key: 'onionGrass', name: 'Onion Grass', className: 'onion-grass', weights: { forest: 24 }, xp: 5, kind: 'grass' },
+  { key: 'caveLichen', name: 'Cave Lichen', className: 'cave-lichen', weights: { mines: 36 }, xp: 7, kind: 'lichen' },
+  { key: 'glowShroom', name: 'Glow Shroom', className: 'glow', weights: { mines: 8 }, xp: 12, kind: 'mushroom' },
 ];
 
-const forageSlots = [
-  { x: 7, y: 93, scale: .78 },
-  { x: 16, y: 95, scale: .72 },
-  { x: 27, y: 91, scale: .80 },
-  { x: 37, y: 94, scale: .74 },
-  { x: 47, y: 92, scale: .84 },
-  { x: 58, y: 95, scale: .73 },
-  { x: 68, y: 92, scale: .80 },
-  { x: 78, y: 95, scale: .72 },
-  { x: 88, y: 92, scale: .78 },
-  { x: 96, y: 95, scale: .70 },
-];
+const forageSlots = {
+  forest: [
+    { x: 7, y: 93, scale: .78 }, { x: 16, y: 95, scale: .72 },
+    { x: 27, y: 91, scale: .80 }, { x: 37, y: 94, scale: .74 },
+    { x: 47, y: 92, scale: .84 }, { x: 58, y: 95, scale: .73 },
+    { x: 68, y: 92, scale: .80 }, { x: 78, y: 95, scale: .72 },
+    { x: 88, y: 92, scale: .78 }, { x: 96, y: 95, scale: .70 },
+  ],
+  mines: [
+    { x: 9, y: 92, scale: .72 }, { x: 22, y: 88, scale: .68 },
+    { x: 40, y: 94, scale: .76 }, { x: 58, y: 90, scale: .72 },
+    { x: 76, y: 94, scale: .70 }, { x: 92, y: 89, scale: .66 },
+  ],
+};
 
-const slimeSlots = [
-  { x: 13, y: 88, scale: .9 }, { x: 27, y: 86, scale: .82 }, { x: 42, y: 91, scale: .96 },
-  { x: 57, y: 87, scale: .86 }, { x: 71, y: 91, scale: .94 }, { x: 86, y: 86, scale: .84 },
-];
+const ENEMY_TYPES = {
+  greenSlime: { name: 'Green Slime', location: 'forest', weight: 88, minHealth: 24, maxHealth: 38, classXp: 20, colorClass: 'green-slime' },
+  blueSlime: { name: 'Blue Slime', location: 'forest', weight: 12, minHealth: 58, maxHealth: 78, classXp: 38, colorClass: 'blue-slime' },
+  caveRat: { name: 'Cave Rat', location: 'mines', weight: 82, minHealth: 18, maxHealth: 32, classXp: 18, colorClass: 'cave-rat' },
+  skeleton: { name: 'Cave Skeleton', location: 'mines', weight: 18, minHealth: 46, maxHealth: 68, classXp: 34, colorClass: 'cave-skeleton' },
+};
+
+const enemySlots = {
+  forest: [
+    { x: 13, y: 88, scale: .9 }, { x: 27, y: 86, scale: .82 }, { x: 42, y: 91, scale: .96 },
+    { x: 57, y: 87, scale: .86 }, { x: 71, y: 91, scale: .94 }, { x: 86, y: 86, scale: .84 },
+  ],
+  mines: [
+    { x: 18, y: 83, scale: .86 }, { x: 36, y: 90, scale: .94 },
+    { x: 63, y: 88, scale: .9 }, { x: 83, y: 82, scale: .84 },
+  ],
+};
 
 export {
   ENTER_SOUND,
   LOGO,
   THEME_KEY,
   OVERALL_XP_PER_SKILL_LEVEL,
-  SLIME_SWORDSMAN_XP,
-  SLIME_RANGER_XP,
-  SLIME_WIZARD_XP,
   COIN_RATES,
   BASIC_AXE_PRICE,
   LUMBER_SELL_PRICES,
@@ -365,5 +392,6 @@ export {
   miningTypes,
   forageTypes,
   forageSlots,
-  slimeSlots,
+  ENEMY_TYPES,
+  enemySlots,
 };

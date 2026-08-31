@@ -1655,6 +1655,27 @@ body.dark .combat-view {
   animation: combatHammerHit .26s ease both;
 }
 
+/* Variable enemy artwork and combat entry warning */
+.combat-no-weapon { position:absolute; z-index:220; left:50%; top:72px; display:flex; align-items:center; gap:9px; transform:translateX(-50%); padding:10px 16px; border:2px solid #f06c64; border-radius:12px; background:rgba(102,17,18,.92); color:#fff4f2; box-shadow:0 0 0 5px rgba(239,69,62,.14),0 14px 30px rgba(0,0,0,.3); pointer-events:none; }
+.combat-no-weapon[hidden] { display:none !important; }.combat-no-weapon > span { width:22px; height:22px; display:grid; place-items:center; border-radius:50%; background:#ef514a; font-size:14px; font-weight:950; }.combat-no-weapon strong { font-size:12px; letter-spacing:.01em; }
+.combat-no-weapon.is-flashing { animation:noWeaponFlash 1.7s ease both; }
+@keyframes noWeaponFlash { 0%,100%{opacity:0;transform:translate(-50%,-12px) scale(.94)} 10%,28%,46%,64%{opacity:1;transform:translate(-50%,0) scale(1.04);filter:brightness(1.25)} 19%,37%,55%,82%{opacity:.38;transform:translate(-50%,0) scale(1)} }
+
+.combat-rat-body,.combat-skeleton-body { display:none; position:absolute; left:50%; bottom:23px; transform:translateX(-50%); }
+.combat-enemy-art.blue-slime .combat-slime-body { background:linear-gradient(145deg,#83d4f4 0%,#3f91d0 46%,#244f93 100%); box-shadow:inset -25px -20px rgba(24,52,111,.22),inset 18px 13px rgba(200,242,255,.16),0 24px 38px rgba(0,0,0,.26),0 0 44px rgba(70,157,226,.36); }
+.combat-enemy-art.blue-slime .combat-slime-body::after { background:rgba(44,111,183,.62); }
+.combat-enemy-art.cave-rat .combat-slime-body,.combat-enemy-art.cave-skeleton .combat-slime-body { display:none; }
+.combat-enemy-art.cave-rat .combat-rat-body { display:block; width:176px; height:92px; border-radius:57% 49% 44% 50%; background:linear-gradient(145deg,#a89b91,#514943 74%); box-shadow:inset -22px -18px rgba(37,31,28,.2),0 20px 28px rgba(0,0,0,.3); }
+.combat-rat-body::before { content:""; position:absolute; right:-38px; top:25px; width:66px; height:54px; border-radius:48% 64% 58% 45%; background:#776c64; box-shadow:inset -8px -8px rgba(43,36,33,.18); }
+.combat-rat-body .rat-ear { top:-19px; width:38px; height:38px; border:7px solid #6a514d; background:#ad8580; }.combat-rat-body .rat-ear.ear-a{right:15px}.combat-rat-body .rat-ear.ear-b{right:54px;top:-25px}.combat-rat-body .rat-eye{right:-26px;top:40px;width:10px;height:10px}.combat-rat-body .rat-tail{left:-93px;top:41px;width:105px;height:56px;border-width:8px}
+.combat-enemy-art.cave-skeleton .combat-skeleton-body { display:block; width:126px; height:190px; bottom:5px; filter:drop-shadow(0 17px 13px rgba(0,0,0,.35)); }
+.combat-skeleton-body .skeleton-skull { position:absolute; left:31px; top:0; width:68px; height:65px; border-radius:48% 48% 42% 42%; background:#ded9c6; box-shadow:inset -10px -8px #a8a38f; }.combat-skeleton-body .skeleton-skull::after{content:"";position:absolute;left:25px;bottom:-12px;width:23px;height:22px;border-radius:3px 3px 9px 9px;background:#c9c3ae;box-shadow:inset 0 -7px #a29c89}.combat-skeleton-body .skeleton-skull b{position:absolute;top:24px;width:13px;height:17px;border-radius:50%;background:#252a27}.combat-skeleton-body .skeleton-skull b:first-child{left:14px}.combat-skeleton-body .skeleton-skull b:last-child{right:14px}
+.combat-skeleton-body .skeleton-ribs { position:absolute; left:38px; top:72px; width:52px; height:75px; border:8px solid #d0cab5; border-top-width:11px; border-radius:45%; background:repeating-linear-gradient(180deg,transparent 0 11px,#cac3ae 12px 17px,transparent 18px 24px); }.combat-skeleton-body .skeleton-arm{position:absolute;top:78px;width:9px;height:88px;border-radius:5px;background:#c9c3ad;transform-origin:50% 0}.combat-skeleton-body .skeleton-arm.arm-a{left:24px;transform:rotate(17deg)}.combat-skeleton-body .skeleton-arm.arm-b{right:21px;transform:rotate(-17deg)}
+.combat-enemy-art.cave-rat.is-sword-hit .combat-rat-body,.combat-enemy-art.cave-rat.is-bow-hit .combat-rat-body,.combat-enemy-art.cave-rat.is-fireball-hit .combat-rat-body,.combat-enemy-art.cave-rat.is-hammer-hit .combat-rat-body,.combat-enemy-art.cave-skeleton.is-sword-hit .combat-skeleton-body,.combat-enemy-art.cave-skeleton.is-bow-hit .combat-skeleton-body,.combat-enemy-art.cave-skeleton.is-fireball-hit .combat-skeleton-body,.combat-enemy-art.cave-skeleton.is-hammer-hit .combat-skeleton-body { animation:combatEnemyHit .2s ease; }
+@keyframes combatEnemyHit { 45%{transform:translateX(-50%) scale(.94) rotate(-3deg);filter:brightness(1.55)} }
+.combat-enemy-art.cave-rat.is-defeated .combat-rat-body,.combat-enemy-art.cave-skeleton.is-defeated .combat-skeleton-body { animation:combatEnemyDefeat .62s ease forwards; }
+@keyframes combatEnemyDefeat { to{opacity:0;transform:translate(-50%,45px) rotate(13deg) scale(.72)} }
+
 @keyframes combatHammerHit {
   0% {
     transform: translateX(-50%) scale(1);

@@ -1,9 +1,8 @@
 import {
   BASIC_AXE_PRICE, ENTER_SOUND, EQUIPMENT_SLOT_LABELS, GEAR_ITEMS,
-  LUMBER_SELL_PRICES, OVERALL_XP_PER_SKILL_LEVEL, SAWMILL_RECIPES,
-  SLIME_RANGER_XP, SLIME_SWORDSMAN_XP, SLIME_WIZARD_XP, THEME_KEY,
-  VILLAGE_SHOPS, defaultState, forageSlots, forageTypes, mineSlots, miningTypes,
-  slimeSlots, treeSizes, treeSlots,
+  LUMBER_SELL_PRICES, OVERALL_XP_PER_SKILL_LEVEL, SAWMILL_RECIPES, THEME_KEY,
+  ENEMY_TYPES, VILLAGE_SHOPS, defaultState, enemySlots, forageSlots, forageTypes,
+  mineSlots, miningTypes, treeSizes, treeSlots,
 } from './src/data/game-data.js';
 import { createGameState, createRuntime } from './src/core/state.js';
 import { addXp, formatXp, xpNeeded } from './src/core/progression.js';
@@ -25,6 +24,7 @@ import { birchSvg, oakSvg, oreNodeSvg } from './src/ui/graphics.js';
   bindEvents();
   applyTheme();
   renderDevTools();
+  renderChat();
   renderNavigation();
   renderHUD();
   renderInventory();
@@ -35,8 +35,8 @@ import { birchSvg, oakSvg, oreNodeSvg } from './src/ui/graphics.js';
   initHudSafeZoneObserver();
   spawnInitialForest();
   spawnInitialMineNodes();
-  startForageSpawner();
-  startSlimeSpawner();
+  startForageSpawners();
+  startEnemySpawners();
 
   function updateHudSafeZone() {
     if (!ui?.worldHost || !ui?.characterBar || !ui?.walletHud) return;
@@ -184,6 +184,15 @@ import { birchSvg, oakSvg, oreNodeSvg } from './src/ui/graphics.js';
       if (xpMenuTab) {
         state.xpMenu = xpMenuTab.dataset.xpMenu === 'classes' ? 'classes' : 'skills';
         renderXpMenu();
+        return;
+      }
+
+      const chatChannel = event.target.closest('[data-chat-channel]');
+      if (chatChannel) {
+        state.chatChannel = ['global', 'local', 'trade', 'party'].includes(chatChannel.dataset.chatChannel)
+          ? chatChannel.dataset.chatChannel
+          : 'global';
+        renderChat();
         return;
       }
 
@@ -365,6 +374,24 @@ import { birchSvg, oakSvg, oreNodeSvg } from './src/ui/graphics.js';
     ui.freeShopsToggle.setAttribute('aria-pressed', String(state.freeShops));
   }
 
+  function renderChat() {
+    const channelCopy = {
+      global: ['Global Channel', 'Messages from all players will appear here.'],
+      local: ['Local Channel', 'Nearby adventurers will appear here.'],
+      trade: ['Trade Channel', 'Player offers and market chatter will appear here.'],
+      party: ['Party Channel', 'Your party conversation will appear here.'],
+    };
+    document.querySelectorAll('[data-chat-channel]').forEach((button) => {
+      const active = button.dataset.chatChannel === state.chatChannel;
+      button.classList.toggle('is-active', active);
+      button.setAttribute('aria-selected', String(active));
+    });
+    const copy = channelCopy[state.chatChannel] || channelCopy.global;
+    if (ui.chatLog) {
+      ui.chatLog.innerHTML = `<div class="chat-system-message"><span>●</span><p><strong>${copy[0]}</strong><small>${copy[1]}</small></p></div>`;
+    }
+  }
+
   function applyTheme() {
     document.body.classList.toggle('dark', state.theme === 'dark');
     ui.themeIcon.textContent = state.theme === 'dark' ? '☾' : '☀';
@@ -387,7 +414,7 @@ import { birchSvg, oakSvg, oreNodeSvg } from './src/ui/graphics.js';
   }
 
   function setLocation(location) {
-    if (!['lakeside', 'forest', 'mines', 'town', 'lumbermill', 'blacksmith', 'strange-shack', 'farmer', 'craftsman', 'foragers-hut'].includes(location)) return;
+    if (!['lakeside', 'lake', 'forest', 'mines', 'town', 'lumbermill', 'blacksmith', 'strange-shack', 'farmer', 'craftsman', 'foragers-hut'].includes(location)) return;
     hideResourceHoverBar();
     runtime.combat = null;
     state.location = location;
@@ -398,34 +425,36 @@ import { birchSvg, oakSvg, oreNodeSvg } from './src/ui/graphics.js';
     renderLumberShop();
     renderVillageShop();
     renderDrawers();
-    if (location === 'forest' && runtime.forageNodes.size < 2) {
-      scheduleNextForageSpawn(randomInt(1800, 6200));
+    if (['forest', 'mines'].includes(location)) {
+      const forageCount = Array.from(runtime.forageNodes.values()).filter((node) => node.location === location).length;
+      const enemyCount = Array.from(runtime.enemyNodes.values()).filter((node) => node.location === location).length;
+      if (forageCount < 2) scheduleNextForageSpawn(location, randomInt(1200, 4200));
+      if (enemyCount === 0) scheduleNextEnemySpawn(location, randomInt(2200, 7000));
     }
-    if (location === 'forest' && runtime.slimeNodes.size === 0) {
-      scheduleNextSlimeSpawn(randomInt(7000, 16000));
-    }
-    }
+  }
 
 
-  function enterCombatWithSlime(slime) {
-    if (!slime || !runtime.slimeNodes.has(slime.id)) return;
+  function enterCombatWithEnemy(enemy) {
+    if (!enemy || !runtime.enemyNodes.has(enemy.id)) return;
 
-    if (slime.expireTimer) window.clearTimeout(slime.expireTimer);
-    runtime.slimeNodes.delete(slime.id);
-    runtime.occupiedSlimeSlots.delete(slime.slotIndex);
+    if (enemy.expireTimer) window.clearTimeout(enemy.expireTimer);
+    runtime.enemyNodes.delete(enemy.id);
+    runtime.occupiedEnemySlots.delete(`${enemy.location}:${enemy.slotIndex}`);
 
-    if (slime.node?.isConnected) {
-      slime.node.disabled = true;
-      slime.node.classList.add('is-entering-combat');
-      window.setTimeout(() => slime.node.remove(), 180);
+    if (enemy.node?.isConnected) {
+      enemy.node.disabled = true;
+      enemy.node.classList.add('is-entering-combat');
+      window.setTimeout(() => enemy.node.remove(), 180);
     }
 
-    runtime.combatReturnLocation = 'forest';
+    runtime.combatReturnLocation = enemy.location;
     runtime.combat = {
-      type: 'slime',
-      name: 'Slime',
-      health: 30,
-      maxHealth: 30,
+      type: enemy.typeKey,
+      name: enemy.type.name,
+      colorClass: enemy.type.colorClass,
+      classXp: enemy.type.classXp,
+      health: enemy.health,
+      maxHealth: enemy.health,
       defeated: false,
       loot: [],
     };
@@ -445,6 +474,13 @@ import { birchSvg, oakSvg, oreNodeSvg } from './src/ui/graphics.js';
     renderDrawers();
     renderLumberShop();
     renderVillageShop();
+
+    if (!getMainHandGear() && ui.combatNoWeapon) {
+      ui.combatNoWeapon.hidden = false;
+      ui.combatNoWeapon.classList.remove('is-flashing');
+      void ui.combatNoWeapon.offsetWidth;
+      ui.combatNoWeapon.classList.add('is-flashing');
+    }
   }
 
   function exitCombat() {
@@ -464,7 +500,7 @@ import { birchSvg, oakSvg, oreNodeSvg } from './src/ui/graphics.js';
     if (!ui?.combatEnemyName) return;
 
     const combat = runtime.combat;
-    const enemyName = combat?.name || 'Slime';
+    const enemyName = combat?.name || 'Enemy';
     const enemyHealth = combat?.health ?? 30;
     const enemyMaxHealth = combat?.maxHealth ?? 30;
     const enemyPercent = clamp((enemyHealth / enemyMaxHealth) * 100, 0, 100);
@@ -477,6 +513,16 @@ import { birchSvg, oakSvg, oreNodeSvg } from './src/ui/graphics.js';
     ui.combatEnemyName.textContent = enemyName;
     ui.combatEnemyHealth.textContent = `${enemyHealth} / ${enemyMaxHealth}`;
     ui.combatEnemyFill.style.width = `${enemyPercent}%`;
+    if (ui.combatEnemyTarget) {
+      const enemyClasses = Object.values(ENEMY_TYPES).map((type) => type.colorClass);
+      ui.combatEnemyTarget.classList.remove(...enemyClasses);
+      ui.combatEnemyTarget.classList.add(combat?.colorClass || 'green-slime');
+      ui.combatEnemyTarget.setAttribute('aria-label', `${enemyName} combat target`);
+    }
+    if (ui.combatExit) ui.combatExit.textContent = `‹ Return to ${capitalize(runtime.combatReturnLocation || 'forest')}`;
+    document.querySelectorAll('[data-combat-defeat-return]').forEach((button) => {
+      button.textContent = `Return to ${capitalize(runtime.combatReturnLocation || 'forest')}`;
+    });
 
     ui.combatPlayerHealth.textContent = `${playerHealth} / ${playerMaxHealth}`;
     ui.combatPlayerFill.style.width = `${playerPercent}%`;
@@ -485,6 +531,10 @@ import { birchSvg, oakSvg, oreNodeSvg } from './src/ui/graphics.js';
     const offKey = state.equipment['off-hand'];
     const mainGear = mainKey ? GEAR_ITEMS[mainKey] : null;
     const offGear = offKey ? GEAR_ITEMS[offKey] : null;
+
+    if (ui.combatNoWeapon) {
+      ui.combatNoWeapon.hidden = Boolean(mainGear) || !combat || Boolean(combat.defeated);
+    }
 
     if (ui.combatMainHand) ui.combatMainHand.textContent = mainGear?.shortName || mainGear?.name || 'Empty';
     if (ui.combatOffHand) ui.combatOffHand.textContent = offGear?.shortName || offGear?.name || 'Empty';
@@ -1455,34 +1505,56 @@ import { birchSvg, oakSvg, oreNodeSvg } from './src/ui/graphics.js';
     ui.combatStage?.classList.remove('is-swiping', 'is-staff-drawing', 'is-hammer-charging');
     ui.combatEnemyTarget?.classList.add('is-defeated');
 
-    const loot = rollSlimeLoot();
+    const loot = rollEnemyLoot(combat.type);
     combat.loot = loot;
     applyCombatLoot(loot);
 
-    if (weapon?.weaponType === 'sword') {
-      gainClassXp('swordsman', SLIME_SWORDSMAN_XP);
+    const classXp = combat.classXp || 20;
+    if (weapon?.weaponType === 'sword' || weapon?.weaponType === 'hammer') {
+      gainClassXp('swordsman', classXp);
     } else if (weapon?.weaponType === 'bow') {
-      gainClassXp('ranger', SLIME_RANGER_XP);
+      gainClassXp('ranger', classXp);
     } else if (weapon?.weaponType === 'staff') {
-      gainClassXp('wizard', SLIME_WIZARD_XP);
+      gainClassXp('wizard', classXp);
     }
 
     renderCombat();
   }
 
-  function rollSlimeLoot() {
-    const loot = [
-      { kind: 'coin', key: 'copper', name: 'Copper', icon: '¢', amount: randomInt(4, 12) },
-      { kind: 'item', key: 'greenGoop', name: 'Green Goop', icon: '<span class="green-goop-icon"></span>', amount: randomInt(2, 6) },
-    ];
+  function rollEnemyLoot(typeKey) {
+    const loot = [];
 
-    const oreRoll = Math.random();
-    if (oreRoll < .05) {
-      loot.push({ kind: 'item', key: 'ironOre', name: 'Iron Ore', icon: '<span class="mini-ore iron"></span>', amount: 1 });
-    } else if (oreRoll < .23) {
-      loot.push({ kind: 'item', key: 'coal', name: 'Coal', icon: '<span class="mini-ore coal"></span>', amount: 1 });
+    if (typeKey === 'blueSlime') {
+      loot.push(
+        { kind: 'coin', key: 'copper', name: 'Copper', icon: '¢', amount: randomInt(18, 35) },
+        { kind: 'item', key: 'greenGoop', name: 'Dense Slime Goop', icon: '<span class="blue-goop-icon"></span>', amount: randomInt(5, 10) },
+      );
+      if (Math.random() < .28) loot.push({ kind: 'item', key: 'amethyst', name: 'Amethyst', icon: '<span class="mini-gem amethyst"></span>', amount: 1 });
+      return loot;
     }
 
+    if (typeKey === 'caveRat') {
+      loot.push({ kind: 'coin', key: 'copper', name: 'Copper', icon: '¢', amount: randomInt(3, 9) });
+      if (Math.random() < .55) loot.push({ kind: 'item', key: 'caveLichen', name: 'Cave Lichen', icon: '<span class="mini-lichen"></span>', amount: 1 });
+      return loot;
+    }
+
+    if (typeKey === 'skeleton') {
+      loot.push(
+        { kind: 'coin', key: 'copper', name: 'Copper', icon: '¢', amount: randomInt(14, 28) },
+        { kind: 'item', key: 'boneFragments', name: 'Bone Fragments', icon: '<span class="mini-bone"></span>', amount: randomInt(2, 5) },
+      );
+      if (Math.random() < .25) loot.push({ kind: 'item', key: 'ironOre', name: 'Iron Ore', icon: '<span class="mini-ore iron"></span>', amount: 1 });
+      return loot;
+    }
+
+    loot.push(
+      { kind: 'coin', key: 'copper', name: 'Copper', icon: '¢', amount: randomInt(4, 12) },
+      { kind: 'item', key: 'greenGoop', name: 'Green Goop', icon: '<span class="green-goop-icon"></span>', amount: randomInt(2, 6) },
+    );
+    const oreRoll = Math.random();
+    if (oreRoll < .05) loot.push({ kind: 'item', key: 'ironOre', name: 'Iron Ore', icon: '<span class="mini-ore iron"></span>', amount: 1 });
+    else if (oreRoll < .23) loot.push({ kind: 'item', key: 'coal', name: 'Coal', icon: '<span class="mini-ore coal"></span>', amount: 1 });
     return loot;
   }
 
@@ -1586,10 +1658,13 @@ import { birchSvg, oakSvg, oreNodeSvg } from './src/ui/graphics.js';
       { key: 'cookies', name: 'Cookie', icon: '<span aria-hidden="true">🍪</span>' },
       { key: 'arrows', name: 'Arrows', icon: '<span aria-hidden="true">➶</span>' },
       { key: 'greenGoop', name: 'Green Goop', icon: '<span class="green-goop-icon" aria-hidden="true"></span>' },
+      { key: 'boneFragments', name: 'Bone Fragments', icon: '<span class="mini-bone" aria-hidden="true"></span>' },
       { key: 'redMushroom', name: 'Red Mushroom', icon: '<span class="mushroom-icon red" aria-hidden="true">🍄</span>' },
       { key: 'brownMushroom', name: 'Brown Mushroom', icon: '<span class="mushroom-icon brown" aria-hidden="true">🍄</span>' },
       { key: 'whiteMushroom', name: 'White Mushroom', icon: '<span class="mushroom-icon white" aria-hidden="true">🍄</span>' },
       { key: 'onionGrass', name: 'Onion Grass', icon: '<span aria-hidden="true">🧅</span>' },
+      { key: 'caveLichen', name: 'Cave Lichen', icon: '<span class="mini-lichen" aria-hidden="true"></span>' },
+      { key: 'glowShroom', name: 'Glow Shroom', icon: '<span class="mushroom-icon glow" aria-hidden="true">🍄</span>' },
       { key: 'acorns', name: 'Acorn', icon: '<span aria-hidden="true">🌰</span>' },
       { key: 'stone', name: 'Stone', icon: '<span class="mini-ore stone" aria-hidden="true"></span>' },
       { key: 'coal', name: 'Coal', icon: '<span class="mini-ore coal" aria-hidden="true"></span>' },
@@ -2018,100 +2093,86 @@ import { birchSvg, oakSvg, oreNodeSvg } from './src/ui/graphics.js';
     for (let i = 0; i < count; i += 1) spawnTree();
   }
 
-  function startForageSpawner() {
-    scheduleNextForageSpawn(randomInt(2200, 6500));
+  function startForageSpawners() {
+    scheduleNextForageSpawn('forest', randomInt(2200, 6500));
+    scheduleNextForageSpawn('mines', randomInt(3000, 8000));
   }
 
-  function scheduleNextForageSpawn(delay = randomInt(3200, 12000)) {
-    if (runtime.forageSpawnTimer) window.clearTimeout(runtime.forageSpawnTimer);
+  function scheduleNextForageSpawn(location, delay = randomInt(3200, 12000)) {
+    if (!runtime.forageSpawnTimers[location]) runtime.forageSpawnTimers[location] = null;
+    if (runtime.forageSpawnTimers[location]) window.clearTimeout(runtime.forageSpawnTimers[location]);
 
-    runtime.forageSpawnTimer = window.setTimeout(() => {
-      if (state.location === 'forest' && runtime.forageNodes.size < 4) {
-        spawnForageNode();
-      }
-
-      // Every spawn uses a freshly randomized delay so mushrooms appear unpredictably.
-      scheduleNextForageSpawn(randomInt(3200, 12000));
+    runtime.forageSpawnTimers[location] = window.setTimeout(() => {
+      const activeCount = Array.from(runtime.forageNodes.values()).filter((node) => node.location === location).length;
+      const maxNodes = location === 'mines' ? 3 : 4;
+      if (state.location === location && activeCount < maxNodes) spawnForageNode(location);
+      scheduleNextForageSpawn(location, randomInt(3200, 12000));
     }, delay);
   }
 
-  function chooseForageType() {
-    const totalWeight = forageTypes.reduce((sum, type) => sum + type.weight, 0);
+  function chooseForageType(location) {
+    const available = forageTypes.filter((type) => (type.weights?.[location] || 0) > 0);
+    const totalWeight = available.reduce((sum, type) => sum + type.weights[location], 0);
     let roll = Math.random() * totalWeight;
-    for (const type of forageTypes) {
-      roll -= type.weight;
+    for (const type of available) {
+      roll -= type.weights[location];
       if (roll <= 0) return type;
     }
-    return forageTypes[0];
+    return available[0];
   }
 
-  function getFreeForageSlot() {
-    const free = forageSlots
+  function getFreeForageSlot(location) {
+    const slots = forageSlots[location] || [];
+    const free = slots
       .map((slot, index) => ({ slot, index }))
-      .filter(({ index }) => !runtime.occupiedForageSlots.has(index))
-      .filter(({ slot }) => {
-        // Keep forageables out of the visual footprint of active tree trunks.
-        return Array.from(runtime.trees.values()).every((tree) => {
-          const horizontalDistance = Math.abs(slot.x - tree.x);
-          return horizontalDistance >= 7.5;
-        });
-      });
-
+      .filter(({ index }) => !runtime.occupiedForageSlots.has(`${location}:${index}`))
+      .filter(({ slot }) => location !== 'forest' || Array.from(runtime.trees.values()).every((tree) => Math.abs(slot.x - tree.x) >= 7.5));
     return free.length ? free[randomInt(0, free.length - 1)].index : null;
   }
 
-  function spawnForageNode() {
-    const slotIndex = getFreeForageSlot();
+  function spawnForageNode(location) {
+    const slotIndex = getFreeForageSlot(location);
     if (slotIndex === null) return;
 
-    const slot = forageSlots[slotIndex];
-    const type = chooseForageType();
+    const slot = forageSlots[location][slotIndex];
+    const type = chooseForageType(location);
     const forage = {
       id: ++runtime.forageNodeId,
+      location,
       slotIndex,
       type,
       harvested: false,
       expireTimer: null,
     };
 
-    runtime.occupiedForageSlots.add(slotIndex);
+    runtime.occupiedForageSlots.add(`${location}:${slotIndex}`);
     runtime.forageNodes.set(forage.id, forage);
 
     const node = document.createElement('button');
     node.type = 'button';
-    node.className = `forest-forage-node forage-${type.className} is-spawning`;
+    node.className = `forest-forage-node world-forage-node ${location}-forage-node forage-${type.className} is-spawning`;
     node.style.left = `${clamp(slot.x + randomInt(-1, 1), 4, 97)}%`;
-    node.style.top = `${clamp(slot.y + randomInt(0, 1), 90, 96)}%`;
+    node.style.top = `${clamp(slot.y + randomInt(0, 1), 80, 96)}%`;
     node.style.setProperty('--forage-scale', String(slot.scale * (randomInt(94, 108) / 100)));
     node.style.zIndex = '10000';
     node.setAttribute('aria-label', `Harvest ${type.name}`);
 
-    const forageArt = type.kind === 'grass'
-      ? `<span class="forage-onion-art" aria-hidden="true">
-          <span class="onion-bulb"></span>
-          <span class="onion-blade blade-a"></span>
-          <span class="onion-blade blade-b"></span>
-          <span class="onion-blade blade-c"></span>
-          <span class="onion-blade blade-d"></span>
-        </span>`
-      : `<span class="forage-mushroom-art" aria-hidden="true">
-          <span class="forage-cap"><i></i><i></i><i></i></span>
-          <span class="forage-stem"></span>
-        </span>`;
+    let forageArt;
+    if (type.kind === 'grass') {
+      forageArt = `<span class="forage-onion-art" aria-hidden="true"><span class="onion-bulb"></span><span class="onion-blade blade-a"></span><span class="onion-blade blade-b"></span><span class="onion-blade blade-c"></span><span class="onion-blade blade-d"></span></span>`;
+    } else if (type.kind === 'lichen') {
+      forageArt = `<span class="forage-lichen-art" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>`;
+    } else {
+      forageArt = `<span class="forage-mushroom-art" aria-hidden="true"><span class="forage-cap"><i></i><i></i><i></i></span><span class="forage-stem"></span></span>`;
+    }
 
-    node.innerHTML = `
-      <span class="forage-ground-shadow" aria-hidden="true"></span>
-      ${forageArt}
-      <span class="forage-name">${type.name}</span>
-    `;
-
+    node.innerHTML = `<span class="forage-ground-shadow" aria-hidden="true"></span>${forageArt}<span class="forage-name">${type.name}</span>`;
     forage.node = node;
-    ui.forageStage.appendChild(node);
+    ui.forageStages[location]?.appendChild(node);
     window.setTimeout(() => node.classList.remove('is-spawning'), 280);
-
     node.addEventListener('click', () => harvestForageNode(forage));
 
-    const lifetime = randomInt(8000, 14500);
+    const lifetime = randomInt(location === 'mines' ? 11000 : 8000, location === 'mines' ? 18000 : 14500);
     forage.expireTimer = window.setTimeout(() => expireForageNode(forage), lifetime);
   }
 
@@ -2119,7 +2180,6 @@ import { birchSvg, oakSvg, oreNodeSvg } from './src/ui/graphics.js';
     if (!forage || forage.harvested || !runtime.forageNodes.has(forage.id)) return;
     forage.harvested = true;
     if (forage.expireTimer) window.clearTimeout(forage.expireTimer);
-
     state.inventory[forage.type.key] = (state.inventory[forage.type.key] || 0) + 1;
     gainSkillXp('foraging', forage.type.xp);
     renderInventory();
@@ -2134,87 +2194,95 @@ import { birchSvg, oakSvg, oreNodeSvg } from './src/ui/graphics.js';
 
   function removeForageNode(forage, animationClass) {
     runtime.forageNodes.delete(forage.id);
-    runtime.occupiedForageSlots.delete(forage.slotIndex);
+    runtime.occupiedForageSlots.delete(`${forage.location}:${forage.slotIndex}`);
     if (!forage.node?.isConnected) return;
-
     forage.node.disabled = true;
     forage.node.classList.add(animationClass);
     window.setTimeout(() => forage.node.remove(), 320);
   }
 
-  function startSlimeSpawner() {
-    scheduleNextSlimeSpawn(randomInt(9000, 22000));
+  function startEnemySpawners() {
+    scheduleNextEnemySpawn('forest', randomInt(5000, 11000));
+    scheduleNextEnemySpawn('mines', randomInt(5000, 10000));
   }
 
-  function scheduleNextSlimeSpawn(delay = randomInt(12000, 32000)) {
-    if (runtime.slimeSpawnTimer) window.clearTimeout(runtime.slimeSpawnTimer);
-
-    runtime.slimeSpawnTimer = window.setTimeout(() => {
-      if (state.location === 'forest' && runtime.slimeNodes.size < 1) {
-        spawnSlime();
-      }
-      scheduleNextSlimeSpawn(randomInt(12000, 32000));
+  function scheduleNextEnemySpawn(location, delay = randomInt(10000, 28000)) {
+    if (runtime.enemySpawnTimers[location]) window.clearTimeout(runtime.enemySpawnTimers[location]);
+    runtime.enemySpawnTimers[location] = window.setTimeout(() => {
+      const activeCount = Array.from(runtime.enemyNodes.values()).filter((node) => node.location === location).length;
+      if (state.location === location && activeCount < 1) spawnEnemy(location);
+      scheduleNextEnemySpawn(location, randomInt(10000, 28000));
     }, delay);
   }
 
-  function getFreeSlimeSlot() {
-    const free = slimeSlots
-      .map((_, index) => index)
-      .filter((index) => !runtime.occupiedSlimeSlots.has(index));
+  function chooseEnemyType(location) {
+    const available = Object.entries(ENEMY_TYPES).filter(([, type]) => type.location === location);
+    const totalWeight = available.reduce((sum, [, type]) => sum + type.weight, 0);
+    let roll = Math.random() * totalWeight;
+    for (const [key, type] of available) {
+      roll -= type.weight;
+      if (roll <= 0) return { key, type };
+    }
+    return { key: available[0][0], type: available[0][1] };
+  }
+
+  function getFreeEnemySlot(location) {
+    const slots = enemySlots[location] || [];
+    const free = slots.map((_, index) => index).filter((index) => !runtime.occupiedEnemySlots.has(`${location}:${index}`));
     return free.length ? free[randomInt(0, free.length - 1)] : null;
   }
 
-  function spawnSlime() {
-    const slotIndex = getFreeSlimeSlot();
+  function spawnEnemy(location) {
+    const slotIndex = getFreeEnemySlot(location);
     if (slotIndex === null) return;
 
-    const slot = slimeSlots[slotIndex];
-    const slime = {
-      id: ++runtime.slimeNodeId,
+    const slot = enemySlots[location][slotIndex];
+    const { key: typeKey, type } = chooseEnemyType(location);
+    const enemy = {
+      id: ++runtime.enemyNodeId,
+      location,
       slotIndex,
+      typeKey,
+      type,
+      health: randomInt(type.minHealth, type.maxHealth),
       expireTimer: null,
     };
 
-    runtime.occupiedSlimeSlots.add(slotIndex);
-    runtime.slimeNodes.set(slime.id, slime);
+    runtime.occupiedEnemySlots.add(`${location}:${slotIndex}`);
+    runtime.enemyNodes.set(enemy.id, enemy);
 
-    const lifetime = randomInt(11000, 18000);
+    const lifetime = randomInt(12000, 20000);
     const node = document.createElement('button');
     node.type = 'button';
-    node.className = 'forest-slime enemy-node is-spawning';
-    node.setAttribute('aria-label', 'Fight Slime');
+    node.className = `forest-slime world-enemy enemy-node ${type.colorClass} is-spawning`;
+    node.setAttribute('aria-label', `Fight ${type.name}`);
     node.style.left = `${clamp(slot.x + randomInt(-3, 3), 7, 93)}%`;
-    node.style.top = `${clamp(slot.y + randomInt(-2, 2), 79, 93)}%`;
+    node.style.top = `${clamp(slot.y + randomInt(-2, 2), 76, 93)}%`;
     node.style.setProperty('--slime-scale', String(slot.scale * (randomInt(92, 110) / 100)));
     node.style.setProperty('--slime-life', `${lifetime}ms`);
-    node.innerHTML = `
-      <span class="slime-shadow" aria-hidden="true"></span>
-      <span class="slime-body" aria-hidden="true">
-        <span class="slime-shine"></span>
-        <span class="slime-eye eye-a"></span>
-        <span class="slime-eye eye-b"></span>
-        <span class="slime-mouth"></span>
-      </span>
-      <span class="slime-timer" aria-label="Slime remaining time">
-        <span class="slime-timer-fill"></span>
-      </span>
-    `;
 
-    slime.node = node;
-    ui.slimeStage.appendChild(node);
-    node.addEventListener('click', () => enterCombatWithSlime(slime));
+    if (typeKey === 'caveRat') {
+      node.innerHTML = `<span class="slime-shadow rat-shadow" aria-hidden="true"></span><span class="world-rat-body" aria-hidden="true"><i class="rat-ear ear-a"></i><i class="rat-ear ear-b"></i><i class="rat-eye eye-a"></i><i class="rat-eye eye-b"></i><i class="rat-tail"></i></span><span class="enemy-nameplate">${type.name} · ${enemy.health} HP</span><span class="slime-timer"><span class="slime-timer-fill"></span></span>`;
+    } else if (typeKey === 'skeleton') {
+      node.innerHTML = `<span class="slime-shadow skeleton-shadow" aria-hidden="true"></span><span class="world-skeleton-body" aria-hidden="true"><i class="skeleton-skull"><b></b><b></b></i><i class="skeleton-ribs"></i><i class="skeleton-leg leg-a"></i><i class="skeleton-leg leg-b"></i></span><span class="enemy-nameplate">${type.name} · ${enemy.health} HP</span><span class="slime-timer"><span class="slime-timer-fill"></span></span>`;
+    } else {
+      node.innerHTML = `<span class="slime-shadow" aria-hidden="true"></span><span class="slime-body" aria-hidden="true"><span class="slime-shine"></span><span class="slime-eye eye-a"></span><span class="slime-eye eye-b"></span><span class="slime-mouth"></span></span><span class="enemy-nameplate">${type.name} · ${enemy.health} HP</span><span class="slime-timer"><span class="slime-timer-fill"></span></span>`;
+    }
+
+    enemy.node = node;
+    ui.enemyStages[location]?.appendChild(node);
+    node.addEventListener('click', () => enterCombatWithEnemy(enemy));
     window.setTimeout(() => node.classList.remove('is-spawning'), 340);
-    slime.expireTimer = window.setTimeout(() => despawnSlime(slime), lifetime);
+    enemy.expireTimer = window.setTimeout(() => despawnEnemy(enemy), lifetime);
   }
 
-  function despawnSlime(slime) {
-    if (!slime || !runtime.slimeNodes.has(slime.id)) return;
-    runtime.slimeNodes.delete(slime.id);
-    runtime.occupiedSlimeSlots.delete(slime.slotIndex);
-    if (!slime.node?.isConnected) return;
-
-    slime.node.classList.add('is-despawning');
-    window.setTimeout(() => slime.node.remove(), 360);
+  function despawnEnemy(enemy) {
+    if (!enemy || !runtime.enemyNodes.has(enemy.id)) return;
+    runtime.enemyNodes.delete(enemy.id);
+    runtime.occupiedEnemySlots.delete(`${enemy.location}:${enemy.slotIndex}`);
+    if (!enemy.node?.isConnected) return;
+    enemy.node.classList.add('is-despawning');
+    window.setTimeout(() => enemy.node.remove(), 360);
   }
 
   function spawnTree() {
