@@ -551,7 +551,9 @@ import { birchSvg, oakSvg, oreNodeSvg } from './src/ui/graphics.js';
     const offGear = offKey ? GEAR_ITEMS[offKey] : null;
 
     if (ui.combatNoWeapon) {
-      ui.combatNoWeapon.hidden = Boolean(mainGear) || !combat || Boolean(combat.defeated);
+      const showNoWeaponWarning = !mainGear && Boolean(combat) && !combat.defeated;
+      ui.combatNoWeapon.hidden = !showNoWeaponWarning;
+      ui.combatNoWeapon.classList.toggle('is-flashing', showNoWeaponWarning);
     }
 
     if (ui.combatMainHand) ui.combatMainHand.textContent = mainGear?.shortName || mainGear?.name || 'Empty';
