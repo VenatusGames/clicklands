@@ -2694,3 +2694,1151 @@ body.is-dragging-log .sawmill-input { color:#d8efae; border-color:#b8d77d; backg
     transform: none;
   }
 }
+
+
+/* =========================================================
+   UI READABILITY PASS
+   Larger interface chrome without scaling the game world.
+   ========================================================= */
+
+@media (min-width: 821px) {
+  :root {
+    --sidebar-w: 270px;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    padding: 20px 16px 17px;
+    gap: 19px;
+  }
+
+  .brand {
+    min-height: 58px;
+    gap: 12px;
+    padding: 3px 4px 14px;
+  }
+
+  .brand-logo {
+    width: 48px;
+    height: 48px;
+    border-radius: 15px;
+  }
+
+  .brand-copy strong {
+    font-size: 17px;
+  }
+
+  .brand-copy span {
+    margin-top: 3px;
+    font-size: 11px;
+  }
+
+  .sidebar-title {
+    padding-inline: 5px;
+    font-size: 10.5px;
+  }
+
+  .nav-stack {
+    gap: 7px;
+  }
+
+  .area-row {
+    grid-template-columns: minmax(0,1fr) 38px;
+    gap: 6px;
+  }
+
+  .nav-button {
+    min-height: 56px;
+    padding: 9px 11px;
+    gap: 11px;
+    border-radius: 14px;
+  }
+
+  .nav-button.child {
+    width: calc(100% - 17px);
+    margin-left: 17px;
+  }
+
+  .nav-icon {
+    width: 35px;
+    height: 35px;
+    flex-basis: 35px;
+    border-radius: 10px;
+    font-size: 17px;
+  }
+
+  .nav-name {
+    font-size: 13px;
+  }
+
+  .nav-meta {
+    margin-top: 3px;
+    font-size: 9.5px;
+  }
+
+  .area-toggle {
+    width: 38px;
+    border-radius: 11px;
+  }
+
+  .area-toggle svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .area-children {
+    gap: 6px;
+    max-height: 235px;
+  }
+
+  .theme-button {
+    min-height: 50px;
+    padding: 9px 11px;
+    border-radius: 14px;
+  }
+
+  .theme-label {
+    font-size: 12px;
+  }
+
+  .theme-switch {
+    width: 40px;
+    height: 22px;
+  }
+
+  .theme-switch-dot {
+    width: 16px;
+    height: 16px;
+  }
+
+  body.dark .theme-switch-dot {
+    transform: translateX(18px);
+  }
+
+  /* Profile / XP HUD */
+  .top-hud {
+    min-height: 102px;
+    padding: 12px 14px 12px 7px;
+    gap: 10px;
+  }
+
+  .character-stack {
+    width: 478px;
+    flex-basis: 478px;
+  }
+
+  .character-bar {
+    min-height: 78px;
+    padding: 10px 12px;
+    grid-template-columns: 52px minmax(0,1fr) 38px;
+    gap: 11px;
+    border-radius: 20px;
+  }
+
+  .character-avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 15px;
+  }
+
+  .character-row {
+    margin-bottom: 7px;
+  }
+
+  .username {
+    font-size: 15px;
+  }
+
+  .overall-level {
+    font-size: 11px;
+  }
+
+  .xp-label-row {
+    margin-bottom: 5px;
+  }
+
+  .xp-label,
+  .xp-value {
+    font-size: 9.5px;
+  }
+
+  .progress-track {
+    height: 12px;
+  }
+
+  .overall-progress-track {
+    height: 15px;
+  }
+
+  .character-chevron {
+    width: 38px;
+    height: 38px;
+    border-radius: 11px;
+  }
+
+  .character-chevron svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .skills-drawer {
+    margin: 6px 10px 0;
+    padding-inline: 11px;
+    border-radius: 0 0 17px 17px;
+  }
+
+  .skills-drawer.is-open {
+    padding: 13px;
+  }
+
+  .xp-menu-tabs {
+    gap: 5px;
+    margin-bottom: 11px;
+    padding: 4px;
+    border-radius: 13px;
+  }
+
+  .xp-menu-tab {
+    min-height: 42px;
+    padding-inline: 12px;
+    border-radius: 10px;
+    font-size: 10.5px;
+  }
+
+  .xp-menu-tab-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 7px;
+    font-size: 11px;
+  }
+
+  .progression-section-head {
+    min-height: 28px;
+    padding-bottom: 8px;
+  }
+
+  .progression-section-head > span {
+    font-size: 10.5px;
+  }
+
+  .progression-section-head small {
+    font-size: 8.5px;
+  }
+
+  .skill-row {
+    min-height: 58px;
+    grid-template-columns: 36px minmax(0,1fr) auto;
+    gap: 10px;
+    padding-block: 6px;
+  }
+
+  .skill-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    font-size: 16px;
+  }
+
+  .skill-name {
+    font-size: 11px;
+  }
+
+  .skill-xp {
+    font-size: 9px;
+  }
+
+  .skill-level {
+    font-size: 10px;
+  }
+
+  .skill-row .progress-track {
+    height: 9px;
+  }
+
+  /* Wallet */
+  .wallet-hud {
+    width: 405px;
+    min-height: 76px;
+    padding: 7px;
+    gap: 5px;
+    border-radius: 20px;
+  }
+
+  .currency-chip {
+    min-height: 60px;
+    padding: 7px 5px;
+    grid-template-columns: 31px minmax(0,1fr);
+    gap: 6px;
+    border-radius: 13px;
+  }
+
+  .coin-icon {
+    width: 31px;
+    height: 31px;
+    font-size: 8px;
+  }
+
+  .currency-copy strong {
+    font-size: 11px;
+  }
+
+  .currency-copy small {
+    font-size: 7.2px;
+  }
+
+  .xelium-stone {
+    width: 31px;
+    height: 29px;
+  }
+
+  .inventory-button {
+    right: 18px;
+    top: 18px;
+    min-height: 50px;
+    padding: 0 15px;
+    border-radius: 14px;
+    gap: 9px;
+    font-size: 12px;
+  }
+
+  .inventory-button svg {
+    width: 19px;
+    height: 19px;
+  }
+
+  /* Map / location UI */
+  .map-node {
+    min-width: 168px;
+    min-height: 58px;
+    padding: 10px 12px;
+    gap: 10px;
+    border-radius: 15px;
+  }
+
+  .map-node-icon {
+    width: 40px;
+    height: 40px;
+    flex-basis: 40px;
+    border-radius: 11px;
+    font-size: 19px;
+  }
+
+  .map-node strong {
+    font-size: 13px;
+  }
+
+  .map-node small {
+    font-size: 9.5px;
+  }
+
+  .town-heading {
+    min-width: 285px;
+    padding: 13px 18px;
+    border-radius: 17px;
+  }
+
+  .town-kicker {
+    font-size: 8.5px;
+  }
+
+  .town-heading strong {
+    font-size: 22px;
+  }
+
+  .town-heading > span:last-child {
+    margin-top: 5px;
+    font-size: 10px;
+  }
+
+  .building-label {
+    width: 172px;
+    padding: 9px 11px;
+  }
+
+  .building-label strong {
+    font-size: 12px;
+  }
+
+  .building-label small {
+    font-size: 8.5px;
+  }
+
+  /* Hover resource UI */
+  .resource-hover-bar {
+    width: 190px;
+    padding: 8px 10px;
+    border-radius: 12px;
+  }
+
+  .resource-hover-name {
+    font-size: 10.5px;
+  }
+
+  .resource-hover-meta {
+    font-size: 8.5px;
+  }
+
+  .resource-hover-track {
+    height: 8px;
+  }
+
+  /* Inventory */
+  .inventory-drawer {
+    top: 16px;
+    right: 16px;
+    bottom: 16px;
+    width: 365px;
+    padding: 16px;
+    gap: 12px;
+    border-radius: 21px;
+  }
+
+  .inventory-drawer.equipment-mode {
+    width: 560px;
+  }
+
+  .drawer-head {
+    min-height: 44px;
+  }
+
+  .drawer-head strong {
+    font-size: 18px;
+  }
+
+  .drawer-head span {
+    margin-top: 3px;
+    font-size: 10px;
+  }
+
+  .icon-button {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    font-size: 18px;
+  }
+
+  .drawer-tabs {
+    gap: 4px;
+    padding: 4px;
+    border-radius: 12px;
+  }
+
+  .drawer-tab {
+    min-height: 38px;
+    border-radius: 9px;
+    font-size: 11px;
+  }
+
+  .item-empty {
+    padding: 26px 5px;
+    font-size: 11px;
+  }
+
+  .item-row {
+    min-height: 50px;
+    gap: 10px;
+    padding: 6px 2px;
+  }
+
+  .item-icon {
+    width: 31px;
+    height: 31px;
+  }
+
+  .item-name {
+    font-size: 12.5px;
+  }
+
+  .item-name small {
+    margin-top: 3px;
+    font-size: 8px;
+  }
+
+  .item-count {
+    min-width: 30px;
+    font-size: 12px;
+  }
+
+  .item-actions {
+    gap: 7px;
+  }
+
+  .item-action {
+    min-height: 33px;
+    padding-inline: 10px;
+    border-radius: 8px;
+    font-size: 9px;
+  }
+
+  .gear-list {
+    gap: 9px;
+  }
+
+  .gear-row {
+    min-height: 76px;
+    padding: 9px;
+    grid-template-columns: 48px minmax(0,1fr) auto;
+    gap: 10px;
+    border-radius: 13px;
+  }
+
+  .gear-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 11px;
+    font-size: 24px;
+  }
+
+  .gear-copy strong {
+    font-size: 11px;
+  }
+
+  .gear-copy small {
+    margin-top: 4px;
+    font-size: 8.5px;
+    line-height: 1.3;
+  }
+
+  .gear-slot-tag {
+    padding: 4px 7px;
+    font-size: 7.5px;
+  }
+
+  .gear-actions button {
+    min-height: 34px;
+    padding-inline: 10px;
+    font-size: 9px;
+  }
+
+  /* Equipment */
+  .equipment-header {
+    padding: 6px 4px 11px;
+  }
+
+  .equipment-kicker {
+    font-size: 8.5px;
+  }
+
+  .equipment-header strong {
+    font-size: 18px;
+  }
+
+  .equipment-summary {
+    padding: 6px 9px;
+    font-size: 9px;
+  }
+
+  .equipment-groups {
+    gap: 11px;
+  }
+
+  .equipment-group {
+    padding: 11px;
+    border-radius: 14px;
+  }
+
+  .equipment-group-head {
+    min-height: 25px;
+    margin-bottom: 8px;
+  }
+
+  .equipment-group-head > span:first-child {
+    font-size: 9.5px;
+  }
+
+  .equipment-group-count {
+    min-width: 22px;
+    height: 22px;
+    font-size: 8px;
+  }
+
+  .equipment-grid,
+  .trinket-grid {
+    gap: 8px;
+  }
+
+  .equipment-slot {
+    min-height: 70px;
+    padding: 8px;
+    grid-template-columns: 36px minmax(0,1fr);
+    gap: 9px;
+    border-radius: 12px;
+  }
+
+  .equipment-slot.is-compact {
+    min-height: 72px;
+  }
+
+  .equipment-slot-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 9px;
+    font-size: 16px;
+  }
+
+  .equipment-slot-name {
+    font-size: 10.5px;
+  }
+
+  .equipment-slot-state {
+    margin-top: 3px;
+    font-size: 8.5px;
+    line-height: 1.22;
+  }
+
+  .equipment-slot.is-compact .equipment-slot-name {
+    font-size: 9px;
+  }
+
+  .equipment-slot.is-compact .equipment-slot-state {
+    font-size: 7.5px;
+  }
+
+  /* Shops */
+  .lumber-shop,
+  .village-shop {
+    right: 20px;
+    top: 104px;
+    bottom: 20px;
+    width: 455px;
+    padding: 17px;
+    border-radius: 21px;
+  }
+
+  .lumber-shop-head,
+  .village-shop-head {
+    gap: 12px;
+    padding-bottom: 13px;
+  }
+
+  .lumber-shop-head small,
+  .village-shop-head small {
+    font-size: 8.5px;
+  }
+
+  .lumber-shop-head strong,
+  .village-shop-head strong {
+    margin-top: 3px;
+    font-size: 18px;
+  }
+
+  .lumber-shop-head button,
+  .village-shop-head button {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    font-size: 21px;
+  }
+
+  .lumber-shop-body,
+  .village-shop-body {
+    padding-top: 13px;
+  }
+
+  .shop-section + .shop-section {
+    margin-top: 16px;
+    padding-top: 16px;
+  }
+
+  .shop-section-head {
+    margin-bottom: 9px;
+  }
+
+  .shop-section-head strong {
+    font-size: 10.5px;
+  }
+
+  .shop-section-head span {
+    font-size: 8.5px;
+  }
+
+  .shop-sell-list,
+  .shop-product-list {
+    gap: 7px;
+  }
+
+  .shop-sell-row {
+    min-height: 61px;
+    padding: 8px;
+    grid-template-columns: 39px minmax(0,1fr) auto;
+    gap: 9px;
+    border-radius: 12px;
+  }
+
+  .shop-item-icon,
+  .village-shop .shop-item-icon {
+    width: 39px;
+    height: 39px;
+    border-radius: 10px;
+    font-size: 19px;
+  }
+
+  .shop-item-copy strong,
+  .shop-product-copy strong {
+    font-size: 11px;
+  }
+
+  .shop-item-copy small,
+  .shop-product-copy small {
+    margin-top: 3px;
+    font-size: 8.5px;
+    line-height: 1.25;
+  }
+
+  .shop-sell-actions {
+    gap: 5px;
+  }
+
+  .shop-sell-actions button,
+  .shop-product-buy button {
+    min-height: 36px;
+    padding-inline: 11px;
+    border-radius: 9px;
+    font-size: 9px;
+  }
+
+  .shop-product {
+    padding: 10px;
+    grid-template-columns: 48px minmax(0,1fr) auto;
+    gap: 10px;
+    border-radius: 14px;
+  }
+
+  .shop-product-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 11px;
+    font-size: 24px;
+  }
+
+  .shop-product-buy {
+    gap: 6px;
+  }
+
+  .shop-product-buy b {
+    font-size: 9px;
+  }
+
+  /* Interiors and sawmill */
+  .mill-back {
+    min-height: 44px;
+    padding-inline: 15px;
+    border-radius: 12px;
+    font-size: 11px;
+  }
+
+  .mill-title span,
+  .interior-title span {
+    font-size: 9px;
+  }
+
+  .mill-title strong {
+    font-size: 22px;
+  }
+
+  .interior-title {
+    min-width: 290px;
+  }
+
+  .interior-title strong {
+    font-size: 24px;
+  }
+
+  .interior-title small {
+    font-size: 10px;
+  }
+
+  .sawmill-station {
+    min-height: 420px;
+    padding: 20px;
+    border-radius: 22px;
+  }
+
+  .sawmill-head small {
+    font-size: 9px;
+  }
+
+  .sawmill-head strong {
+    font-size: 15px;
+  }
+
+  .sawmill-machine {
+    height: 260px;
+    margin-block: 13px 11px;
+  }
+
+  .sawmill-input {
+    width: 148px;
+    padding: 13px;
+    font-size: 9px;
+  }
+
+  .sawmill-progress {
+    height: 9px;
+  }
+
+  .sawmill-hint {
+    margin-top: 9px;
+    font-size: 9.5px;
+    line-height: 1.35;
+  }
+
+  /* Compact reward popups stay subtle but readable */
+  .loot-pop {
+    min-height: 34px;
+    padding: 7px 10px;
+    border-radius: 10px;
+  }
+
+  .loot-name {
+    font-size: 10px;
+  }
+
+  .loot-amount {
+    font-size: 10px;
+  }
+
+  .toast {
+    padding: 11px 13px;
+    border-radius: 13px;
+    gap: 10px;
+  }
+
+  .toast-icon {
+    width: 31px;
+    height: 31px;
+    font-size: 15px;
+  }
+
+  .toast-copy strong {
+    font-size: 11px;
+  }
+
+  .toast-copy span {
+    font-size: 9.5px;
+  }
+}
+
+/* Medium-width screens: keep the larger text but reduce panel widths. */
+@media (min-width: 561px) and (max-width: 820px) {
+  :root {
+    --sidebar-w: 210px;
+  }
+
+  .sidebar {
+    padding: 14px 11px;
+  }
+
+  .brand-logo {
+    width: 42px;
+    height: 42px;
+  }
+
+  .brand-copy strong {
+    font-size: 14px;
+  }
+
+  .nav-button {
+    min-height: 49px;
+    padding: 8px 9px;
+  }
+
+  .nav-name {
+    font-size: 11.5px;
+  }
+
+  .nav-meta {
+    font-size: 8.5px;
+  }
+
+  .top-hud {
+    padding-left: 6px;
+  }
+
+  .character-stack {
+    width: min(430px, calc(100% - 125px));
+    flex-basis: min(430px, calc(100% - 125px));
+  }
+
+  .character-bar {
+    min-height: 68px;
+    grid-template-columns: 44px minmax(0,1fr) 32px;
+    padding: 9px 10px;
+  }
+
+  .character-avatar {
+    width: 44px;
+    height: 44px;
+  }
+
+  .username {
+    font-size: 13px;
+  }
+
+  .xp-label,
+  .xp-value,
+  .overall-level {
+    font-size: 9px;
+  }
+
+  .wallet-hud {
+    width: 350px;
+    min-height: 60px;
+  }
+
+  .currency-chip {
+    min-height: 48px;
+    grid-template-columns: 24px minmax(0,1fr);
+  }
+
+  .coin-icon {
+    width: 24px;
+    height: 24px;
+  }
+
+  .currency-copy strong {
+    font-size: 9px;
+  }
+
+  .currency-copy small {
+    font-size: 6.5px;
+  }
+
+  .inventory-drawer {
+    width: 320px;
+    padding: 13px;
+  }
+
+  .inventory-drawer.equipment-mode {
+    width: min(480px, calc(100vw - var(--sidebar-w) - 20px));
+  }
+
+  .drawer-head strong {
+    font-size: 16px;
+  }
+
+  .drawer-tab {
+    min-height: 34px;
+    font-size: 10px;
+  }
+
+  .item-row {
+    min-height: 45px;
+  }
+
+  .item-name {
+    font-size: 11.5px;
+  }
+
+  .item-count {
+    font-size: 11px;
+  }
+
+  .lumber-shop,
+  .village-shop {
+    width: min(420px, calc(100vw - var(--sidebar-w) - 24px));
+    padding: 15px;
+  }
+
+  .shop-item-copy strong,
+  .shop-product-copy strong {
+    font-size: 10px;
+  }
+
+  .shop-item-copy small,
+  .shop-product-copy small {
+    font-size: 8px;
+  }
+
+  .shop-sell-actions button,
+  .shop-product-buy button {
+    min-height: 33px;
+    font-size: 8.5px;
+  }
+
+  .equipment-slot-name {
+    font-size: 9.5px;
+  }
+
+  .equipment-slot-state {
+    font-size: 8px;
+  }
+}
+
+/* Small screens still get larger type than the previous compressed UI. */
+@media (max-width: 560px) {
+  :root {
+    --sidebar-w: 150px;
+  }
+
+  .sidebar {
+    padding: 11px 8px;
+  }
+
+  .brand-logo {
+    width: 38px;
+    height: 38px;
+  }
+
+  .brand-copy strong {
+    font-size: 11px;
+  }
+
+  .nav-button {
+    min-height: 44px;
+    padding: 7px 8px;
+  }
+
+  .nav-name {
+    font-size: 10px;
+  }
+
+  .nav-meta {
+    font-size: 7.5px;
+  }
+
+  .theme-button {
+    min-height: 44px;
+  }
+
+  .top-hud {
+    padding: 7px 50px 7px 5px;
+  }
+
+  .character-stack {
+    width: 100%;
+  }
+
+  .character-bar {
+    min-height: 61px;
+    grid-template-columns: 38px minmax(0,1fr) 29px;
+    padding: 8px 9px;
+  }
+
+  .character-avatar {
+    width: 38px;
+    height: 38px;
+  }
+
+  .username {
+    font-size: 11px;
+  }
+
+  .overall-level,
+  .xp-value {
+    font-size: 8.5px;
+  }
+
+  .wallet-hud {
+    min-height: 40px;
+    padding: 4px;
+  }
+
+  .currency-chip {
+    min-height: 34px;
+    grid-template-columns: 18px minmax(0,1fr);
+  }
+
+  .currency-copy strong {
+    font-size: 7.5px;
+  }
+
+  .coin-icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .xelium-stone {
+    width: 19px;
+    height: 18px;
+  }
+
+  .drawer-head strong {
+    font-size: 16px;
+  }
+
+  .drawer-head span {
+    font-size: 9px;
+  }
+
+  .drawer-tab {
+    min-height: 34px;
+    font-size: 10px;
+  }
+
+  .item-row {
+    min-height: 44px;
+  }
+
+  .item-name {
+    font-size: 11px;
+  }
+
+  .item-count {
+    font-size: 11px;
+  }
+
+  .gear-copy strong {
+    font-size: 10px;
+  }
+
+  .gear-copy small {
+    font-size: 8px;
+  }
+
+  .equipment-slot-name {
+    font-size: 9px;
+  }
+
+  .equipment-slot-state,
+  .equipment-slot.is-compact .equipment-slot-state {
+    font-size: 7.5px;
+  }
+
+  .village-shop,
+  .lumber-shop {
+    top: 128px;
+    right: 7px;
+    bottom: 7px;
+    width: calc(100vw - var(--sidebar-w) - 14px);
+    padding: 12px;
+  }
+
+  .village-shop-head strong,
+  .lumber-shop-head strong {
+    font-size: 16px;
+  }
+
+  .shop-section-head strong {
+    font-size: 10px;
+  }
+
+  .shop-item-copy strong,
+  .shop-product-copy strong {
+    font-size: 10px;
+  }
+
+  .shop-item-copy small,
+  .shop-product-copy small {
+    font-size: 8px;
+  }
+
+  .shop-sell-actions button,
+  .shop-product-buy button {
+    min-height: 32px;
+    font-size: 8px;
+  }
+
+  .interior-title strong {
+    font-size: 21px;
+  }
+
+  .interior-title small {
+    font-size: 9px;
+  }
+
+  .mill-back {
+    min-height: 40px;
+    font-size: 10px;
+  }
+}
