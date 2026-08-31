@@ -2327,10 +2327,27 @@ body.is-dragging-log .sawmill-input { color:#d8efae; border-color:#b8d77d; backg
 .interior-decor { position:absolute; z-index:8; left:7%; bottom:9%; width:360px; height:310px; }
 .decor-main,.decor-side,.decor-small { position:absolute; display:block; }
 
-.forge-decor .decor-main { left:40px; bottom:20px; width:180px; height:130px; border-radius:80px 80px 14px 14px; background:#343432; box-shadow:inset 0 0 0 6px #55534d,0 18px 30px rgba(0,0,0,.25); }
-.forge-decor .decor-main:after { content:""; position:absolute; left:50%; bottom:20px; width:90px; height:55px; transform:translateX(-50%); border-radius:50% 50% 10px 10px; background:radial-gradient(circle,#ffd06c 0 16%,#dd6e31 38%,#6f2f22 72%,#1f1e1c 74%); box-shadow:0 0 28px rgba(229,111,49,.34); }
-.forge-decor .decor-side { right:5px; bottom:24px; width:96px; height:60px; background:#454a47; clip-path:polygon(0 35%,68% 35%,100% 0,93% 47%,100% 61%,65% 61%,55% 100%,17% 100%,20% 61%,0 61%); }
-.forge-decor .decor-small { left:10px; top:18px; width:160px; height:18px; border-radius:6px; background:#3a2a20; box-shadow:0 54px #3a2a20; }
+.forge-decor {
+  left: 2.5%;
+  bottom: 3%;
+  width: min(560px, 48%);
+  height: min(470px, 64%);
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  pointer-events: none;
+}
+
+.blacksmith-forge-art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: left bottom;
+  filter: drop-shadow(0 24px 26px rgba(0,0,0,.32));
+  transform-origin: left bottom;
+}
+
 .blacksmith-interior { background:#4c3e35; }
 .blacksmith-interior .interior-backdrop { filter:saturate(.7) brightness(.82); }
 
@@ -2635,4 +2652,25 @@ body.is-dragging-log .sawmill-input { color:#d8efae; border-color:#b8d77d; backg
   border-radius: 4px;
   background: #a93d37;
   box-shadow: 0 1px rgba(82,32,29,.18);
+}
+
+
+@media (max-width: 900px) {
+  .forge-decor {
+    left: 1%;
+    bottom: 4%;
+    width: 51%;
+    height: 55%;
+    transform: none;
+  }
+}
+
+@media (max-width: 620px) {
+  .forge-decor {
+    left: 0;
+    bottom: 7%;
+    width: 48%;
+    height: 45%;
+    transform: none;
+  }
 }

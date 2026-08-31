@@ -251,9 +251,9 @@
 
 
   const forageTypes = [
-    { key: 'redMushroom', name: 'Red Mushroom', className: 'red', weight: 34 },
-    { key: 'brownMushroom', name: 'Brown Mushroom', className: 'brown', weight: 40 },
-    { key: 'whiteMushroom', name: 'White Mushroom', className: 'white', weight: 26 },
+    { key: 'redMushroom', name: 'Red Mushroom', className: 'red', weight: 34, xp: 5 },
+    { key: 'brownMushroom', name: 'Brown Mushroom', className: 'brown', weight: 40, xp: 5 },
+    { key: 'whiteMushroom', name: 'White Mushroom', className: 'white', weight: 26, xp: 5 },
   ];
 
   const forageSlots = [
@@ -696,9 +696,13 @@
           <div class="interior-backdrop" aria-hidden="true"></div>
           <div class="interior-floor" aria-hidden="true"></div>
           <div class="interior-beams" aria-hidden="true"></div>
-          <div class="interior-decor ${decor}" aria-hidden="true">
-            <span class="decor-main"></span><span class="decor-side"></span><span class="decor-small"></span>
-          </div>
+          ${key === 'blacksmith'
+            ? `<div class="interior-decor forge-decor" aria-hidden="true">
+                <img class="blacksmith-forge-art" src="assets/images/interiors/blacksmith-forge.png" alt="">
+              </div>`
+            : `<div class="interior-decor ${decor}" aria-hidden="true">
+                <span class="decor-main"></span><span class="decor-side"></span><span class="decor-small"></span>
+              </div>`}
           <button class="mill-back interior-back" type="button" data-location="town">‹ Lakeshore Village</button>
           <div class="interior-title"><span>Lakeshore Village</span><strong>${title}</strong><small>${subtitle}</small></div>
           <button class="village-npc npc-${key}" type="button" data-building-npc data-npc-shop="${shopKey}" data-npc-title="${role}" data-npc-note="${note}">
@@ -1174,7 +1178,7 @@
     renderVillageShop();
     renderDrawers();
     if (location === 'forest' && runtime.forageNodes.size < 2) {
-      scheduleNextForageSpawn(randomInt(1200, 2600));
+      scheduleNextForageSpawn(randomInt(1800, 6200));
     }
     }
 
@@ -1692,20 +1696,19 @@
   }
 
   function startForageSpawner() {
-    scheduleNextForageSpawn(randomInt(1800, 3600));
+    scheduleNextForageSpawn(randomInt(2200, 6500));
   }
 
-  function scheduleNextForageSpawn(delay = randomInt(3800, 7200)) {
+  function scheduleNextForageSpawn(delay = randomInt(3200, 12000)) {
     if (runtime.forageSpawnTimer) window.clearTimeout(runtime.forageSpawnTimer);
+
     runtime.forageSpawnTimer = window.setTimeout(() => {
-      if (
-        state.location === 'forest' &&
-        runtime.forageNodes.size < 4 &&
-        Math.random() < .64
-      ) {
+      if (state.location === 'forest' && runtime.forageNodes.size < 4) {
         spawnForageNode();
       }
-      scheduleNextForageSpawn();
+
+      // Every spawn uses a freshly randomized delay so mushrooms appear unpredictably.
+      scheduleNextForageSpawn(randomInt(3200, 12000));
     }, delay);
   }
 
@@ -1776,8 +1779,9 @@
     if (forage.expireTimer) window.clearTimeout(forage.expireTimer);
 
     state.inventory[forage.type.key] = (state.inventory[forage.type.key] || 0) + 1;
+    gainSkillXp('foraging', forage.type.xp);
     renderInventory();
-    showLoot(forage.node, `+1 ${forage.type.name}`);
+    showLoot(forage.node, `+1 ${forage.type.name} · +${forage.type.xp} Foraging XP`);
     removeForageNode(forage, 'is-harvested');
   }
 
