@@ -47,6 +47,31 @@
         cookies: { name: 'Cookie', price: 15, icon: '🍪', description: 'A sweet trail snack.' },
       },
     },
+    craftsman: {
+      kicker: "Craftsman's Counter",
+      title: 'Craftsman Shop',
+      sellHeading: '',
+      sellNote: '',
+      buyHeading: 'Ranged Supplies',
+      buyNote: 'Starter ranged equipment & ammunition',
+      sell: {},
+      buy: {
+        basicBow: { name: 'Basic Bow', price: 240, icon: '🏹', description: 'Starter bow · Main Hand', unique: true },
+        arrows: { name: 'Arrows', price: 30, icon: '➶', description: 'Bundle of 20 arrows.', amount: 20 },
+      },
+    },
+    'strange-shack': {
+      kicker: "Wizard's Counter",
+      title: 'Wizard Shop',
+      sellHeading: '',
+      sellNote: '',
+      buyHeading: 'Arcane Implements',
+      buyNote: 'Simple magical equipment',
+      sell: {},
+      buy: {
+        basicMagicStaff: { name: 'Basic Magic Staff', price: 320, icon: '✦', description: 'Starter magic staff · Main Hand', unique: true },
+      },
+    },
     blacksmith: {
       kicker: "Blacksmith's Counter",
       title: 'Blacksmith Shop',
@@ -92,6 +117,20 @@
       slot: 'helmet',
       icon: '<span class="straw-hat-icon" aria-hidden="true"></span>',
       bonus: 'Cosmetic helmet · no stats yet',
+    },
+    basicBow: {
+      name: 'Basic Bow',
+      shortName: 'Basic Bow',
+      slot: 'main-hand',
+      icon: '🏹',
+      bonus: 'Starter ranged weapon · combat stats later',
+    },
+    basicMagicStaff: {
+      name: 'Basic Magic Staff',
+      shortName: 'Magic Staff',
+      slot: 'main-hand',
+      icon: '✦',
+      bonus: 'Starter magic weapon · combat stats later',
     },
     basicSword: {
       name: 'Basic Sword',
@@ -183,7 +222,10 @@
       wheat: 0,
       smallHealthPotion: 0,
       cookies: 0,
+      arrows: 0,
       basicWoodcuttersAxe: 0,
+      basicBow: 0,
+      basicMagicStaff: 0,
       strawHat: 0,
       basicSword: 0,
       basicShield: 0,
@@ -259,10 +301,16 @@
   ];
 
   const forageSlots = [
-    { x: 9, y: 86, scale: .82 }, { x: 18, y: 91, scale: .74 }, { x: 29, y: 82, scale: .84 },
-    { x: 38, y: 90, scale: .78 }, { x: 48, y: 84, scale: .88 }, { x: 58, y: 92, scale: .77 },
-    { x: 68, y: 83, scale: .85 }, { x: 78, y: 91, scale: .75 }, { x: 88, y: 85, scale: .83 },
-    { x: 95, y: 92, scale: .72 }, { x: 24, y: 75, scale: .72 }, { x: 73, y: 75, scale: .74 },
+    { x: 7, y: 93, scale: .78 },
+    { x: 16, y: 95, scale: .72 },
+    { x: 27, y: 91, scale: .80 },
+    { x: 37, y: 94, scale: .74 },
+    { x: 47, y: 92, scale: .84 },
+    { x: 58, y: 95, scale: .73 },
+    { x: 68, y: 92, scale: .80 },
+    { x: 78, y: 95, scale: .72 },
+    { x: 88, y: 92, scale: .78 },
+    { x: 96, y: 95, scale: .70 },
   ];
 
   const slimeSlots = [
@@ -614,6 +662,16 @@
               <span>You</span>
               <strong data-combat-player-health>100 / 100</strong>
             </div>
+            <div class="combat-loadout" aria-label="Equipped combat gear">
+              <div class="combat-loadout-slot">
+                <small>Main Hand</small>
+                <span><b data-combat-main-icon>◇</b><strong data-combat-main-hand>Empty</strong></span>
+              </div>
+              <div class="combat-loadout-slot">
+                <small>Off Hand</small>
+                <span><b data-combat-off-icon>◇</b><strong data-combat-off-hand>Empty</strong></span>
+              </div>
+            </div>
             <div class="combat-health-track">
               <span class="combat-health-fill player" data-combat-player-fill></span>
             </div>
@@ -693,6 +751,7 @@
           ${building('blacksmith', '⚒', 'Blacksmith', 'Tools, metal & repairs')}
           ${building('strange-shack', '✧', 'Strange Shack', 'Something feels off')}
           ${building('farmer', '♜', 'Farmer', 'Crops, food & produce')}
+          ${building('craftsman', '⚒', 'Craftsman', 'Crafting & ranged gear')}
           ${building('foragers-hut', '❧', "Forager's Hut", 'Wild goods & supplies')}
         </div>
 
@@ -758,6 +817,7 @@
       blacksmith: { file: 'blacksmith.png', className: 'blacksmith-character-image' },
       'strange-shack': { file: 'wizard.png', className: 'wizard-character-image' },
       farmer: { file: 'farmer.png', className: 'farmer-character-image' },
+      craftsman: { file: 'craftsman.png', className: 'craftsman-character-image' },
       'foragers-hut': { file: 'herbalist.png', className: 'herbalist-character-image' },
     };
 
@@ -773,9 +833,19 @@
             ? `<div class="interior-decor forge-decor" aria-hidden="true">
                 <img class="blacksmith-forge-art" src="assets/images/interiors/blacksmith-forge.png" alt="">
               </div>`
-            : `<div class="interior-decor ${decor}" aria-hidden="true">
-                <span class="decor-main"></span><span class="decor-side"></span><span class="decor-small"></span>
-              </div>`}
+            : key === 'craftsman'
+              ? `<div class="interior-decor craftsman-decor" aria-hidden="true">
+                  <div class="crafting-bench-station">
+                    <span class="crafting-bench-top"></span>
+                    <span class="crafting-bench-leg leg-a"></span>
+                    <span class="crafting-bench-leg leg-b"></span>
+                    <span class="crafting-bench-tools">⚒</span>
+                    <span class="crafting-bench-label"><strong>Crafting Bench</strong><small>Coming later</small></span>
+                  </div>
+                </div>`
+              : `<div class="interior-decor ${decor}" aria-hidden="true">
+                  <span class="decor-main"></span><span class="decor-side"></span><span class="decor-small"></span>
+                </div>`}
           <button class="mill-back interior-back" type="button" data-location="town">‹ Lakeshore Village</button>
           <div class="interior-title"><span>Lakeshore Village</span><strong>${title}</strong><small>${subtitle}</small></div>
           <button class="village-npc npc-${key}" type="button" data-building-npc data-npc-shop="${shopKey}" data-npc-title="${role}" data-npc-note="${note}">
@@ -789,8 +859,9 @@
 
     return [
       interior({ key:'blacksmith', title:'Blacksmith', subtitle:'Forge, metalwork & repairs', role:'Blacksmith', note:'Weapons, armor, ore and mineral trading.', decor:'forge-decor', shopKey:'blacksmith' }),
-      interior({ key:'strange-shack', title:'Strange Shack', subtitle:'Arcane clutter & stranger business', role:'Wizard', note:'The wizard watches you carefully. Arcane services are coming later.', decor:'wizard-decor' }),
+      interior({ key:'strange-shack', title:'Strange Shack', subtitle:'Arcane clutter & stranger business', role:'Wizard', note:'Simple arcane implements and stranger business.', decor:'wizard-decor', shopKey:'strange-shack' }),
       interior({ key:'farmer', title:'Farmer', subtitle:'Crops, produce & farm goods', role:'Farmer', note:'Fresh food, wheat and simple farm clothing.', decor:'farm-decor', shopKey:'farmer' }),
+      interior({ key:'craftsman', title:'Craftsman', subtitle:'Crafting, ranged gear & workshop goods', role:'Craftsman', note:'Starter ranged equipment and a crafting bench.', decor:'craftsman-decor', shopKey:'craftsman' }),
       interior({ key:'foragers-hut', title:"Forager's Hut", subtitle:'Wild herbs, fungi & gathered goods', role:'Herbalist', note:'Foraged goods, potions and trail snacks.', decor:'forager-decor', shopKey:'foragers-hut' }),
     ].join('');
   }
@@ -947,6 +1018,10 @@
       combatEnemyFill: document.querySelector('[data-combat-enemy-fill]'),
       combatPlayerHealth: document.querySelector('[data-combat-player-health]'),
       combatPlayerFill: document.querySelector('[data-combat-player-fill]'),
+      combatMainHand: document.querySelector('[data-combat-main-hand]'),
+      combatMainIcon: document.querySelector('[data-combat-main-icon]'),
+      combatOffHand: document.querySelector('[data-combat-off-hand]'),
+      combatOffIcon: document.querySelector('[data-combat-off-icon]'),
       toastStack: document.querySelector('[data-toasts]'),
       resourceHoverBar: document.querySelector('[data-resource-hover-bar]'),
       resourceHoverName: document.querySelector('[data-resource-hover-name]'),
@@ -1008,6 +1083,7 @@
           blacksmith: 'blacksmith',
           'strange-shack': 'strange-shack',
           farmer: 'farmer',
+          craftsman: 'craftsman',
           'foragers-hut': 'foragers-hut',
         }[building.dataset.townBuilding];
         if (destination) setLocation(destination);
@@ -1256,7 +1332,7 @@
   }
 
   function setLocation(location) {
-    if (!['lakeside', 'forest', 'mines', 'town', 'lumbermill', 'blacksmith', 'strange-shack', 'farmer', 'foragers-hut'].includes(location)) return;
+    if (!['lakeside', 'forest', 'mines', 'town', 'lumbermill', 'blacksmith', 'strange-shack', 'farmer', 'craftsman', 'foragers-hut'].includes(location)) return;
     hideResourceHoverBar();
     runtime.combat = null;
     state.location = location;
@@ -1334,6 +1410,16 @@
 
     ui.combatPlayerHealth.textContent = `${playerHealth} / ${playerMaxHealth}`;
     ui.combatPlayerFill.style.width = `${playerPercent}%`;
+
+    const mainKey = state.equipment['main-hand'];
+    const offKey = state.equipment['off-hand'];
+    const mainGear = mainKey ? GEAR_ITEMS[mainKey] : null;
+    const offGear = offKey ? GEAR_ITEMS[offKey] : null;
+
+    if (ui.combatMainHand) ui.combatMainHand.textContent = mainGear?.shortName || mainGear?.name || 'Empty';
+    if (ui.combatOffHand) ui.combatOffHand.textContent = offGear?.shortName || offGear?.name || 'Empty';
+    if (ui.combatMainIcon) ui.combatMainIcon.innerHTML = mainGear?.icon || '◇';
+    if (ui.combatOffIcon) ui.combatOffIcon.innerHTML = offGear?.icon || '◇';
   }
 
   function renderHUD() {
@@ -1421,6 +1507,7 @@
       { key: 'wheat', name: 'Wheat', icon: '<span aria-hidden="true">🌾</span>' },
       { key: 'smallHealthPotion', name: 'Small Health Potion', icon: '<span aria-hidden="true">🧪</span>' },
       { key: 'cookies', name: 'Cookie', icon: '<span aria-hidden="true">🍪</span>' },
+      { key: 'arrows', name: 'Arrows', icon: '<span aria-hidden="true">➶</span>' },
       { key: 'redMushroom', name: 'Red Mushroom', icon: '<span class="mushroom-icon red" aria-hidden="true">🍄</span>' },
       { key: 'brownMushroom', name: 'Brown Mushroom', icon: '<span class="mushroom-icon brown" aria-hidden="true">🍄</span>' },
       { key: 'whiteMushroom', name: 'White Mushroom', icon: '<span class="mushroom-icon white" aria-hidden="true">🍄</span>' },
@@ -1468,6 +1555,7 @@
       : '<div class="item-empty">No gear yet.</div>';
 
     renderEquipment();
+    renderCombat();
   }
 
 
@@ -1585,16 +1673,21 @@
         </div>`;
     }).join('');
 
-    ui.villageShopBody.innerHTML = `
-      <section class="shop-section">
-        <div class="shop-section-head"><strong>${shop.sellHeading}</strong><span>${shop.sellNote}</span></div>
-        <div class="shop-sell-list">${sellRows}</div>
-      </section>
-      <section class="shop-section buy-section">
-        <div class="shop-section-head"><strong>${shop.buyHeading}</strong><span>${shop.buyNote}</span></div>
-        <div class="shop-product-list">${buyRows}</div>
-      </section>
-    `;
+    const sellSection = Object.keys(shop.sell).length
+      ? `<section class="shop-section">
+          <div class="shop-section-head"><strong>${shop.sellHeading}</strong><span>${shop.sellNote}</span></div>
+          <div class="shop-sell-list">${sellRows}</div>
+        </section>`
+      : '';
+
+    const buySection = Object.keys(shop.buy).length
+      ? `<section class="shop-section buy-section">
+          <div class="shop-section-head"><strong>${shop.buyHeading}</strong><span>${shop.buyNote}</span></div>
+          <div class="shop-product-list">${buyRows}</div>
+        </section>`
+      : '';
+
+    ui.villageShopBody.innerHTML = `${sellSection}${buySection}`;
   }
 
   function sellVillageShopItem(key, sellAll) {
@@ -1632,14 +1725,17 @@
     }
 
     state.wallet.copper -= listing.price;
-    state.inventory[key] = (state.inventory[key] || 0) + 1;
+    const amount = Math.max(1, listing.amount || 1);
+    state.inventory[key] = (state.inventory[key] || 0) + amount;
 
     renderWallet();
     renderInventory();
     renderVillageShop();
     showToast(
       'Purchased',
-      GEAR_ITEMS[key] ? `${listing.name} added to Gear.` : `${listing.name} added to your inventory.`,
+      GEAR_ITEMS[key]
+        ? `${listing.name} added to Gear.`
+        : `${listing.amount && listing.amount > 1 ? `${listing.amount} ` : ''}${listing.name} added to your inventory.`,
       listing.icon
     );
   }
@@ -1873,9 +1969,17 @@
 
   function getFreeForageSlot() {
     const free = forageSlots
-      .map((_, index) => index)
-      .filter((index) => !runtime.occupiedForageSlots.has(index));
-    return free.length ? free[randomInt(0, free.length - 1)] : null;
+      .map((slot, index) => ({ slot, index }))
+      .filter(({ index }) => !runtime.occupiedForageSlots.has(index))
+      .filter(({ slot }) => {
+        // Keep forageables out of the visual footprint of active tree trunks.
+        return Array.from(runtime.trees.values()).every((tree) => {
+          const horizontalDistance = Math.abs(slot.x - tree.x);
+          return horizontalDistance >= 7.5;
+        });
+      });
+
+    return free.length ? free[randomInt(0, free.length - 1)].index : null;
   }
 
   function spawnForageNode() {
@@ -1898,8 +2002,8 @@
     const node = document.createElement('button');
     node.type = 'button';
     node.className = `forest-forage-node forage-${type.className} is-spawning`;
-    node.style.left = `${clamp(slot.x + randomInt(-2, 2), 5, 96)}%`;
-    node.style.top = `${clamp(slot.y + randomInt(-1, 1), 73, 93)}%`;
+    node.style.left = `${clamp(slot.x + randomInt(-1, 1), 4, 97)}%`;
+    node.style.top = `${clamp(slot.y + randomInt(0, 1), 90, 96)}%`;
     node.style.setProperty('--forage-scale', String(slot.scale * (randomInt(94, 108) / 100)));
     node.style.zIndex = '10000';
     node.setAttribute('aria-label', `Harvest ${type.name}`);
