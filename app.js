@@ -532,10 +532,13 @@ import { birchSvg, oakSvg, oreNodeSvg } from './src/ui/graphics.js';
     ui.combatEnemyHealth.textContent = `${enemyHealth} / ${enemyMaxHealth}`;
     ui.combatEnemyFill.style.width = `${enemyPercent}%`;
     if (ui.combatEnemyTarget) {
-      const enemyClasses = Object.values(ENEMY_TYPES).map((type) => type.colorClass);
-      ui.combatEnemyTarget.classList.remove(...enemyClasses);
-      ui.combatEnemyTarget.classList.add(combat?.colorClass || 'green-slime');
-      ui.combatEnemyTarget.setAttribute('aria-label', `${enemyName} combat target`);
+      ui.combatEnemyTarget.classList.toggle('is-combat-empty', !combat);
+      if (combat) {
+        const enemyClasses = Object.values(ENEMY_TYPES).map((type) => type.colorClass);
+        ui.combatEnemyTarget.classList.remove(...enemyClasses);
+        ui.combatEnemyTarget.classList.add(combat.colorClass);
+        ui.combatEnemyTarget.setAttribute('aria-label', `${enemyName} combat target`);
+      }
     }
     if (ui.combatExit) ui.combatExit.textContent = `‹ Return to ${capitalize(runtime.combatReturnLocation || 'forest')}`;
     document.querySelectorAll('[data-combat-defeat-return]').forEach((button) => {

@@ -714,7 +714,7 @@ function equipmentMarkup() {
         <section class="equipment-group">
           <div class="equipment-group-head"><span>Tools</span><span class="equipment-group-count">2</span></div>
           <div class="equipment-grid two-col">
-            ${slot('axe', '<span class="gear-art gear-art-axe"></span>', 'Axe')}
+            ${slot('axe', '🪓', 'Axe')}
             ${slot('pickaxe', '⛏', 'Pickaxe')}
           </div>
         </section>
@@ -722,8 +722,8 @@ function equipmentMarkup() {
         <section class="equipment-group">
           <div class="equipment-group-head"><span>Weapons</span><span class="equipment-group-count">3</span></div>
           <div class="equipment-grid three-col weapon-equipment-grid">
-            ${slot('main-hand', '<span class="gear-art gear-art-sword"></span>', 'Main Hand')}
-            ${slot('off-hand', '<span class="gear-art gear-art-shield"></span>', 'Off Hand')}
+            ${slot('main-hand', '⚔', 'Main Hand')}
+            ${slot('off-hand', '◈', 'Off Hand')}
             ${slot('ammo', '➶', 'Ammo')}
           </div>
         </section>
@@ -731,10 +731,10 @@ function equipmentMarkup() {
         <section class="equipment-group equipment-group-wide">
           <div class="equipment-group-head"><span>Armor</span><span class="equipment-group-count">5</span></div>
           <div class="equipment-grid armor-grid">
-            ${slot('helmet', '<span class="gear-art gear-art-chain-helmet"></span>', 'Helmet')}
-            ${slot('chestplate', '<span class="gear-art gear-art-chain-chest"></span>', 'Chestplate')}
-            ${slot('leggings', '<span class="gear-art gear-art-chain-legs"></span>', 'Leggings')}
-            ${slot('boots', '<span class="gear-art gear-art-chain-boots"></span>', 'Boots')}
+            ${slot('helmet', '⬡', 'Helmet')}
+            ${slot('chestplate', '▣', 'Chestplate')}
+            ${slot('leggings', 'Ⅱ', 'Leggings')}
+            ${slot('boots', '⌄', 'Boots')}
             ${slot('back', '◇', 'Back')}
           </div>
         </section>
