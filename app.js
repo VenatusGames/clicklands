@@ -251,9 +251,10 @@
 
 
   const forageTypes = [
-    { key: 'redMushroom', name: 'Red Mushroom', className: 'red', weight: 34, xp: 5 },
-    { key: 'brownMushroom', name: 'Brown Mushroom', className: 'brown', weight: 40, xp: 5 },
-    { key: 'whiteMushroom', name: 'White Mushroom', className: 'white', weight: 26, xp: 5 },
+    { key: 'redMushroom', name: 'Red Mushroom', className: 'red', weight: 30, xp: 5, kind: 'mushroom' },
+    { key: 'brownMushroom', name: 'Brown Mushroom', className: 'brown', weight: 35, xp: 5, kind: 'mushroom' },
+    { key: 'whiteMushroom', name: 'White Mushroom', className: 'white', weight: 23, xp: 5, kind: 'mushroom' },
+    { key: 'onionGrass', name: 'Onion Grass', className: 'onion-grass', weight: 24, xp: 5, kind: 'grass' },
   ];
 
   const forageSlots = [
@@ -261,6 +262,11 @@
     { x: 38, y: 90, scale: .78 }, { x: 48, y: 84, scale: .88 }, { x: 58, y: 92, scale: .77 },
     { x: 68, y: 83, scale: .85 }, { x: 78, y: 91, scale: .75 }, { x: 88, y: 85, scale: .83 },
     { x: 95, y: 92, scale: .72 }, { x: 24, y: 75, scale: .72 }, { x: 73, y: 75, scale: .74 },
+  ];
+
+  const slimeSlots = [
+    { x: 13, y: 88, scale: .9 }, { x: 27, y: 86, scale: .82 }, { x: 42, y: 91, scale: .96 },
+    { x: 57, y: 87, scale: .86 }, { x: 71, y: 91, scale: .94 }, { x: 86, y: 86, scale: .84 },
   ];
 
   const state = JSON.parse(JSON.stringify(defaultState));
@@ -277,6 +283,10 @@
     occupiedForageSlots: new Set(),
     forageNodeId: 0,
     forageSpawnTimer: null,
+    slimeNodes: new Map(),
+    occupiedSlimeSlots: new Set(),
+    slimeNodeId: 0,
+    slimeSpawnTimer: null,
     hoverResource: null,
     entered: false,
     lumberShopOpen: false,
@@ -299,6 +309,7 @@
   spawnInitialForest();
   spawnInitialMineNodes();
   startForageSpawner();
+  startSlimeSpawner();
 
   function mountApp() {
     const root = document.getElementById('app');
@@ -555,6 +566,7 @@
         <div class="forest-horizon" aria-hidden="true"></div>
         <div class="forest-ground" aria-hidden="true"></div>
         <div class="forest-ground-detail" aria-hidden="true"></div>
+        <div class="forest-slime-stage" data-slime-stage></div>
         <div class="forest-node-stage" data-forest-stage></div>
       </div>
     `;
@@ -863,6 +875,7 @@
       gearPane: document.querySelector('[data-inventory-pane="gear"]'),
       equipmentPane: document.querySelector('[data-inventory-pane="equipment"]'),
       forestStage: document.querySelector('[data-forest-stage]'),
+      slimeStage: document.querySelector('[data-slime-stage]'),
       mineStage: document.querySelector('[data-mine-stage]'),
       toastStack: document.querySelector('[data-toasts]'),
       resourceHoverBar: document.querySelector('[data-resource-hover-bar]'),
@@ -1179,6 +1192,9 @@
     renderDrawers();
     if (location === 'forest' && runtime.forageNodes.size < 2) {
       scheduleNextForageSpawn(randomInt(1800, 6200));
+    }
+    if (location === 'forest' && runtime.slimeNodes.size === 0) {
+      scheduleNextSlimeSpawn(randomInt(7000, 16000));
     }
     }
 
@@ -1741,14 +1757,25 @@
     node.style.left = `${clamp(slot.x + randomInt(-2, 2), 5, 96)}%`;
     node.style.top = `${clamp(slot.y + randomInt(-1, 1), 73, 93)}%`;
     node.style.setProperty('--forage-scale', String(slot.scale * (randomInt(94, 108) / 100)));
-    node.style.zIndex = String(Math.round(slot.y * 10) + 4);
+    node.style.zIndex = '10000';
     node.setAttribute('aria-label', `Harvest ${type.name}`);
+
+    const forageArt = type.kind === 'grass'
+      ? `<span class="forage-onion-art" aria-hidden="true">
+          <span class="onion-bulb"></span>
+          <span class="onion-blade blade-a"></span>
+          <span class="onion-blade blade-b"></span>
+          <span class="onion-blade blade-c"></span>
+          <span class="onion-blade blade-d"></span>
+        </span>`
+      : `<span class="forage-mushroom-art" aria-hidden="true">
+          <span class="forage-cap"><i></i><i></i><i></i></span>
+          <span class="forage-stem"></span>
+        </span>`;
+
     node.innerHTML = `
       <span class="forage-ground-shadow" aria-hidden="true"></span>
-      <span class="forage-mushroom-art" aria-hidden="true">
-        <span class="forage-cap"><i></i><i></i><i></i></span>
-        <span class="forage-stem"></span>
-      </span>
+      ${forageArt}
       <span class="forage-name">${type.name}</span>
     `;
 
@@ -1787,6 +1814,78 @@
     forage.node.disabled = true;
     forage.node.classList.add(animationClass);
     window.setTimeout(() => forage.node.remove(), 320);
+  }
+
+  function startSlimeSpawner() {
+    scheduleNextSlimeSpawn(randomInt(9000, 22000));
+  }
+
+  function scheduleNextSlimeSpawn(delay = randomInt(12000, 32000)) {
+    if (runtime.slimeSpawnTimer) window.clearTimeout(runtime.slimeSpawnTimer);
+
+    runtime.slimeSpawnTimer = window.setTimeout(() => {
+      if (state.location === 'forest' && runtime.slimeNodes.size < 1) {
+        spawnSlime();
+      }
+      scheduleNextSlimeSpawn(randomInt(12000, 32000));
+    }, delay);
+  }
+
+  function getFreeSlimeSlot() {
+    const free = slimeSlots
+      .map((_, index) => index)
+      .filter((index) => !runtime.occupiedSlimeSlots.has(index));
+    return free.length ? free[randomInt(0, free.length - 1)] : null;
+  }
+
+  function spawnSlime() {
+    const slotIndex = getFreeSlimeSlot();
+    if (slotIndex === null) return;
+
+    const slot = slimeSlots[slotIndex];
+    const slime = {
+      id: ++runtime.slimeNodeId,
+      slotIndex,
+      expireTimer: null,
+    };
+
+    runtime.occupiedSlimeSlots.add(slotIndex);
+    runtime.slimeNodes.set(slime.id, slime);
+
+    const lifetime = randomInt(11000, 18000);
+    const node = document.createElement('div');
+    node.className = 'forest-slime is-spawning';
+    node.style.left = `${clamp(slot.x + randomInt(-3, 3), 7, 93)}%`;
+    node.style.top = `${clamp(slot.y + randomInt(-2, 2), 79, 93)}%`;
+    node.style.setProperty('--slime-scale', String(slot.scale * (randomInt(92, 110) / 100)));
+    node.style.setProperty('--slime-life', `${lifetime}ms`);
+    node.innerHTML = `
+      <span class="slime-shadow" aria-hidden="true"></span>
+      <span class="slime-body" aria-hidden="true">
+        <span class="slime-shine"></span>
+        <span class="slime-eye eye-a"></span>
+        <span class="slime-eye eye-b"></span>
+        <span class="slime-mouth"></span>
+      </span>
+      <span class="slime-timer" aria-label="Slime remaining time">
+        <span class="slime-timer-fill"></span>
+      </span>
+    `;
+
+    slime.node = node;
+    ui.slimeStage.appendChild(node);
+    window.setTimeout(() => node.classList.remove('is-spawning'), 340);
+    slime.expireTimer = window.setTimeout(() => despawnSlime(slime), lifetime);
+  }
+
+  function despawnSlime(slime) {
+    if (!slime || !runtime.slimeNodes.has(slime.id)) return;
+    runtime.slimeNodes.delete(slime.id);
+    runtime.occupiedSlimeSlots.delete(slime.slotIndex);
+    if (!slime.node?.isConnected) return;
+
+    slime.node.classList.add('is-despawning');
+    window.setTimeout(() => slime.node.remove(), 360);
   }
 
   function spawnTree() {

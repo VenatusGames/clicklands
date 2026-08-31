@@ -985,19 +985,27 @@ body.dark .town-ground {
 
 
 
+.forest-slime-stage,
 .forest-node-stage,
 .mine-node-stage {
   position: absolute;
-  z-index: 24;
   inset: 0;
   overflow: visible;
   pointer-events: none;
 }
 
+.forest-slime-stage { z-index: 22; }
+.forest-node-stage { z-index: 24; }
+.mine-node-stage { z-index: 24; }
+
 .forest-node-stage .tree-node,
 .forest-node-stage .forest-forage-node,
 .mine-node-stage .mine-node {
   pointer-events: auto;
+}
+
+.forest-node-stage .forest-forage-node {
+  z-index: 10000 !important;
 }
 
 .forest-forage-node {
@@ -1123,13 +1131,16 @@ body.dark .town-ground {
   transition: opacity .1s ease, transform .1s ease, visibility 0s;
 }
 
-.forest-forage-node.is-spawning .forage-mushroom-art {
+.forest-forage-node.is-spawning .forage-mushroom-art,
+.forest-forage-node.is-spawning .forage-onion-art {
   animation: foragePopIn .26s var(--ease-spring) both;
 }
-.forest-forage-node.is-harvested .forage-mushroom-art {
+.forest-forage-node.is-harvested .forage-mushroom-art,
+.forest-forage-node.is-harvested .forage-onion-art {
   animation: forageHarvest .28s ease forwards;
 }
-.forest-forage-node.is-expiring .forage-mushroom-art {
+.forest-forage-node.is-expiring .forage-mushroom-art,
+.forest-forage-node.is-expiring .forage-onion-art {
   animation: forageExpire .3s ease forwards;
 }
 
@@ -1145,6 +1156,173 @@ body.dark .town-ground {
 }
 @keyframes forageExpire {
   to { opacity: 0; transform: translateX(-50%) translateY(7px) scale(.72); filter: saturate(.35); }
+}
+
+
+.forage-onion-art {
+  position: absolute;
+  left: 50%;
+  bottom: 6px;
+  width: 50px;
+  height: 54px;
+  transform: translateX(-50%);
+  transform-origin: 50% 100%;
+  filter: drop-shadow(0 5px 4px rgba(33,48,28,.18));
+}
+
+.onion-bulb {
+  position: absolute;
+  left: 50%;
+  bottom: 2px;
+  width: 22px;
+  height: 18px;
+  transform: translateX(-50%);
+  border-radius: 45% 45% 52% 52%;
+  background: linear-gradient(90deg, #d9e5c2, #f2f0d5 47%, #bccb9f);
+  box-shadow: inset -3px 0 rgba(83,101,61,.12), inset 0 2px rgba(255,255,255,.45);
+}
+
+.onion-blade {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  width: 7px;
+  height: 37px;
+  border-radius: 90% 10% 70% 20%;
+  background: linear-gradient(90deg, #315f35, #66a04f 52%, #3d753d);
+  transform-origin: 50% 100%;
+  box-shadow: inset 1px 0 rgba(255,255,255,.14);
+}
+.blade-a { transform: translateX(-50%) rotate(-26deg); height: 35px; }
+.blade-b { transform: translateX(-50%) rotate(-9deg); height: 43px; }
+.blade-c { transform: translateX(-50%) rotate(12deg); height: 40px; }
+.blade-d { transform: translateX(-50%) rotate(29deg); height: 33px; }
+
+.forest-slime {
+  position: absolute;
+  width: 96px;
+  height: 88px;
+  transform: translate(-50%, -100%) scale(var(--slime-scale,1));
+  transform-origin: 50% 100%;
+  pointer-events: none;
+  z-index: 200;
+}
+
+.slime-shadow {
+  position: absolute;
+  left: 50%;
+  bottom: 11px;
+  width: 68px;
+  height: 14px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: rgba(25,49,25,.24);
+  filter: blur(4px);
+}
+
+.slime-body {
+  position: absolute;
+  left: 50%;
+  bottom: 21px;
+  width: 72px;
+  height: 54px;
+  transform: translateX(-50%);
+  border-radius: 52% 48% 43% 45% / 65% 63% 37% 35%;
+  background: linear-gradient(160deg, #8bcf67 0%, #5da94d 53%, #397f3f 100%);
+  box-shadow: inset 0 8px 12px rgba(255,255,255,.18), inset 0 -8px 10px rgba(27,84,36,.16), 0 8px 12px rgba(25,48,27,.16);
+  animation: slimeIdle 2.1s ease-in-out infinite;
+}
+
+.slime-body::after {
+  content: "";
+  position: absolute;
+  left: 7px;
+  right: 7px;
+  bottom: -4px;
+  height: 16px;
+  border-radius: 50%;
+  background: #438e43;
+  z-index: -1;
+}
+
+.slime-shine {
+  position: absolute;
+  left: 17px;
+  top: 10px;
+  width: 17px;
+  height: 9px;
+  border-radius: 50%;
+  background: rgba(235,255,218,.5);
+  transform: rotate(-22deg);
+}
+
+.slime-eye {
+  position: absolute;
+  top: 27px;
+  width: 7px;
+  height: 9px;
+  border-radius: 50%;
+  background: #26352b;
+}
+.slime-eye.eye-a { left: 23px; }
+.slime-eye.eye-b { right: 23px; }
+.slime-mouth {
+  position: absolute;
+  left: 50%;
+  top: 39px;
+  width: 13px;
+  height: 5px;
+  transform: translateX(-50%);
+  border-bottom: 2px solid rgba(31,53,36,.72);
+  border-radius: 50%;
+}
+
+.slime-timer {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 72px;
+  height: 7px;
+  padding: 1px;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: rgba(28,46,31,.2);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.14);
+  overflow: hidden;
+}
+
+.slime-timer-fill {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #93d96d, #5eaf52);
+  transform-origin: left center;
+  animation: slimeLifetime var(--slime-life,14000ms) linear forwards;
+}
+
+.forest-slime.is-spawning .slime-body {
+  animation: slimeSpawn .32s var(--ease-spring) both;
+}
+.forest-slime.is-despawning {
+  animation: slimeDespawn .34s ease forwards;
+}
+
+@keyframes slimeIdle {
+  0%,100% { transform: translateX(-50%) scale(1,1); }
+  50% { transform: translateX(-50%) translateY(-3px) scale(1.03,.97); }
+}
+@keyframes slimeSpawn {
+  0% { opacity:0; transform:translateX(-50%) translateY(18px) scale(.55,.28); }
+  75% { opacity:1; transform:translateX(-50%) translateY(-2px) scale(1.06,.96); }
+  100% { opacity:1; transform:translateX(-50%) scale(1); }
+}
+@keyframes slimeDespawn {
+  to { opacity:0; transform:translate(-50%,-92%) scale(.72,.45); filter:saturate(.5); }
+}
+@keyframes slimeLifetime {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
 }
 
 /* Forest */
