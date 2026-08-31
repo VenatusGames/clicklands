@@ -200,6 +200,7 @@
       'main-hand': null, 'off-hand': null, 'trinket-1': null, 'trinket-2': null,
       'trinket-3': null, 'trinket-4': null, 'trinket-5': null,
     },
+    health: { current: 100, max: 100 },
     overall: { level: 1, xp: 0 },
     skills: {
       woodcutting: { level: 1, xp: 0 },
@@ -287,6 +288,8 @@
     occupiedSlimeSlots: new Set(),
     slimeNodeId: 0,
     slimeSpawnTimer: null,
+    combat: null,
+    combatReturnLocation: 'forest',
     hoverResource: null,
     entered: false,
     lumberShopOpen: false,
@@ -331,6 +334,7 @@
         <section class="world-host">
           ${lakesideMarkup()}
           ${forestMarkup()}
+          ${combatMarkup()}
           ${minesMarkup()}
           ${townMarkup()}
           ${lumbermillMarkup()}
@@ -416,6 +420,16 @@
                 <span class="username" data-username>Username</span>
                 <span class="overall-level">Overall Level <strong data-overall-level>1</strong></span>
               </span>
+              <span class="hud-health-block">
+                <span class="xp-label-row health-label-row">
+                  <span class="xp-label">Health</span>
+                  <span class="xp-value health-value" data-player-health>100 / 100</span>
+                </span>
+                <span class="progress-track player-health-track">
+                  <span class="progress-fill player-health-fill" data-player-health-fill></span>
+                </span>
+              </span>
+
               <span class="xp-label-row">
                 <span class="xp-label">Overall XP</span>
                 <span class="xp-value" data-overall-xp>0 / 100 XP</span>
@@ -566,8 +580,55 @@
         <div class="forest-horizon" aria-hidden="true"></div>
         <div class="forest-ground" aria-hidden="true"></div>
         <div class="forest-ground-detail" aria-hidden="true"></div>
-        <div class="forest-slime-stage" data-slime-stage></div>
+        <div class="forest-enemy-stage" data-slime-stage></div>
         <div class="forest-node-stage" data-forest-stage></div>
+        <div class="forest-forage-stage" data-forage-stage></div>
+      </div>
+    `;
+  }
+
+
+  function combatMarkup() {
+    return `
+      <div class="world-view combat-view" data-view="combat">
+        <button class="combat-exit" type="button" data-exit-combat>‹ Return to Forest</button>
+
+        <div class="combat-enemy-stage">
+          <div class="combat-enemy-card" aria-live="polite">
+            <div class="combat-slime" aria-hidden="true">
+              <span class="combat-slime-shadow"></span>
+              <span class="combat-slime-body">
+                <span class="combat-slime-shine"></span>
+                <span class="combat-slime-eye eye-a"></span>
+                <span class="combat-slime-eye eye-b"></span>
+                <span class="combat-slime-mouth"></span>
+              </span>
+            </div>
+            <strong class="combat-enemy-title" data-combat-enemy-title>Slime</strong>
+          </div>
+        </div>
+
+        <div class="combat-health-dock">
+          <section class="combat-health-panel player">
+            <div class="combat-health-head">
+              <span>You</span>
+              <strong data-combat-player-health>100 / 100</strong>
+            </div>
+            <div class="combat-health-track">
+              <span class="combat-health-fill player" data-combat-player-fill></span>
+            </div>
+          </section>
+
+          <section class="combat-health-panel enemy">
+            <div class="combat-health-head">
+              <span data-combat-enemy-name>Slime</span>
+              <strong data-combat-enemy-health>30 / 30</strong>
+            </div>
+            <div class="combat-health-track">
+              <span class="combat-health-fill enemy" data-combat-enemy-fill></span>
+            </div>
+          </section>
+        </div>
       </div>
     `;
   }
@@ -868,6 +929,8 @@
       overallLevel: document.querySelector('[data-overall-level]'),
       overallXp: document.querySelector('[data-overall-xp]'),
       overallFill: document.querySelector('[data-overall-fill]'),
+      playerHealth: document.querySelector('[data-player-health]'),
+      playerHealthFill: document.querySelector('[data-player-health-fill]'),
       inventoryToggle: document.querySelector('[data-inventory-toggle]'),
       inventoryDrawer: document.querySelector('[data-inventory-drawer]'),
       inventoryClose: document.querySelector('[data-inventory-close]'),
@@ -875,8 +938,15 @@
       gearPane: document.querySelector('[data-inventory-pane="gear"]'),
       equipmentPane: document.querySelector('[data-inventory-pane="equipment"]'),
       forestStage: document.querySelector('[data-forest-stage]'),
+      forageStage: document.querySelector('[data-forage-stage]'),
       slimeStage: document.querySelector('[data-slime-stage]'),
       mineStage: document.querySelector('[data-mine-stage]'),
+      combatEnemyTitle: document.querySelector('[data-combat-enemy-title]'),
+      combatEnemyName: document.querySelector('[data-combat-enemy-name]'),
+      combatEnemyHealth: document.querySelector('[data-combat-enemy-health]'),
+      combatEnemyFill: document.querySelector('[data-combat-enemy-fill]'),
+      combatPlayerHealth: document.querySelector('[data-combat-player-health]'),
+      combatPlayerFill: document.querySelector('[data-combat-player-fill]'),
       toastStack: document.querySelector('[data-toasts]'),
       resourceHoverBar: document.querySelector('[data-resource-hover-bar]'),
       resourceHoverName: document.querySelector('[data-resource-hover-name]'),
@@ -923,6 +993,11 @@
       const locationButton = event.target.closest('[data-location]');
       if (locationButton) {
         setLocation(locationButton.dataset.location);
+        return;
+      }
+
+      if (event.target.closest('[data-exit-combat]')) {
+        exitCombat();
         return;
       }
 
@@ -1177,11 +1252,13 @@
 
     ui.areaToggle.setAttribute('aria-expanded', String(state.lakesideExpanded));
     ui.areaChildren.classList.toggle('is-collapsed', !state.lakesideExpanded);
+    renderCombat();
   }
 
   function setLocation(location) {
     if (!['lakeside', 'forest', 'mines', 'town', 'lumbermill', 'blacksmith', 'strange-shack', 'farmer', 'foragers-hut'].includes(location)) return;
     hideResourceHoverBar();
+    runtime.combat = null;
     state.location = location;
     state.inventoryOpen = false;
     if (location !== 'lumbermill') runtime.lumberShopOpen = false;
@@ -1198,10 +1275,77 @@
     }
     }
 
+
+  function enterCombatWithSlime(slime) {
+    if (!slime || !runtime.slimeNodes.has(slime.id)) return;
+
+    if (slime.expireTimer) window.clearTimeout(slime.expireTimer);
+    runtime.slimeNodes.delete(slime.id);
+    runtime.occupiedSlimeSlots.delete(slime.slotIndex);
+
+    if (slime.node?.isConnected) {
+      slime.node.disabled = true;
+      slime.node.classList.add('is-entering-combat');
+      window.setTimeout(() => slime.node.remove(), 180);
+    }
+
+    runtime.combatReturnLocation = 'forest';
+    runtime.combat = {
+      type: 'slime',
+      name: 'Slime',
+      health: 30,
+      maxHealth: 30,
+    };
+
+    state.inventoryOpen = false;
+    runtime.lumberShopOpen = false;
+    runtime.villageShopOpen = null;
+    state.location = 'combat';
+
+    renderNavigation();
+    renderDrawers();
+    renderLumberShop();
+    renderVillageShop();
+  }
+
+  function exitCombat() {
+    const returnLocation = runtime.combatReturnLocation || 'forest';
+    runtime.combat = null;
+    setLocation(returnLocation);
+  }
+
+  function renderCombat() {
+    if (!ui?.combatEnemyName) return;
+
+    const combat = runtime.combat;
+    const enemyName = combat?.name || 'Slime';
+    const enemyHealth = combat?.health ?? 30;
+    const enemyMaxHealth = combat?.maxHealth ?? 30;
+    const enemyPercent = clamp((enemyHealth / enemyMaxHealth) * 100, 0, 100);
+
+    const playerHealth = state.health.current;
+    const playerMaxHealth = state.health.max;
+    const playerPercent = clamp((playerHealth / playerMaxHealth) * 100, 0, 100);
+
+    ui.combatEnemyTitle.textContent = enemyName;
+    ui.combatEnemyName.textContent = enemyName;
+    ui.combatEnemyHealth.textContent = `${enemyHealth} / ${enemyMaxHealth}`;
+    ui.combatEnemyFill.style.width = `${enemyPercent}%`;
+
+    ui.combatPlayerHealth.textContent = `${playerHealth} / ${playerMaxHealth}`;
+    ui.combatPlayerFill.style.width = `${playerPercent}%`;
+  }
+
   function renderHUD() {
     ui.username.textContent = state.username;
+
+    const healthPercent = clamp((state.health.current / state.health.max) * 100, 0, 100);
+    ui.playerHealth.textContent = `${state.health.current} / ${state.health.max}`;
+    ui.playerHealthFill.style.width = `${healthPercent}%`;
+
     updateProgressUI(state.overall, ui.overallLevel, ui.overallXp, ui.overallFill, true);
     renderWallet();
+    renderCombat();
 
     Object.entries(state.skills).forEach(([skill, data]) => {
       const levelNode = document.querySelector(`[data-skill-level="${skill}"]`);
@@ -1780,7 +1924,7 @@
     `;
 
     forage.node = node;
-    ui.forestStage.appendChild(node);
+    ui.forageStage.appendChild(node);
     window.setTimeout(() => node.classList.remove('is-spawning'), 280);
 
     node.addEventListener('click', () => harvestForageNode(forage));
@@ -1853,8 +1997,10 @@
     runtime.slimeNodes.set(slime.id, slime);
 
     const lifetime = randomInt(11000, 18000);
-    const node = document.createElement('div');
-    node.className = 'forest-slime is-spawning';
+    const node = document.createElement('button');
+    node.type = 'button';
+    node.className = 'forest-slime enemy-node is-spawning';
+    node.setAttribute('aria-label', 'Fight Slime');
     node.style.left = `${clamp(slot.x + randomInt(-3, 3), 7, 93)}%`;
     node.style.top = `${clamp(slot.y + randomInt(-2, 2), 79, 93)}%`;
     node.style.setProperty('--slime-scale', String(slot.scale * (randomInt(92, 110) / 100)));
@@ -1874,6 +2020,7 @@
 
     slime.node = node;
     ui.slimeStage.appendChild(node);
+    node.addEventListener('click', () => enterCombatWithSlime(slime));
     window.setTimeout(() => node.classList.remove('is-spawning'), 340);
     slime.expireTimer = window.setTimeout(() => despawnSlime(slime), lifetime);
   }
