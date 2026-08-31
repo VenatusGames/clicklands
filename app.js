@@ -196,6 +196,18 @@ import { birchSvg, oakSvg, oreNodeSvg } from './src/ui/graphics.js';
         return;
       }
 
+      if (event.target.closest('[data-chat-close]')) {
+        state.chatOpen = false;
+        renderChat();
+        return;
+      }
+
+      if (event.target.closest('[data-chat-open]')) {
+        state.chatOpen = true;
+        renderChat();
+        return;
+      }
+
       const tab = event.target.closest('[data-inventory-tab]');
       if (tab) {
         state.inventoryTab = ['items', 'gear', 'equipment'].includes(tab.dataset.inventoryTab)
@@ -387,6 +399,12 @@ import { birchSvg, oakSvg, oreNodeSvg } from './src/ui/graphics.js';
       button.setAttribute('aria-selected', String(active));
     });
     const copy = channelCopy[state.chatChannel] || channelCopy.global;
+    ui.chatPanel?.classList.toggle('is-closed', !state.chatOpen);
+    ui.chatPanel?.setAttribute('aria-hidden', String(!state.chatOpen));
+    ui.chatLauncher?.classList.toggle('is-visible', !state.chatOpen);
+    ui.chatLauncher?.setAttribute('aria-hidden', String(state.chatOpen));
+    const launcherChannel = ui.chatLauncher?.querySelector('small');
+    if (launcherChannel) launcherChannel.textContent = capitalize(state.chatChannel);
     if (ui.chatLog) {
       ui.chatLog.innerHTML = `<div class="chat-system-message"><span>●</span><p><strong>${copy[0]}</strong><small>${copy[1]}</small></p></div>`;
     }

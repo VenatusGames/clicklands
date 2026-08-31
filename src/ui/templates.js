@@ -666,6 +666,7 @@ function chatMarkup() {
       <header class="chat-head">
         <span class="chat-status-dot" aria-hidden="true"></span>
         <div><strong>Player Chat</strong><small>Preview · messaging coming later</small></div>
+        <button class="chat-close" type="button" data-chat-close aria-label="Close chat drawer">⌄</button>
       </header>
       <div class="chat-channels" role="tablist" aria-label="Chat channels">
         <button type="button" role="tab" aria-selected="true" class="is-active" data-chat-channel="global">Global</button>
@@ -681,6 +682,11 @@ function chatMarkup() {
         <button type="button" disabled aria-label="Send chat message">Send</button>
       </div>
     </section>
+    <button class="chat-launcher" type="button" data-chat-open aria-label="Open player chat">
+      <span class="chat-status-dot" aria-hidden="true"></span>
+      <strong>Player Chat</strong>
+      <small>Global</small>
+    </button>
   `;
 }
 

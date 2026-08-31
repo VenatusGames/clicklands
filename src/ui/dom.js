@@ -74,6 +74,8 @@ export function cacheUI() {
     resourceHoverMeta: document.querySelector('[data-resource-hover-meta]'),
     resourceHoverFill: document.querySelector('[data-resource-hover-fill]'),
     mapCard: document.querySelector('[data-map-card]'),
+    chatPanel: document.querySelector('[data-chat-panel]'),
+    chatLauncher: document.querySelector('[data-chat-open]'),
     chatLog: document.querySelector('[data-chat-log]'),
     walletCopper: document.querySelector('[data-wallet-copper]'),
     walletSilver: document.querySelector('[data-wallet-silver]'),

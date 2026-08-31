@@ -231,6 +231,7 @@ const defaultState = {
   xpMenu: 'skills',
   devToolsOpen: false,
   freeShops: false,
+  chatOpen: true,
   chatChannel: 'global',
   username: 'Username',
   inventory: {
