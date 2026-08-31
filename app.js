@@ -5,6 +5,7 @@
   const OVERALL_XP_PER_SKILL_LEVEL = 25;
   const SLIME_SWORDSMAN_XP = 20;
   const SLIME_RANGER_XP = 20;
+  const SLIME_WIZARD_XP = 20;
   const COIN_RATES = { copper: 1, silver: 100, gold: 10000, platinum: 1000000 };
   const BASIC_AXE_PRICE = 150;
   const LUMBER_SELL_PRICES = {
@@ -93,7 +94,7 @@
       buy: {
         basicSword: { name: 'Basic Sword', price: 250, icon: '⚔', description: 'Starter sword · Main Hand', unique: true },
         basicShield: { name: 'Basic Shield', price: 220, icon: '◈', description: 'Starter shield · Off Hand', unique: true },
-        basicHammer: { name: 'Basic Hammer', price: 180, icon: '🔨', description: 'Starter smithing hammer · Main Hand', unique: true },
+        basicHammer: { name: 'Basic Battle Hammer', price: 180, icon: '🔨', description: 'Heavy timing weapon · Main Hand', unique: true },
         chainmailHelmet: { name: 'Chainmail Helmet', price: 300, icon: '⛓', description: 'Chainmail armor · Helmet slot', unique: true },
         chainmailChestplate: { name: 'Chainmail Chestplate', price: 500, icon: '⛓', description: 'Chainmail armor · Chestplate slot', unique: true },
         chainmailLeggings: { name: 'Chainmail Leggings', price: 400, icon: '⛓', description: 'Chainmail armor · Leggings slot', unique: true },
@@ -137,7 +138,10 @@
       shortName: 'Magic Staff',
       slot: 'main-hand',
       icon: '✦',
-      bonus: 'Starter magic weapon · combat stats later',
+      weaponType: 'staff',
+      spell: 'fireball',
+      damage: 10,
+      bonus: 'Staff · draw a circle to cast Fireball · 10 damage',
     },
     basicSword: {
       name: 'Basic Sword',
@@ -156,11 +160,20 @@
       bonus: 'Starter shield · combat stats later',
     },
     basicHammer: {
-      name: 'Basic Hammer',
-      shortName: 'Basic Hammer',
+      name: 'Basic Battle Hammer',
+      shortName: 'Battle Hammer',
       slot: 'main-hand',
       icon: '🔨',
-      bonus: 'Starter smithing hammer · no bonus yet',
+      weaponType: 'hammer',
+      timingDuration: 1850,
+      ringStart: 330,
+      ringTarget: 170,
+      ringEnd: 58,
+      grazeDamage: 4,
+      goodDamage: 10,
+      greatDamage: 15,
+      perfectDamage: 20,
+      bonus: 'Hammer · hold and release when the timing rings align · 4–20 damage',
     },
     chainmailHelmet: {
       name: 'Chainmail Helmet',
@@ -207,6 +220,8 @@
     inventoryTab: 'items',
     skillsOpen: false,
     xpMenu: 'skills',
+    devToolsOpen: false,
+    freeShops: false,
     username: 'Username',
     inventory: {
       oakWood: 0,
@@ -352,6 +367,12 @@
     bowCharge: null,
     bowChargeFrame: null,
     bowShotInFlight: false,
+    staffGesture: null,
+    staffSpellInFlight: false,
+    staffCursorSparkAt: 0,
+    hammerCharge: null,
+    hammerChargeFrame: null,
+    hammerSlamInFlight: false,
     hoverResource: null,
     entered: false,
     lumberShopOpen: false,
@@ -366,6 +387,7 @@
   const ui = cacheUI();
   bindEvents();
   applyTheme();
+  renderDevTools();
   renderNavigation();
   renderHUD();
   renderInventory();
@@ -463,6 +485,22 @@
             </button>
           </div>
         </nav>
+
+        <section class="dev-tools" data-dev-tools>
+          <button class="dev-tools-toggle" type="button" data-dev-tools-toggle aria-expanded="false">
+            <span class="dev-tools-toggle-copy"><span aria-hidden="true">⚙</span><span>Dev Tools</span></span>
+            <span class="dev-tools-chevron" aria-hidden="true">${chevronSvg()}</span>
+          </button>
+          <div class="dev-tools-panel" data-dev-tools-panel>
+            <button class="dev-setting" type="button" data-free-shops-toggle aria-pressed="false">
+              <span class="dev-setting-copy">
+                <strong>Free Shops</strong>
+                <small>All purchases cost 0 for testing</small>
+              </span>
+              <span class="dev-switch" aria-hidden="true"><span class="dev-switch-dot"></span></span>
+            </button>
+          </div>
+        </section>
 
         <div class="sidebar-footer">
           <button class="theme-button" type="button" data-theme-toggle>
@@ -661,6 +699,12 @@
         <div class="combat-enemy-stage" data-combat-stage>
           <div class="combat-enemy-card" aria-live="polite">
             <div class="combat-slime" data-combat-enemy-target aria-label="Slime combat target">
+              <span class="combat-hammer-rings" data-combat-hammer-rings hidden aria-hidden="true">
+                <span class="combat-hammer-target-ring">
+                  <span class="combat-hammer-release-label">RELEASE</span>
+                </span>
+                <span class="combat-hammer-moving-ring" data-combat-hammer-ring></span>
+              </span>
               <span class="combat-slime-shadow" aria-hidden="true"></span>
               <span class="combat-slime-body" aria-hidden="true">
                 <span class="combat-slime-shine"></span>
@@ -683,6 +727,20 @@
                 <span>Ammo</span>
                 <strong><span aria-hidden="true">➶</span> <span data-combat-ammo-count>0</span></strong>
               </div>
+            </div>
+            <div class="combat-staff-guide" data-combat-staff-guide hidden>
+              <span class="combat-spell-rune" data-combat-spell-rune aria-hidden="true">○</span>
+              <span class="combat-spell-copy">
+                <small>Spell gesture</small>
+                <strong data-combat-spell-status>Draw a circle</strong>
+              </span>
+            </div>
+            <div class="combat-hammer-guide" data-combat-hammer-guide hidden>
+              <span class="combat-hammer-guide-icon" aria-hidden="true">🔨</span>
+              <span class="combat-hammer-guide-copy">
+                <small>Hammer timing</small>
+                <strong data-combat-hammer-status>Hold to wind up</strong>
+              </span>
             </div>
           </div>
         </div>
@@ -1032,6 +1090,10 @@
       splash: document.querySelector('[data-splash]'),
       enter: document.querySelector('[data-enter]'),
       themeToggle: document.querySelector('[data-theme-toggle]'),
+      devTools: document.querySelector('[data-dev-tools]'),
+      devToolsToggle: document.querySelector('[data-dev-tools-toggle]'),
+      devToolsPanel: document.querySelector('[data-dev-tools-panel]'),
+      freeShopsToggle: document.querySelector('[data-free-shops-toggle]'),
       themeIcon: document.querySelector('[data-theme-icon]'),
       themeLabel: document.querySelector('[data-theme-label]'),
       areaToggle: document.querySelector('[data-area-toggle]'),
@@ -1064,6 +1126,13 @@
       combatBowChargeFill: document.querySelector('[data-combat-bow-charge-fill]'),
       combatBowChargeLabel: document.querySelector('[data-combat-bow-charge-label]'),
       combatAmmoCount: document.querySelector('[data-combat-ammo-count]'),
+      combatStaffGuide: document.querySelector('[data-combat-staff-guide]'),
+      combatSpellRune: document.querySelector('[data-combat-spell-rune]'),
+      combatSpellStatus: document.querySelector('[data-combat-spell-status]'),
+      combatHammerRings: document.querySelector('[data-combat-hammer-rings]'),
+      combatHammerRing: document.querySelector('[data-combat-hammer-ring]'),
+      combatHammerGuide: document.querySelector('[data-combat-hammer-guide]'),
+      combatHammerStatus: document.querySelector('[data-combat-hammer-status]'),
       combatDefeat: document.querySelector('[data-combat-defeat]'),
       combatDefeatTitle: document.querySelector('[data-combat-defeat-title]'),
       combatDefeatLoot: document.querySelector('[data-combat-defeat-loot]'),
@@ -1267,6 +1336,23 @@
       applyTheme();
     });
 
+    ui.devToolsToggle?.addEventListener('click', () => {
+      state.devToolsOpen = !state.devToolsOpen;
+      renderDevTools();
+    });
+
+    ui.freeShopsToggle?.addEventListener('click', () => {
+      state.freeShops = !state.freeShops;
+      renderDevTools();
+      renderLumberShop();
+      renderVillageShop();
+      showToast(
+        'Dev Tools',
+        state.freeShops ? 'Free Shops enabled.' : 'Free Shops disabled.',
+        '⚙'
+      );
+    });
+
     ui.areaToggle.addEventListener('click', () => {
       state.lakesideExpanded = !state.lakesideExpanded;
       renderNavigation();
@@ -1403,6 +1489,15 @@
     }
   }
 
+  function renderDevTools() {
+    if (!ui?.devToolsToggle || !ui?.freeShopsToggle) return;
+
+    ui.devTools?.classList.toggle('is-open', state.devToolsOpen);
+    ui.devToolsToggle.setAttribute('aria-expanded', String(state.devToolsOpen));
+    ui.freeShopsToggle.classList.toggle('is-active', state.freeShops);
+    ui.freeShopsToggle.setAttribute('aria-pressed', String(state.freeShops));
+  }
+
   function applyTheme() {
     document.body.classList.toggle('dark', state.theme === 'dark');
     ui.themeIcon.textContent = state.theme === 'dark' ? '☾' : '☀';
@@ -1468,7 +1563,11 @@
       loot: [],
     };
     runtime.swordGesture = null;
-    ui.combatEnemyTarget?.classList.remove('is-defeated', 'is-sword-hit');
+    cancelStaffGesture(null, true);
+    runtime.staffSpellInFlight = false;
+    cancelHammerTiming(null, true);
+    runtime.hammerSlamInFlight = false;
+    ui.combatEnemyTarget?.classList.remove('is-defeated', 'is-sword-hit', 'is-bow-hit', 'is-fireball-hit', 'is-hammer-hit');
 
     state.inventoryOpen = false;
     runtime.lumberShopOpen = false;
@@ -1486,6 +1585,10 @@
     runtime.swordGesture = null;
     cancelBowCharge();
     runtime.bowShotInFlight = false;
+    cancelStaffGesture(null, true);
+    runtime.staffSpellInFlight = false;
+    cancelHammerTiming(null, true);
+    runtime.hammerSlamInFlight = false;
     runtime.combat = null;
     setLocation(returnLocation);
   }
@@ -1523,16 +1626,48 @@
 
     const swordReady = mainGear?.weaponType === 'sword' && !combat?.defeated;
     const bowEquipped = mainGear?.weaponType === 'bow';
+    const staffEquipped = mainGear?.weaponType === 'staff';
+    const hammerEquipped = mainGear?.weaponType === 'hammer';
     const arrowsLoaded = state.equipment.ammo === 'arrows' && state.inventory.arrows > 0;
     const bowReady = bowEquipped && arrowsLoaded && !combat?.defeated;
+    const staffReady = staffEquipped && !combat?.defeated;
+    const hammerReady = hammerEquipped && !combat?.defeated;
 
     ui.combatStage?.classList.toggle('sword-ready', Boolean(swordReady));
     ui.combatStage?.classList.toggle('bow-ready', Boolean(bowReady));
+    ui.combatStage?.classList.toggle('staff-ready', Boolean(staffReady));
+    ui.combatStage?.classList.toggle('hammer-ready', Boolean(hammerReady));
 
     if (ui.combatBowCharge) {
       ui.combatBowCharge.hidden = !bowEquipped || Boolean(combat?.defeated);
     }
     if (ui.combatAmmoCount) ui.combatAmmoCount.textContent = arrowsLoaded ? state.inventory.arrows : 0;
+
+    if (ui.combatStaffGuide) {
+      ui.combatStaffGuide.hidden = !staffEquipped || Boolean(combat?.defeated);
+      ui.combatStaffGuide.classList.toggle('is-drawing', Boolean(runtime.staffGesture));
+      ui.combatStaffGuide.classList.toggle('is-casting', Boolean(runtime.staffSpellInFlight));
+    }
+
+    if (staffEquipped && ui.combatSpellStatus && !runtime.staffGesture && !runtime.staffSpellInFlight) {
+      ui.combatSpellStatus.textContent = 'Draw a circle';
+      ui.combatStaffGuide?.classList.remove('is-confirmed', 'is-invalid');
+    }
+
+    if (ui.combatHammerGuide) {
+      ui.combatHammerGuide.hidden = !hammerEquipped || Boolean(combat?.defeated);
+      ui.combatHammerGuide.classList.toggle('is-active', Boolean(runtime.hammerCharge));
+      ui.combatHammerGuide.classList.toggle('is-slamming', Boolean(runtime.hammerSlamInFlight));
+    }
+
+    if (ui.combatHammerRings) {
+      ui.combatHammerRings.hidden = !runtime.hammerCharge || Boolean(combat?.defeated);
+    }
+
+    if (hammerEquipped && !runtime.hammerCharge && !runtime.hammerSlamInFlight && ui.combatHammerStatus) {
+      ui.combatHammerStatus.textContent = 'Hold to wind up';
+      ui.combatHammerGuide?.classList.remove('is-perfect', 'is-great', 'is-good', 'is-graze');
+    }
 
     if (!runtime.bowCharge && ui.combatBowChargeFill) ui.combatBowChargeFill.style.width = '0%';
     if (!runtime.bowCharge && ui.combatBowChargeLabel) ui.combatBowChargeLabel.textContent = '0%';
@@ -1546,6 +1681,10 @@
         ui.combatHint.textContent = 'Load Arrows into the Ammo equipment slot to use the bow.';
       } else if (bowReady) {
         ui.combatHint.textContent = 'Hold the mouse button to draw the bow · release to fire.';
+      } else if (staffReady) {
+        ui.combatHint.textContent = 'Hold the mouse button and draw a circle · a recognized circle casts Fireball.';
+      } else if (hammerReady) {
+        ui.combatHint.textContent = 'Hold to wind up · release when the shrinking ring aligns with the target ring.';
       } else if (mainGear) {
         ui.combatHint.textContent = `${mainGear.shortName || mainGear.name} combat is not available yet.`;
       } else {
@@ -1577,30 +1716,840 @@
   function beginCombatInput(event) {
     if (event.button !== 0 || state.location !== 'combat' || runtime.combat?.defeated) return;
     const weapon = getMainHandGear();
+
+    if (weapon?.weaponType === 'hammer') {
+      beginHammerTiming(event, weapon);
+      return;
+    }
+
+    if (weapon?.weaponType === 'staff') {
+      beginStaffGesture(event, weapon);
+      return;
+    }
+
     if (weapon?.weaponType === 'bow') {
       beginBowCharge(event, weapon);
       return;
     }
+
     beginSwordSwipe(event);
   }
 
   function continueCombatInput(event) {
+    const weapon = getMainHandGear();
+
+    if (weapon?.weaponType === 'staff' && !runtime.combat?.defeated) {
+      emitStaffCursorSpark(event);
+    }
+
+    if (runtime.hammerCharge) {
+      if (runtime.hammerCharge.pointerId !== event.pointerId) return;
+      if ((event.buttons & 1) === 0) endCombatInput(event, true);
+      return;
+    }
+
+    if (runtime.staffGesture) {
+      continueStaffGesture(event);
+      return;
+    }
+
     if (runtime.bowCharge) {
       if (runtime.bowCharge.pointerId !== event.pointerId) return;
       if ((event.buttons & 1) === 0) endCombatInput(event, true);
       return;
     }
+
     continueSwordSwipe(event);
   }
 
   function endCombatInput(event, shouldFire) {
+    if (runtime.hammerCharge) {
+      if (event?.pointerId != null && runtime.hammerCharge.pointerId !== event.pointerId) return;
+      if (shouldFire) releaseHammerSlam(event);
+      else cancelHammerTiming(event);
+      return;
+    }
+
+    if (runtime.staffGesture) {
+      if (event?.pointerId != null && runtime.staffGesture.pointerId !== event.pointerId) return;
+      endStaffGesture(event, shouldFire);
+      return;
+    }
+
     if (runtime.bowCharge) {
       if (event?.pointerId != null && runtime.bowCharge.pointerId !== event.pointerId) return;
       if (shouldFire) releaseBowShot(event);
       else cancelBowCharge(event);
       return;
     }
+
     endSwordSwipe(event);
+  }
+
+
+
+  function beginHammerTiming(event, weapon) {
+    if (
+      runtime.hammerCharge ||
+      runtime.hammerSlamInFlight ||
+      runtime.combat?.defeated ||
+      weapon?.weaponType !== 'hammer'
+    ) return;
+
+    runtime.hammerCharge = {
+      pointerId: event.pointerId,
+      weaponKey: weapon.key,
+      startedAt: performance.now(),
+      ringSize: weapon.ringStart || 330,
+      quality: 'graze',
+    };
+
+    try { ui.combatStage.setPointerCapture(event.pointerId); } catch (error) {}
+
+    ui.combatStage?.classList.add('is-hammer-charging');
+    ui.combatHammerGuide?.classList.add('is-active');
+    ui.combatHammerGuide?.classList.remove('is-perfect', 'is-great', 'is-good', 'is-graze');
+
+    if (ui.combatHammerRings) {
+      ui.combatHammerRings.hidden = false;
+      ui.combatHammerRings.classList.remove('is-perfect', 'is-great', 'is-good', 'is-passed');
+    }
+
+    if (ui.combatHammerRing) {
+      ui.combatHammerRing.style.width = `${weapon.ringStart || 330}px`;
+      ui.combatHammerRing.style.height = `${weapon.ringStart || 330}px`;
+    }
+
+    updateHammerTiming();
+    event.preventDefault();
+  }
+
+  function updateHammerTiming() {
+    const charge = runtime.hammerCharge;
+    if (!charge) return;
+
+    const weapon = GEAR_ITEMS[charge.weaponKey];
+    if (!weapon || weapon.weaponType !== 'hammer') {
+      cancelHammerTiming();
+      return;
+    }
+
+    const duration = Math.max(500, weapon.timingDuration || 1850);
+    const progress = clamp((performance.now() - charge.startedAt) / duration, 0, 1);
+    const start = weapon.ringStart || 330;
+    const end = weapon.ringEnd || 54;
+    const ringSize = start + ((end - start) * progress);
+
+    charge.progress = progress;
+    charge.ringSize = ringSize;
+
+    const result = scoreHammerTiming(ringSize, weapon);
+    charge.quality = result.quality;
+
+    if (ui.combatHammerRing) {
+      ui.combatHammerRing.style.width = `${ringSize}px`;
+      ui.combatHammerRing.style.height = `${ringSize}px`;
+    }
+
+    if (ui.combatHammerStatus) {
+      ui.combatHammerStatus.textContent =
+        result.quality === 'perfect' ? 'PERFECT — release!' :
+        result.quality === 'great' ? 'Great timing' :
+        result.quality === 'good' ? 'Close…' :
+        progress < .5 ? 'Hold…' : 'Release before it passes';
+    }
+
+    if (ui.combatHammerGuide) {
+      ui.combatHammerGuide.classList.toggle('is-perfect', result.quality === 'perfect');
+      ui.combatHammerGuide.classList.toggle('is-great', result.quality === 'great');
+      ui.combatHammerGuide.classList.toggle('is-good', result.quality === 'good');
+      ui.combatHammerGuide.classList.toggle('is-graze', result.quality === 'graze');
+    }
+
+    ui.combatHammerRings?.classList.toggle('is-perfect', result.quality === 'perfect');
+    ui.combatHammerRings?.classList.toggle('is-great', result.quality === 'great');
+    ui.combatHammerRings?.classList.toggle('is-good', result.quality === 'good');
+    ui.combatHammerRings?.classList.toggle(
+      'is-passed',
+      ringSize < (weapon.ringTarget || 170) - 40
+    );
+
+    if (progress < 1) {
+      runtime.hammerChargeFrame = requestAnimationFrame(updateHammerTiming);
+    } else {
+      runtime.hammerChargeFrame = null;
+    }
+  }
+
+  function scoreHammerTiming(ringSize, weapon) {
+    const target = weapon.ringTarget || 170;
+    const difference = Math.abs(ringSize - target);
+
+    if (difference <= 8) {
+      return { quality: 'perfect', damage: weapon.perfectDamage || 20, difference };
+    }
+
+    if (difference <= 22) {
+      return { quality: 'great', damage: weapon.greatDamage || 15, difference };
+    }
+
+    if (difference <= 40) {
+      return { quality: 'good', damage: weapon.goodDamage || 10, difference };
+    }
+
+    return { quality: 'graze', damage: weapon.grazeDamage || 4, difference };
+  }
+
+  function releaseHammerSlam(event) {
+    const charge = runtime.hammerCharge;
+    if (!charge || runtime.hammerSlamInFlight || runtime.combat?.defeated) {
+      cancelHammerTiming(event);
+      return;
+    }
+
+    const weapon = GEAR_ITEMS[charge.weaponKey];
+    if (!weapon || weapon.weaponType !== 'hammer') {
+      cancelHammerTiming(event);
+      return;
+    }
+
+    const result = scoreHammerTiming(charge.ringSize, weapon);
+    cancelHammerTiming(event, false, true);
+
+    runtime.hammerSlamInFlight = true;
+
+    if (ui.combatHammerStatus) {
+      ui.combatHammerStatus.textContent =
+        result.quality === 'perfect' ? `Perfect · ${result.damage} damage` :
+        result.quality === 'great' ? `Great · ${result.damage} damage` :
+        result.quality === 'good' ? `Good · ${result.damage} damage` :
+        `Glancing hit · ${result.damage} damage`;
+    }
+
+    ui.combatHammerGuide?.classList.add(`is-${result.quality}`, 'is-slamming');
+    createHammerSlamEffect(result.damage, result.quality, { key: charge.weaponKey, ...weapon });
+  }
+
+  function cancelHammerTiming(event, immediate = false, preserveStatus = false) {
+    const charge = runtime.hammerCharge;
+
+    if (event?.pointerId != null && charge?.pointerId != null && charge.pointerId !== event.pointerId) return;
+
+    if (runtime.hammerChargeFrame) cancelAnimationFrame(runtime.hammerChargeFrame);
+    runtime.hammerChargeFrame = null;
+
+    const pointerId = event?.pointerId ?? charge?.pointerId;
+    if (pointerId != null) {
+      try {
+        if (ui?.combatStage?.hasPointerCapture(pointerId)) {
+          ui.combatStage.releasePointerCapture(pointerId);
+        }
+      } catch (error) {}
+    }
+
+    runtime.hammerCharge = null;
+    ui?.combatStage?.classList.remove('is-hammer-charging');
+
+    if (ui?.combatHammerRings) {
+      ui.combatHammerRings.classList.remove('is-perfect', 'is-great', 'is-good', 'is-passed');
+      if (immediate || !preserveStatus) ui.combatHammerRings.hidden = true;
+    }
+
+    if (ui?.combatHammerRing) {
+      ui.combatHammerRing.style.width = '';
+      ui.combatHammerRing.style.height = '';
+    }
+
+    if (!preserveStatus && ui?.combatHammerGuide) {
+      ui.combatHammerGuide.classList.remove('is-active', 'is-slamming', 'is-perfect', 'is-great', 'is-good', 'is-graze');
+    }
+
+    if (!preserveStatus && ui?.combatHammerStatus && getMainHandGear()?.weaponType === 'hammer') {
+      ui.combatHammerStatus.textContent = 'Hold to wind up';
+    }
+  }
+
+  function createHammerSlamEffect(damage, quality, weapon) {
+    if (!ui.combatStage || !ui.combatEnemyTarget) {
+      runtime.hammerSlamInFlight = false;
+      return;
+    }
+
+    const stageRect = ui.combatStage.getBoundingClientRect();
+    const targetRect = ui.combatEnemyTarget.getBoundingClientRect();
+    const targetX = (targetRect.left + (targetRect.width * .5)) - stageRect.left;
+    const targetY = (targetRect.top + (targetRect.height * .45)) - stageRect.top;
+
+    const hammer = document.createElement('span');
+    hammer.className = `combat-hammer-slam quality-${quality}`;
+    hammer.textContent = '🔨';
+    hammer.setAttribute('aria-hidden', 'true');
+    hammer.style.left = `${targetX}px`;
+    hammer.style.top = `${targetY}px`;
+    ui.combatStage.appendChild(hammer);
+
+    hammer.addEventListener('animationend', () => {
+      hammer.remove();
+      createHammerImpactEffect(quality);
+      runtime.hammerSlamInFlight = false;
+      strikeCombatEnemyWithHammer(damage, weapon, quality);
+    }, { once: true });
+  }
+
+  function createHammerImpactEffect(quality) {
+    if (!ui.combatEnemyTarget) return;
+
+    const impact = document.createElement('span');
+    impact.className = `combat-hammer-impact quality-${quality}`;
+    impact.setAttribute('aria-hidden', 'true');
+    ui.combatEnemyTarget.appendChild(impact);
+    impact.addEventListener('animationend', () => impact.remove(), { once: true });
+  }
+
+  function strikeCombatEnemyWithHammer(damage, weapon, quality) {
+    const combat = runtime.combat;
+    if (!combat || combat.defeated || weapon?.weaponType !== 'hammer') return;
+
+    combat.health = Math.max(0, combat.health - Math.max(1, damage || 1));
+
+    ui.combatEnemyTarget?.classList.remove('is-hammer-hit');
+    void ui.combatEnemyTarget?.offsetWidth;
+    ui.combatEnemyTarget?.classList.add('is-hammer-hit');
+    window.setTimeout(() => ui.combatEnemyTarget?.classList.remove('is-hammer-hit'), 260);
+
+    ui.combatHammerGuide?.classList.remove('is-slamming');
+
+    renderCombat();
+
+    if (combat.health <= 0) {
+      defeatCombatEnemy(weapon);
+      return;
+    }
+
+    window.setTimeout(() => {
+      if (
+        getMainHandGear()?.weaponType === 'hammer' &&
+        !runtime.hammerCharge &&
+        !runtime.hammerSlamInFlight &&
+        !runtime.combat?.defeated
+      ) {
+        ui.combatHammerGuide?.classList.remove('is-perfect', 'is-great', 'is-good', 'is-graze');
+        if (ui.combatHammerStatus) ui.combatHammerStatus.textContent = 'Hold to wind up';
+      }
+    }, 520);
+  }
+
+  function beginStaffGesture(event, weapon) {
+    if (
+      runtime.staffGesture ||
+      runtime.staffSpellInFlight ||
+      runtime.combat?.defeated ||
+      weapon?.weaponType !== 'staff'
+    ) return;
+
+    clearStaffTrail();
+
+    const point = staffPointFromEvent(event);
+    runtime.staffGesture = {
+      pointerId: event.pointerId,
+      weaponKey: weapon.key,
+      points: [point],
+      trailNodes: [],
+      pathLength: 0,
+      lastPoint: point,
+      confirmed: false,
+    };
+
+    try { ui.combatStage.setPointerCapture(event.pointerId); } catch (error) {}
+
+    ui.combatStage?.classList.add('is-staff-drawing');
+    if (ui.combatSpellStatus) ui.combatSpellStatus.textContent = 'Drawing…';
+    ui.combatStaffGuide?.classList.add('is-drawing');
+    ui.combatStaffGuide?.classList.remove('is-confirmed', 'is-invalid');
+
+    addStaffTrailSegment(point, point, runtime.staffGesture);
+    emitStaffCursorSpark(event, true);
+    event.preventDefault();
+  }
+
+  function continueStaffGesture(event) {
+    const gesture = runtime.staffGesture;
+    if (!gesture || gesture.pointerId !== event.pointerId || state.location !== 'combat') return;
+
+    if ((event.buttons & 1) === 0) {
+      endStaffGesture(event, true);
+      return;
+    }
+
+    const point = staffPointFromEvent(event);
+    const last = gesture.lastPoint;
+    const distance = Math.hypot(point.x - last.x, point.y - last.y);
+
+    if (distance < 3.5) return;
+
+    gesture.pathLength += distance;
+    gesture.points.push(point);
+    if (gesture.points.length > 280) gesture.points.shift();
+
+    addStaffTrailSegment(last, point, gesture);
+    gesture.lastPoint = point;
+
+    const circle = analyzeStaffCircle(gesture.points, gesture.pathLength);
+    if (circle.accepted) {
+      confirmStaffCircle(gesture, circle, event);
+      return;
+    }
+
+    event.preventDefault();
+  }
+
+  function endStaffGesture(event, shouldCast) {
+    const gesture = runtime.staffGesture;
+    if (!gesture) return;
+
+    if (event?.pointerId != null && gesture.pointerId !== event.pointerId) return;
+
+    if (shouldCast) {
+      const circle = analyzeStaffCircle(gesture.points, gesture.pathLength);
+      if (circle.accepted) {
+        confirmStaffCircle(gesture, circle, event);
+        return;
+      }
+    }
+
+    releaseStaffPointer(event, gesture);
+    runtime.staffGesture = null;
+    ui.combatStage?.classList.remove('is-staff-drawing');
+    ui.combatStaffGuide?.classList.remove('is-drawing');
+    ui.combatStaffGuide?.classList.add('is-invalid');
+    if (ui.combatSpellStatus) ui.combatSpellStatus.textContent = 'No spell recognized';
+
+    fadeStaffTrail(gesture.trailNodes);
+
+    window.setTimeout(() => {
+      if (getMainHandGear()?.weaponType === 'staff' && !runtime.staffGesture && !runtime.staffSpellInFlight) {
+        ui.combatStaffGuide?.classList.remove('is-invalid');
+        if (ui.combatSpellStatus) ui.combatSpellStatus.textContent = 'Draw a circle';
+      }
+    }, 520);
+  }
+
+  function cancelStaffGesture(event, immediate = false) {
+    const gesture = runtime.staffGesture;
+
+    if (gesture && event?.pointerId != null && gesture.pointerId !== event.pointerId) return;
+    if (gesture) releaseStaffPointer(event, gesture);
+
+    runtime.staffGesture = null;
+    ui?.combatStage?.classList.remove('is-staff-drawing');
+
+    if (gesture?.trailNodes?.length) {
+      if (immediate) {
+        gesture.trailNodes.forEach((node) => node.remove());
+      } else {
+        fadeStaffTrail(gesture.trailNodes);
+      }
+    }
+
+    if (ui?.combatStaffGuide) {
+      ui.combatStaffGuide.classList.remove('is-drawing', 'is-confirmed', 'is-invalid');
+    }
+  }
+
+  function releaseStaffPointer(event, gesture) {
+    const pointerId = event?.pointerId ?? gesture?.pointerId;
+    if (pointerId == null) return;
+
+    try {
+      if (ui?.combatStage?.hasPointerCapture(pointerId)) {
+        ui.combatStage.releasePointerCapture(pointerId);
+      }
+    } catch (error) {}
+  }
+
+  function staffPointFromEvent(event) {
+    const rect = ui.combatStage.getBoundingClientRect();
+    return {
+      x: clamp(event.clientX - rect.left, 0, rect.width),
+      y: clamp(event.clientY - rect.top, 0, rect.height),
+    };
+  }
+
+  function addStaffTrailSegment(from, to, gesture) {
+    if (!ui.combatStage || !gesture) return;
+
+    const distance = Math.max(1, Math.hypot(to.x - from.x, to.y - from.y));
+    const steps = Math.max(1, Math.ceil(distance / 7));
+
+    for (let i = 0; i <= steps; i += 1) {
+      if (gesture.trailNodes.length >= 420) break;
+      const t = steps === 0 ? 1 : i / steps;
+      const x = from.x + ((to.x - from.x) * t);
+      const y = from.y + ((to.y - from.y) * t);
+
+      const dot = document.createElement('span');
+      dot.className = 'combat-spell-particle';
+      dot.style.left = `${x}px`;
+      dot.style.top = `${y}px`;
+      dot.style.setProperty('--spell-size', `${randomInt(4, 8)}px`);
+      dot.style.setProperty('--spell-delay', `${randomInt(0, 45)}ms`);
+      ui.combatStage.appendChild(dot);
+      gesture.trailNodes.push(dot);
+    }
+  }
+
+  function emitStaffCursorSpark(event, force = false) {
+    if (!ui.combatStage || state.location !== 'combat' || runtime.combat?.defeated) return;
+    if (getMainHandGear()?.weaponType !== 'staff') return;
+
+    const now = performance.now();
+    if (!force && now - runtime.staffCursorSparkAt < 28) return;
+    runtime.staffCursorSparkAt = now;
+
+    const point = staffPointFromEvent(event);
+    const sparkCount = force ? 4 : 2;
+
+    for (let i = 0; i < sparkCount; i += 1) {
+      const spark = document.createElement('span');
+      spark.className = 'staff-cursor-spark';
+      spark.style.left = `${point.x}px`;
+      spark.style.top = `${point.y}px`;
+      spark.style.setProperty('--spark-x', `${randomInt(-18, 18)}px`);
+      spark.style.setProperty('--spark-y', `${randomInt(-25, 5)}px`);
+      spark.style.setProperty('--spark-size', `${randomInt(3, 7)}px`);
+      ui.combatStage.appendChild(spark);
+      spark.addEventListener('animationend', () => spark.remove(), { once: true });
+    }
+  }
+
+  function analyzeStaffCircle(points, suppliedPathLength = 0) {
+    if (!Array.isArray(points) || points.length < 20) {
+      return { accepted: false };
+    }
+
+    const resamplePath = (source, sampleCount = 48) => {
+      if (source.length < 2) return source.slice();
+
+      const distances = [0];
+      let total = 0;
+
+      for (let i = 1; i < source.length; i += 1) {
+        total += Math.hypot(
+          source[i].x - source[i - 1].x,
+          source[i].y - source[i - 1].y
+        );
+        distances.push(total);
+      }
+
+      if (total <= 0) return source.slice(0, 1);
+
+      const samples = [];
+      let segment = 1;
+
+      for (let i = 0; i < sampleCount; i += 1) {
+        const target = (total * i) / (sampleCount - 1);
+
+        while (segment < distances.length - 1 && distances[segment] < target) {
+          segment += 1;
+        }
+
+        const startDistance = distances[segment - 1];
+        const endDistance = distances[segment];
+        const span = Math.max(.0001, endDistance - startDistance);
+        const t = clamp((target - startDistance) / span, 0, 1);
+        const a = source[segment - 1];
+        const b = source[segment];
+
+        samples.push({
+          x: a.x + ((b.x - a.x) * t),
+          y: a.y + ((b.y - a.y) * t),
+        });
+      }
+
+      return samples;
+    };
+
+    const smoothPath = (source, radius = 2) => {
+      return source.map((_, index) => {
+        let x = 0;
+        let y = 0;
+        let count = 0;
+
+        for (let offset = -radius; offset <= radius; offset += 1) {
+          const sampleIndex = clamp(index + offset, 0, source.length - 1);
+          x += source[sampleIndex].x;
+          y += source[sampleIndex].y;
+          count += 1;
+        }
+
+        return { x: x / count, y: y / count };
+      });
+    };
+
+    const sampled = resamplePath(points, 48);
+    if (sampled.length < 20) return { accepted: false };
+
+    // Smooth only for shape analysis. The visible spell trail still follows
+    // the player's original drawing exactly.
+    const analyzed = smoothPath(sampled, 2);
+
+    let minX = Infinity;
+    let maxX = -Infinity;
+    let minY = Infinity;
+    let maxY = -Infinity;
+
+    analyzed.forEach((point) => {
+      minX = Math.min(minX, point.x);
+      maxX = Math.max(maxX, point.x);
+      minY = Math.min(minY, point.y);
+      maxY = Math.max(maxY, point.y);
+    });
+
+    const width = maxX - minX;
+    const height = maxY - minY;
+    const diameter = (width + height) / 2;
+    const minDimension = Math.min(width, height);
+    const maxDimension = Math.max(width, height);
+    const aspectRatio = maxDimension > 0 ? minDimension / maxDimension : 0;
+
+    const centerX = (minX + maxX) / 2;
+    const centerY = (minY + maxY) / 2;
+
+    const first = analyzed[0];
+    const last = analyzed[analyzed.length - 1];
+    const closureDistance = Math.hypot(last.x - first.x, last.y - first.y);
+    const closureRatio = diameter > 0 ? closureDistance / diameter : 1;
+
+    let pathLength = suppliedPathLength || 0;
+    if (!pathLength) {
+      for (let i = 1; i < points.length; i += 1) {
+        pathLength += Math.hypot(
+          points[i].x - points[i - 1].x,
+          points[i].y - points[i - 1].y
+        );
+      }
+    }
+
+    const radii = analyzed.map((point) =>
+      Math.hypot(point.x - centerX, point.y - centerY)
+    );
+    const meanRadius = radii.reduce((sum, radius) => sum + radius, 0) / radii.length;
+    const variance = radii.reduce(
+      (sum, radius) => sum + ((radius - meanRadius) ** 2),
+      0
+    ) / radii.length;
+    const radialDeviation = meanRadius > 0
+      ? Math.sqrt(variance) / meanRadius
+      : 1;
+
+    let totalAngle = 0;
+    for (let i = 1; i < analyzed.length; i += 1) {
+      const a = Math.atan2(
+        analyzed[i - 1].y - centerY,
+        analyzed[i - 1].x - centerX
+      );
+      const b = Math.atan2(
+        analyzed[i].y - centerY,
+        analyzed[i].x - centerX
+      );
+
+      let delta = b - a;
+      while (delta > Math.PI) delta -= Math.PI * 2;
+      while (delta < -Math.PI) delta += Math.PI * 2;
+      totalAngle += delta;
+    }
+
+    const angleCoverage = Math.abs(totalAngle);
+    const expectedCircumference = Math.max(1, Math.PI * 2 * meanRadius);
+    const circumferenceRatio = pathLength / expectedCircumference;
+
+    let polygonAreaTwice = 0;
+    let closedPerimeter = 0;
+
+    for (let i = 0; i < analyzed.length; i += 1) {
+      const a = analyzed[i];
+      const b = analyzed[(i + 1) % analyzed.length];
+      polygonAreaTwice += (a.x * b.y) - (b.x * a.y);
+      closedPerimeter += Math.hypot(b.x - a.x, b.y - a.y);
+    }
+
+    const polygonArea = Math.abs(polygonAreaTwice) / 2;
+    const circularity = closedPerimeter > 0
+      ? (4 * Math.PI * polygonArea) / (closedPerimeter ** 2)
+      : 0;
+
+    // Corner rejection is now the main protection against triangles,
+    // rectangles and other polygons. A larger tangent span keeps normal
+    // hand jitter from being mistaken for a corner.
+    const turns = [];
+    const turnSpan = 3;
+
+    for (let i = turnSpan; i < analyzed.length - turnSpan; i += 1) {
+      const before = analyzed[i - turnSpan];
+      const current = analyzed[i];
+      const after = analyzed[i + turnSpan];
+
+      const angleA = Math.atan2(
+        current.y - before.y,
+        current.x - before.x
+      );
+      const angleB = Math.atan2(
+        after.y - current.y,
+        after.x - current.x
+      );
+
+      let delta = angleB - angleA;
+      while (delta > Math.PI) delta -= Math.PI * 2;
+      while (delta < -Math.PI) delta += Math.PI * 2;
+      turns.push(Math.abs(delta));
+    }
+
+    const sortedTurns = turns.slice().sort((a, b) => a - b);
+    const maxTurn = sortedTurns.length
+      ? sortedTurns[sortedTurns.length - 1]
+      : Math.PI;
+    const p90Turn = sortedTurns.length
+      ? sortedTurns[Math.min(sortedTurns.length - 1, Math.floor(sortedTurns.length * .9))]
+      : Math.PI;
+    const sharpCornerCount = turns.filter((turn) => turn > .92).length;
+
+    const accepted =
+      minDimension >= 62 &&
+      pathLength >= 145 &&
+      aspectRatio >= .66 &&
+      closureRatio <= .34 &&
+      radialDeviation <= .24 &&
+      angleCoverage >= 5.05 &&
+      angleCoverage <= 7.35 &&
+      circumferenceRatio >= .68 &&
+      circumferenceRatio <= 1.48 &&
+      circularity >= .74 &&
+      maxTurn <= 1.18 &&
+      p90Turn <= .72 &&
+      sharpCornerCount <= 1;
+
+    return {
+      accepted,
+      centerX,
+      centerY,
+      width,
+      height,
+      pathLength,
+      aspectRatio,
+      closureRatio,
+      radialDeviation,
+      angleCoverage,
+      circumferenceRatio,
+      circularity,
+      maxTurn,
+      p90Turn,
+      sharpCornerCount,
+    };
+  }
+
+  function confirmStaffCircle(gesture, circle, event) {
+    if (!gesture || gesture.confirmed || runtime.staffSpellInFlight || runtime.combat?.defeated) return;
+
+    gesture.confirmed = true;
+    releaseStaffPointer(event, gesture);
+    runtime.staffGesture = null;
+    runtime.staffSpellInFlight = true;
+
+    ui.combatStage?.classList.remove('is-staff-drawing');
+    ui.combatStaffGuide?.classList.remove('is-drawing', 'is-invalid');
+    ui.combatStaffGuide?.classList.add('is-confirmed', 'is-casting');
+    if (ui.combatSpellStatus) ui.combatSpellStatus.textContent = 'Fireball';
+
+    gesture.trailNodes.forEach((node, index) => {
+      node.classList.add('is-confirmed');
+      node.style.setProperty('--confirm-delay', `${Math.min(index * 2, 180)}ms`);
+    });
+
+    const weapon = { key: gesture.weaponKey, ...GEAR_ITEMS[gesture.weaponKey] };
+    const origin = {
+      x: circle.centerX,
+      y: circle.centerY,
+    };
+
+    window.setTimeout(() => {
+      createStaffFireballProjectile(origin, weapon);
+    }, 230);
+
+    window.setTimeout(() => {
+      fadeStaffTrail(gesture.trailNodes);
+    }, 360);
+  }
+
+  function createStaffFireballProjectile(origin, weapon) {
+    if (!ui.combatStage || !ui.combatEnemyTarget || runtime.combat?.defeated) {
+      runtime.staffSpellInFlight = false;
+      renderCombat();
+      return;
+    }
+
+    const stageRect = ui.combatStage.getBoundingClientRect();
+    const targetRect = ui.combatEnemyTarget.getBoundingClientRect();
+
+    const startX = clamp(origin?.x ?? stageRect.width * .28, 24, stageRect.width - 24);
+    const startY = clamp(origin?.y ?? stageRect.height * .5, 24, stageRect.height - 24);
+    const endX = (targetRect.left + (targetRect.width * .5)) - stageRect.left;
+    const endY = (targetRect.top + (targetRect.height * .5)) - stageRect.top;
+
+    const fireball = document.createElement('span');
+    fireball.className = 'combat-fireball-projectile';
+    fireball.style.left = `${startX}px`;
+    fireball.style.top = `${startY}px`;
+    fireball.style.setProperty('--fireball-dx', `${endX - startX}px`);
+    fireball.style.setProperty('--fireball-dy', `${endY - startY}px`);
+    ui.combatStage.appendChild(fireball);
+
+    fireball.addEventListener('animationend', () => {
+      fireball.remove();
+      runtime.staffSpellInFlight = false;
+      strikeCombatEnemyWithStaff(weapon);
+    }, { once: true });
+  }
+
+  function strikeCombatEnemyWithStaff(weapon) {
+    const combat = runtime.combat;
+    if (!combat || combat.defeated || weapon?.weaponType !== 'staff') return;
+
+    combat.health = Math.max(0, combat.health - Math.max(1, weapon.damage || 1));
+    createFireballImpactEffect();
+
+    ui.combatEnemyTarget?.classList.remove('is-fireball-hit');
+    void ui.combatEnemyTarget?.offsetWidth;
+    ui.combatEnemyTarget?.classList.add('is-fireball-hit');
+    window.setTimeout(() => ui.combatEnemyTarget?.classList.remove('is-fireball-hit'), 260);
+
+    ui.combatStaffGuide?.classList.remove('is-confirmed', 'is-casting');
+    if (ui.combatSpellStatus) ui.combatSpellStatus.textContent = 'Draw a circle';
+
+    renderCombat();
+    if (combat.health <= 0) defeatCombatEnemy(weapon);
+  }
+
+  function createFireballImpactEffect() {
+    if (!ui.combatEnemyTarget) return;
+
+    const impact = document.createElement('span');
+    impact.className = 'combat-fireball-impact';
+    impact.setAttribute('aria-hidden', 'true');
+    ui.combatEnemyTarget.appendChild(impact);
+    impact.addEventListener('animationend', () => impact.remove(), { once: true });
+  }
+
+  function fadeStaffTrail(nodes) {
+    if (!Array.isArray(nodes)) return;
+    nodes.forEach((node) => {
+      if (!node?.isConnected) return;
+      node.classList.add('is-fading');
+      window.setTimeout(() => node.remove(), 360);
+    });
+  }
+
+  function clearStaffTrail() {
+    ui?.combatStage?.querySelectorAll('.combat-spell-particle').forEach((node) => node.remove());
   }
 
   function beginBowCharge(event, weapon) {
@@ -1812,7 +2761,8 @@
     runtime.swordGesture = null;
     cancelBowCharge();
     runtime.bowShotInFlight = false;
-    ui.combatStage?.classList.remove('is-swiping', 'is-bow-charging', 'is-bow-fully-drawn');
+    cancelHammerTiming();
+    ui.combatStage?.classList.remove('is-swiping', 'is-bow-charging', 'is-bow-fully-drawn', 'is-hammer-charging');
   }
 
   function strikeCombatEnemyWithSword(x1, y1, x2, y2) {
@@ -1856,7 +2806,11 @@
     combat.defeated = true;
     combat.health = 0;
     runtime.swordGesture = null;
-    ui.combatStage?.classList.remove('is-swiping');
+    cancelStaffGesture(null, true);
+    runtime.staffSpellInFlight = false;
+    cancelHammerTiming(null, true);
+    runtime.hammerSlamInFlight = false;
+    ui.combatStage?.classList.remove('is-swiping', 'is-staff-drawing', 'is-hammer-charging');
     ui.combatEnemyTarget?.classList.add('is-defeated');
 
     const loot = rollSlimeLoot();
@@ -1867,6 +2821,8 @@
       gainClassXp('swordsman', SLIME_SWORDSMAN_XP);
     } else if (weapon?.weaponType === 'bow') {
       gainClassXp('ranger', SLIME_RANGER_XP);
+    } else if (weapon?.weaponType === 'staff') {
+      gainClassXp('wizard', SLIME_WIZARD_XP);
     }
 
     renderCombat();
@@ -2116,7 +3072,8 @@
     }).join('');
 
     const axeOwned = state.inventory.basicWoodcuttersAxe > 0;
-    const affordable = state.wallet.copper >= BASIC_AXE_PRICE;
+    const affordable = state.freeShops || state.wallet.copper >= BASIC_AXE_PRICE;
+    const axePriceLabel = state.freeShops ? 'FREE' : formatCoinPrice(BASIC_AXE_PRICE);
     ui.lumberShopBody.innerHTML = `
       <section class="shop-section">
         <div class="shop-section-head"><strong>Sell Timber</strong><span>Garrick buys logs & acorns</span></div>
@@ -2127,7 +3084,7 @@
         <div class="shop-product">
           <span class="shop-product-icon">🪓</span>
           <span class="shop-product-copy"><strong>Basic Woodcutter's Axe</strong><small>+1 damage to trees when equipped</small></span>
-          <span class="shop-product-buy"><b>${formatCoinPrice(BASIC_AXE_PRICE)}</b><button type="button" data-buy-basic-axe ${axeOwned || !affordable ? 'disabled' : ''}>${axeOwned ? 'Owned' : affordable ? 'Buy' : 'Need coins'}</button></span>
+          <span class="shop-product-buy"><b class="${state.freeShops ? 'is-free' : ''}">${axePriceLabel}</b><button type="button" data-buy-basic-axe ${axeOwned || !affordable ? 'disabled' : ''}>${axeOwned ? 'Owned' : affordable ? 'Buy' : 'Need coins'}</button></span>
         </div>
       </section>`;
   }
@@ -2164,7 +3121,8 @@
     const buyRows = Object.entries(shop.buy).map(([key, item]) => {
       const owned = state.inventory[key] || 0;
       const ownedUnique = item.unique && owned > 0;
-      const affordable = state.wallet.copper >= item.price;
+      const affordable = state.freeShops || state.wallet.copper >= item.price;
+      const priceLabel = state.freeShops ? 'FREE' : formatCoinPrice(item.price);
       const buttonText = ownedUnique ? 'Owned' : affordable ? 'Buy' : 'Need coins';
 
       return `
@@ -2175,7 +3133,7 @@
             <small>${item.description}</small>
           </span>
           <span class="shop-product-buy">
-            <b>${formatCoinPrice(item.price)}</b>
+            <b class="${state.freeShops ? 'is-free' : ''}">${priceLabel}</b>
             <button type="button" data-village-buy-item="${key}" ${ownedUnique || !affordable ? 'disabled' : ''}>${buttonText}</button>
           </span>
         </div>`;
@@ -2227,12 +3185,12 @@
       return;
     }
 
-    if (state.wallet.copper < listing.price) {
+    if (!state.freeShops && state.wallet.copper < listing.price) {
       showToast('Not enough coins', `${listing.name} costs ${formatCoinPrice(listing.price)}.`, '¢');
       return;
     }
 
-    state.wallet.copper -= listing.price;
+    if (!state.freeShops) state.wallet.copper -= listing.price;
     const amount = Math.max(1, listing.amount || 1);
     state.inventory[key] = (state.inventory[key] || 0) + amount;
 
@@ -2265,11 +3223,11 @@
 
   function buyBasicAxe() {
     if (state.inventory.basicWoodcuttersAxe > 0) return;
-    if (state.wallet.copper < BASIC_AXE_PRICE) {
+    if (!state.freeShops && state.wallet.copper < BASIC_AXE_PRICE) {
       showToast('Not enough coins', `The axe costs ${formatCoinPrice(BASIC_AXE_PRICE)}.`, '¢');
       return;
     }
-    state.wallet.copper -= BASIC_AXE_PRICE;
+    if (!state.freeShops) state.wallet.copper -= BASIC_AXE_PRICE;
     state.inventory.basicWoodcuttersAxe = 1;
     renderWallet();
     renderInventory();
