@@ -4592,3 +4592,411 @@ body.dark .combat-view {
   }
   .craftsman-character-image { height: 335px; }
 }
+
+
+/* =========================================================
+   HUD SAFE AREA
+   The profile/wallet is an overlay, but scene chrome is positioned from a
+   runtime-measured safe edge so it never hides location controls or labels.
+   ========================================================= */
+:root {
+  --hud-safe-top: 104px;
+}
+
+/* World-level panels begin below the measured profile + wallet footprint. */
+.map-view {
+  padding-top: calc(var(--hud-safe-top) + 12px) !important;
+}
+
+.town-heading {
+  top: calc(var(--hud-safe-top) + 10px) !important;
+}
+
+.mill-back,
+.interior-back {
+  top: calc(var(--hud-safe-top) + 10px) !important;
+}
+
+.mill-title,
+.interior-title {
+  top: calc(var(--hud-safe-top) + 10px) !important;
+}
+
+.combat-exit {
+  top: calc(var(--hud-safe-top) + 10px) !important;
+}
+
+.combat-enemy-stage {
+  top: calc(var(--hud-safe-top) + 64px) !important;
+}
+
+.lumber-shop,
+.village-shop {
+  top: calc(var(--hud-safe-top) + 10px) !important;
+}
+
+/* The HUD remains above scenery, while the safe-area controls stay above the
+   world itself without needing hard-coded screen-size offsets. */
+.mill-back,
+.interior-back,
+.mill-title,
+.interior-title,
+.town-heading,
+.combat-exit {
+  z-index: 190;
+}
+
+/* On narrower worlds, stack the centered location title below the return
+   button so the two controls cannot collide horizontally. */
+@media (max-width: 900px) {
+  .mill-title,
+  .interior-title {
+    top: calc(var(--hud-safe-top) + 62px) !important;
+  }
+
+  .town-heading {
+    top: calc(var(--hud-safe-top) + 10px) !important;
+  }
+
+  .combat-enemy-stage {
+    top: calc(var(--hud-safe-top) + 78px) !important;
+  }
+}
+
+
+/* =========================================================
+   BASIC SWORD COMBAT
+   ========================================================= */
+.combat-enemy-stage {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.combat-enemy-stage.sword-ready {
+  cursor: crosshair;
+}
+
+.combat-enemy-stage.is-swiping {
+  cursor: grabbing;
+}
+
+.combat-weapon-hint {
+  max-width: 380px;
+  padding: 7px 11px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted);
+  box-shadow: 0 8px 20px rgba(0,0,0,.08);
+  font-size: 9px;
+  font-weight: 760;
+  text-align: center;
+  pointer-events: none;
+}
+
+.combat-slime.is-sword-hit .combat-slime-body {
+  animation: combatSwordHit .18s ease both;
+}
+
+.combat-slime.is-defeated {
+  pointer-events: none;
+  animation: combatEnemyDefeat .46s ease forwards;
+}
+
+@keyframes combatSwordHit {
+  0% { transform: translateX(-50%) scale(1); filter: brightness(1); }
+  42% { transform: translateX(-50%) translateX(9px) scale(.96,1.04); filter: brightness(1.28); }
+  100% { transform: translateX(-50%) scale(1); filter: brightness(1); }
+}
+
+@keyframes combatEnemyDefeat {
+  0% { opacity:1; transform:scale(1); }
+  70% { opacity:.5; transform:translateY(10px) scale(.92,.76); filter:saturate(.45); }
+  100% { opacity:0; transform:translateY(26px) scale(.78,.42); filter:saturate(.2); }
+}
+
+.sword-slash-effect {
+  position: absolute;
+  z-index: 70;
+  height: 5px;
+  border-radius: 999px;
+  pointer-events: none;
+  transform-origin: 50% 50%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.95) 30%, #e8e5d7 58%, transparent);
+  box-shadow: 0 0 10px rgba(255,255,255,.62), 0 0 18px rgba(204,214,196,.3);
+  animation: swordSlashFlash .22s ease-out forwards;
+}
+
+@keyframes swordSlashFlash {
+  0% { opacity:0; height:2px; filter:blur(1px); }
+  28% { opacity:1; height:6px; }
+  100% { opacity:0; height:1px; filter:blur(2px); }
+}
+
+.combat-defeat-overlay[hidden] {
+  display: none !important;
+}
+
+.combat-defeat-overlay {
+  position: absolute;
+  z-index: 120;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: calc(var(--hud-safe-top) + 16px) 24px 150px;
+  background: rgba(18,22,19,.28);
+  backdrop-filter: blur(4px);
+}
+
+.combat-defeat-card {
+  width: min(360px, 100%);
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--surface-solid);
+  color: var(--text);
+  box-shadow: 0 26px 70px rgba(0,0,0,.28);
+  animation: defeatCardIn .26s var(--ease-spring) both;
+}
+
+@keyframes defeatCardIn {
+  0% { opacity:0; transform:translateY(18px) scale(.95); }
+  100% { opacity:1; transform:none; }
+}
+
+.combat-defeat-kicker,
+.combat-defeat-subtitle {
+  display: block;
+  color: var(--muted);
+  font-size: 8px;
+  font-weight: 850;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.combat-defeat-card > strong {
+  display: block;
+  margin: 4px 0 14px;
+  font-size: 23px;
+  letter-spacing: -.035em;
+}
+
+.combat-defeat-subtitle {
+  margin-bottom: 7px;
+}
+
+.combat-defeat-loot {
+  display: grid;
+  gap: 6px;
+}
+
+.combat-loot-row {
+  min-height: 42px;
+  padding: 7px 9px;
+  display: grid;
+  grid-template-columns: 28px minmax(0,1fr) auto;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: var(--surface-quiet);
+}
+
+.combat-loot-icon {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--surface-soft);
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.combat-loot-name {
+  font-size: 10px;
+  font-weight: 780;
+}
+
+.combat-loot-row strong {
+  color: var(--muted);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.combat-defeat-card button {
+  width: 100%;
+  min-height: 40px;
+  margin-top: 13px;
+  border: 0;
+  border-radius: 11px;
+  background: var(--accent);
+  color: white;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 850;
+}
+
+.green-goop-icon {
+  display: inline-block;
+  width: 20px;
+  height: 15px;
+  border-radius: 50% 48% 42% 45% / 66% 61% 39% 36%;
+  background: linear-gradient(145deg, #9adf73, #56a74a 58%, #397a3d);
+  box-shadow: inset 0 3px 4px rgba(255,255,255,.25), 0 2px 4px rgba(38,87,42,.18);
+}
+
+@media (max-width: 760px) {
+  .combat-weapon-hint {
+    max-width: 260px;
+    font-size: 8px;
+  }
+  .combat-defeat-overlay {
+    padding: calc(var(--hud-safe-top) + 12px) 12px 205px;
+  }
+  .combat-defeat-card {
+    padding: 16px;
+  }
+}
+
+
+/* =========================================================
+   BASIC BOW COMBAT + AMMO SLOT
+   ========================================================= */
+.weapon-equipment-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.combat-enemy-stage.bow-ready {
+  cursor: crosshair;
+}
+
+.combat-enemy-stage.is-bow-charging {
+  cursor: grabbing;
+}
+
+.combat-bow-charge[hidden] {
+  display: none !important;
+}
+
+.combat-bow-charge {
+  width: min(300px, calc(100% - 30px));
+  padding: 9px 11px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: var(--surface);
+  box-shadow: 0 9px 22px rgba(0,0,0,.09);
+  pointer-events: none;
+}
+
+.combat-bow-charge-line,
+.combat-ammo-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 8.5px;
+  font-weight: 800;
+}
+
+.combat-bow-charge-line strong,
+.combat-ammo-status strong {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.combat-bow-charge-track {
+  height: 10px;
+  margin: 7px 0 6px;
+  padding: 2px;
+  border-radius: 999px;
+  background: rgba(85,99,86,.14);
+  box-shadow: inset 0 0 0 1px rgba(74,87,76,.07);
+  overflow: hidden;
+}
+
+.combat-bow-charge-fill {
+  display: block;
+  width: 0%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #8a6840, #c2914f 58%, #e0bb68);
+  transition: width .035s linear;
+}
+
+.combat-enemy-stage.is-bow-fully-drawn .combat-bow-charge-fill {
+  box-shadow: 0 0 8px rgba(211,166,87,.42);
+}
+
+.combat-arrow-projectile {
+  position: absolute;
+  z-index: 86;
+  display: block;
+  width: 58px;
+  height: 24px;
+  margin-left: -29px;
+  margin-top: -12px;
+  color: #6b4a2d;
+  font-size: 44px;
+  line-height: 24px;
+  font-weight: 900;
+  text-shadow: 0 2px 2px rgba(255,255,255,.2);
+  pointer-events: none;
+  transform-origin: 50% 50%;
+  transform: rotate(var(--arrow-angle));
+  animation: combatArrowFlight .28s cubic-bezier(.16,.7,.28,1) forwards;
+}
+
+@keyframes combatArrowFlight {
+  0% {
+    opacity: 0;
+    transform: translate(0,0) rotate(var(--arrow-angle)) scale(.88);
+  }
+  12% { opacity: 1; }
+  100% {
+    opacity: 1;
+    transform: translate(var(--arrow-dx), var(--arrow-dy)) rotate(var(--arrow-angle)) scale(1);
+  }
+}
+
+.combat-arrow-impact {
+  position: absolute;
+  z-index: 12;
+  right: 4px;
+  top: 43%;
+  color: #604227;
+  font-size: 48px;
+  line-height: 1;
+  pointer-events: none;
+  transform: translate(26px,-50%) rotate(5deg);
+  animation: combatArrowImpact .42s ease-out forwards;
+}
+
+@keyframes combatArrowImpact {
+  0% { opacity:0; transform:translate(54px,-50%) rotate(5deg) scale(.78); }
+  25% { opacity:1; transform:translate(18px,-50%) rotate(5deg) scale(1.06); }
+  70% { opacity:1; transform:translate(18px,-50%) rotate(5deg) scale(1); }
+  100% { opacity:0; transform:translate(21px,-44%) rotate(9deg) scale(.94); }
+}
+
+.combat-slime.is-bow-hit .combat-slime-body {
+  animation: combatBowHit .19s ease both;
+}
+
+@keyframes combatBowHit {
+  0% { transform: translateX(-50%) scale(1); filter: brightness(1); }
+  42% { transform: translateX(-50%) translateX(10px) scale(.95,1.045); filter: brightness(1.24); }
+  100% { transform: translateX(-50%) scale(1); filter: brightness(1); }
+}
+
+@media (max-width: 700px) {
+  .weapon-equipment-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .combat-bow-charge {
+    width: min(260px, calc(100% - 18px));
+  }
+}

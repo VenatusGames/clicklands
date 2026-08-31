@@ -3,6 +3,8 @@
   const LOGO = 'assets/images/CL-logo.png';
   const THEME_KEY = 'clicklands-theme';
   const OVERALL_XP_PER_SKILL_LEVEL = 25;
+  const SLIME_SWORDSMAN_XP = 20;
+  const SLIME_RANGER_XP = 20;
   const COIN_RATES = { copper: 1, silver: 100, gold: 10000, platinum: 1000000 };
   const BASIC_AXE_PRICE = 150;
   const LUMBER_SELL_PRICES = {
@@ -123,7 +125,12 @@
       shortName: 'Basic Bow',
       slot: 'main-hand',
       icon: '🏹',
-      bonus: 'Starter ranged weapon · combat stats later',
+      weaponType: 'bow',
+      ammoType: 'arrows',
+      minDamage: 4,
+      maxDamage: 12,
+      chargeTime: 1200,
+      bonus: 'Bow · hold to draw, release to fire · 4–12 damage',
     },
     basicMagicStaff: {
       name: 'Basic Magic Staff',
@@ -137,7 +144,9 @@
       shortName: 'Basic Sword',
       slot: 'main-hand',
       icon: '⚔',
-      bonus: 'Starter melee weapon · combat stats later',
+      weaponType: 'sword',
+      damage: 8,
+      bonus: 'Sword · 8 combat damage per swipe',
     },
     basicShield: {
       name: 'Basic Shield',
@@ -185,7 +194,7 @@
   const EQUIPMENT_SLOT_LABELS = {
     axe: 'Axe', pickaxe: 'Pickaxe', helmet: 'Helmet', chestplate: 'Chestplate',
     leggings: 'Leggings', boots: 'Boots', back: 'Back', necklace: 'Necklace',
-    'ring-1': 'Ring I', 'ring-2': 'Ring II', 'main-hand': 'Main Hand', 'off-hand': 'Off Hand',
+    'ring-1': 'Ring I', 'ring-2': 'Ring II', 'main-hand': 'Main Hand', 'off-hand': 'Off Hand', ammo: 'Ammo',
     'trinket-1': 'Trinket I', 'trinket-2': 'Trinket II', 'trinket-3': 'Trinket III',
     'trinket-4': 'Trinket IV', 'trinket-5': 'Trinket V',
   };
@@ -223,6 +232,7 @@
       smallHealthPotion: 0,
       cookies: 0,
       arrows: 0,
+      greenGoop: 0,
       basicWoodcuttersAxe: 0,
       basicBow: 0,
       basicMagicStaff: 0,
@@ -239,7 +249,7 @@
     equipment: {
       axe: null, pickaxe: null, helmet: null, chestplate: null, leggings: null,
       boots: null, back: null, necklace: null, 'ring-1': null, 'ring-2': null,
-      'main-hand': null, 'off-hand': null, 'trinket-1': null, 'trinket-2': null,
+      'main-hand': null, 'off-hand': null, ammo: null, 'trinket-1': null, 'trinket-2': null,
       'trinket-3': null, 'trinket-4': null, 'trinket-5': null,
     },
     health: { current: 100, max: 100 },
@@ -338,6 +348,10 @@
     slimeSpawnTimer: null,
     combat: null,
     combatReturnLocation: 'forest',
+    swordGesture: null,
+    bowCharge: null,
+    bowChargeFrame: null,
+    bowShotInFlight: false,
     hoverResource: null,
     entered: false,
     lumberShopOpen: false,
@@ -345,6 +359,7 @@
     sawmillJob: null,
     sawmillTimer: null,
     draggedItem: null,
+    hudSafeZoneObserver: null,
   };
 
   mountApp();
@@ -357,6 +372,8 @@
   renderDrawers();
   renderLumberShop();
   renderVillageShop();
+  updateHudSafeZone();
+  initHudSafeZoneObserver();
   spawnInitialForest();
   spawnInitialMineNodes();
   startForageSpawner();
@@ -641,11 +658,11 @@
       <div class="world-view combat-view" data-view="combat">
         <button class="combat-exit" type="button" data-exit-combat>‹ Return to Forest</button>
 
-        <div class="combat-enemy-stage">
+        <div class="combat-enemy-stage" data-combat-stage>
           <div class="combat-enemy-card" aria-live="polite">
-            <div class="combat-slime" aria-hidden="true">
-              <span class="combat-slime-shadow"></span>
-              <span class="combat-slime-body">
+            <div class="combat-slime" data-combat-enemy-target aria-label="Slime combat target">
+              <span class="combat-slime-shadow" aria-hidden="true"></span>
+              <span class="combat-slime-body" aria-hidden="true">
                 <span class="combat-slime-shine"></span>
                 <span class="combat-slime-eye eye-a"></span>
                 <span class="combat-slime-eye eye-b"></span>
@@ -653,6 +670,30 @@
               </span>
             </div>
             <strong class="combat-enemy-title" data-combat-enemy-title>Slime</strong>
+            <span class="combat-weapon-hint" data-combat-hint>Equip a weapon in Main Hand to attack.</span>
+            <div class="combat-bow-charge" data-combat-bow-charge hidden>
+              <div class="combat-bow-charge-line">
+                <span>Draw</span>
+                <strong data-combat-bow-charge-label>0%</strong>
+              </div>
+              <div class="combat-bow-charge-track">
+                <span class="combat-bow-charge-fill" data-combat-bow-charge-fill></span>
+              </div>
+              <div class="combat-ammo-status">
+                <span>Ammo</span>
+                <strong><span aria-hidden="true">➶</span> <span data-combat-ammo-count>0</span></strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="combat-defeat-overlay" data-combat-defeat hidden>
+          <div class="combat-defeat-card" role="dialog" aria-modal="true" aria-labelledby="combat-defeat-title">
+            <span class="combat-defeat-kicker">Defeat</span>
+            <strong id="combat-defeat-title" data-combat-defeat-title>Slime Defeated</strong>
+            <span class="combat-defeat-subtitle">Loot collected</span>
+            <div class="combat-defeat-loot" data-combat-defeat-loot></div>
+            <button type="button" data-combat-defeat-return>Return to Forest</button>
           </div>
         </div>
 
@@ -930,7 +971,7 @@
             <span class="equipment-kicker">Loadout</span>
             <strong>Equipment</strong>
           </div>
-          <span class="equipment-summary">17 slots</span>
+          <span class="equipment-summary">18 slots</span>
         </div>
 
         <div class="equipment-groups">
@@ -943,10 +984,11 @@
           </section>
 
           <section class="equipment-group">
-            <div class="equipment-group-head"><span>Weapons</span><span class="equipment-group-count">2</span></div>
-            <div class="equipment-grid two-col">
+            <div class="equipment-group-head"><span>Weapons</span><span class="equipment-group-count">3</span></div>
+            <div class="equipment-grid three-col weapon-equipment-grid">
               ${slot('main-hand', '⚔', 'Main Hand')}
               ${slot('off-hand', '◈', 'Off Hand')}
+              ${slot('ammo', '➶', 'Ammo')}
             </div>
           </section>
 
@@ -994,7 +1036,10 @@
       themeLabel: document.querySelector('[data-theme-label]'),
       areaToggle: document.querySelector('[data-area-toggle]'),
       areaChildren: document.querySelector('[data-area-children]'),
+      topHud: document.querySelector('.top-hud'),
+      worldHost: document.querySelector('.world-host'),
       characterBar: document.querySelector('[data-character-bar]'),
+      walletHud: document.querySelector('.wallet-hud'),
       skillsDrawer: document.querySelector('[data-skills-drawer]'),
       username: document.querySelector('[data-username]'),
       overallLevel: document.querySelector('[data-overall-level]'),
@@ -1012,6 +1057,16 @@
       forageStage: document.querySelector('[data-forage-stage]'),
       slimeStage: document.querySelector('[data-slime-stage]'),
       mineStage: document.querySelector('[data-mine-stage]'),
+      combatStage: document.querySelector('[data-combat-stage]'),
+      combatEnemyTarget: document.querySelector('[data-combat-enemy-target]'),
+      combatHint: document.querySelector('[data-combat-hint]'),
+      combatBowCharge: document.querySelector('[data-combat-bow-charge]'),
+      combatBowChargeFill: document.querySelector('[data-combat-bow-charge-fill]'),
+      combatBowChargeLabel: document.querySelector('[data-combat-bow-charge-label]'),
+      combatAmmoCount: document.querySelector('[data-combat-ammo-count]'),
+      combatDefeat: document.querySelector('[data-combat-defeat]'),
+      combatDefeatTitle: document.querySelector('[data-combat-defeat-title]'),
+      combatDefeatLoot: document.querySelector('[data-combat-defeat-loot]'),
       combatEnemyTitle: document.querySelector('[data-combat-enemy-title]'),
       combatEnemyName: document.querySelector('[data-combat-enemy-name]'),
       combatEnemyHealth: document.querySelector('[data-combat-enemy-health]'),
@@ -1047,6 +1102,32 @@
     };
   }
 
+  function updateHudSafeZone() {
+    if (!ui?.worldHost || !ui?.characterBar || !ui?.walletHud) return;
+
+    const hostRect = ui.worldHost.getBoundingClientRect();
+    const characterRect = ui.characterBar.getBoundingClientRect();
+    const walletRect = ui.walletHud.getBoundingClientRect();
+
+    const hudBottom = Math.max(characterRect.bottom, walletRect.bottom);
+    const measuredSafeTop = Math.ceil(hudBottom - hostRect.top + 12);
+    const safeTop = Math.max(88, measuredSafeTop);
+
+    document.documentElement.style.setProperty('--hud-safe-top', `${safeTop}px`);
+  }
+
+  function initHudSafeZoneObserver() {
+    window.requestAnimationFrame(updateHudSafeZone);
+
+    if ('ResizeObserver' in window) {
+      const observer = new ResizeObserver(() => updateHudSafeZone());
+      observer.observe(ui.characterBar);
+      observer.observe(ui.walletHud);
+      observer.observe(ui.worldHost);
+      runtime.hudSafeZoneObserver = observer;
+    }
+  }
+
   function bindEvents() {
     const enterSound = new Audio(ENTER_SOUND);
     enterSound.preload = 'auto';
@@ -1068,6 +1149,11 @@
       const locationButton = event.target.closest('[data-location]');
       if (locationButton) {
         setLocation(locationButton.dataset.location);
+        return;
+      }
+
+      if (event.target.closest('[data-combat-defeat-return]')) {
+        exitCombat();
         return;
       }
 
@@ -1202,6 +1288,12 @@
       ui.inventoryToggle.focus();
     });
 
+    ui.combatStage?.addEventListener('pointerdown', beginCombatInput);
+    ui.combatStage?.addEventListener('pointermove', continueCombatInput);
+    ui.combatStage?.addEventListener('pointerup', (event) => endCombatInput(event, true));
+    ui.combatStage?.addEventListener('pointercancel', (event) => endCombatInput(event, false));
+    ui.combatStage?.addEventListener('lostpointercapture', (event) => endCombatInput(event, false));
+
     document.addEventListener('dragstart', (event) => {
       const item = event.target.closest('[data-drag-item]');
       if (!item) return;
@@ -1260,6 +1352,7 @@
     });
 
     window.addEventListener('resize', () => {
+      updateHudSafeZone();
       if (runtime.hoverResource?.node) positionResourceHoverBar(runtime.hoverResource.node);
     });
 
@@ -1371,7 +1464,11 @@
       name: 'Slime',
       health: 30,
       maxHealth: 30,
+      defeated: false,
+      loot: [],
     };
+    runtime.swordGesture = null;
+    ui.combatEnemyTarget?.classList.remove('is-defeated', 'is-sword-hit');
 
     state.inventoryOpen = false;
     runtime.lumberShopOpen = false;
@@ -1386,6 +1483,9 @@
 
   function exitCombat() {
     const returnLocation = runtime.combatReturnLocation || 'forest';
+    runtime.swordGesture = null;
+    cancelBowCharge();
+    runtime.bowShotInFlight = false;
     runtime.combat = null;
     setLocation(returnLocation);
   }
@@ -1420,6 +1520,413 @@
     if (ui.combatOffHand) ui.combatOffHand.textContent = offGear?.shortName || offGear?.name || 'Empty';
     if (ui.combatMainIcon) ui.combatMainIcon.innerHTML = mainGear?.icon || '◇';
     if (ui.combatOffIcon) ui.combatOffIcon.innerHTML = offGear?.icon || '◇';
+
+    const swordReady = mainGear?.weaponType === 'sword' && !combat?.defeated;
+    const bowEquipped = mainGear?.weaponType === 'bow';
+    const arrowsLoaded = state.equipment.ammo === 'arrows' && state.inventory.arrows > 0;
+    const bowReady = bowEquipped && arrowsLoaded && !combat?.defeated;
+
+    ui.combatStage?.classList.toggle('sword-ready', Boolean(swordReady));
+    ui.combatStage?.classList.toggle('bow-ready', Boolean(bowReady));
+
+    if (ui.combatBowCharge) {
+      ui.combatBowCharge.hidden = !bowEquipped || Boolean(combat?.defeated);
+    }
+    if (ui.combatAmmoCount) ui.combatAmmoCount.textContent = arrowsLoaded ? state.inventory.arrows : 0;
+
+    if (!runtime.bowCharge && ui.combatBowChargeFill) ui.combatBowChargeFill.style.width = '0%';
+    if (!runtime.bowCharge && ui.combatBowChargeLabel) ui.combatBowChargeLabel.textContent = '0%';
+
+    if (ui.combatHint) {
+      if (combat?.defeated) {
+        ui.combatHint.textContent = 'Enemy defeated.';
+      } else if (swordReady) {
+        ui.combatHint.textContent = `Hold the mouse button and swipe across the enemy · ${mainGear.damage} damage`;
+      } else if (bowEquipped && !arrowsLoaded) {
+        ui.combatHint.textContent = 'Load Arrows into the Ammo equipment slot to use the bow.';
+      } else if (bowReady) {
+        ui.combatHint.textContent = 'Hold the mouse button to draw the bow · release to fire.';
+      } else if (mainGear) {
+        ui.combatHint.textContent = `${mainGear.shortName || mainGear.name} combat is not available yet.`;
+      } else {
+        ui.combatHint.textContent = 'Equip a weapon in Main Hand to attack.';
+      }
+    }
+
+    if (ui.combatDefeat) {
+      ui.combatDefeat.hidden = !combat?.defeated;
+    }
+
+    if (combat?.defeated && ui.combatDefeatTitle && ui.combatDefeatLoot) {
+      ui.combatDefeatTitle.textContent = `${enemyName} Defeated`;
+      ui.combatDefeatLoot.innerHTML = (combat.loot || []).map((drop) => `
+        <div class="combat-loot-row">
+          <span class="combat-loot-icon" aria-hidden="true">${drop.icon}</span>
+          <span class="combat-loot-name">${drop.name}</span>
+          <strong>+${drop.amount}</strong>
+        </div>
+      `).join('');
+    }
+  }
+
+  function getMainHandGear() {
+    const key = state.equipment['main-hand'];
+    return key ? { key, ...GEAR_ITEMS[key] } : null;
+  }
+
+  function beginCombatInput(event) {
+    if (event.button !== 0 || state.location !== 'combat' || runtime.combat?.defeated) return;
+    const weapon = getMainHandGear();
+    if (weapon?.weaponType === 'bow') {
+      beginBowCharge(event, weapon);
+      return;
+    }
+    beginSwordSwipe(event);
+  }
+
+  function continueCombatInput(event) {
+    if (runtime.bowCharge) {
+      if (runtime.bowCharge.pointerId !== event.pointerId) return;
+      if ((event.buttons & 1) === 0) endCombatInput(event, true);
+      return;
+    }
+    continueSwordSwipe(event);
+  }
+
+  function endCombatInput(event, shouldFire) {
+    if (runtime.bowCharge) {
+      if (event?.pointerId != null && runtime.bowCharge.pointerId !== event.pointerId) return;
+      if (shouldFire) releaseBowShot(event);
+      else cancelBowCharge(event);
+      return;
+    }
+    endSwordSwipe(event);
+  }
+
+  function beginBowCharge(event, weapon) {
+    if (runtime.bowShotInFlight || runtime.bowCharge) return;
+    if (state.equipment.ammo !== 'arrows' || state.inventory.arrows <= 0) {
+      renderCombat();
+      return;
+    }
+
+    runtime.bowCharge = {
+      pointerId: event.pointerId,
+      startedAt: performance.now(),
+      charge: 0,
+      weaponKey: weapon.key,
+    };
+
+    try { ui.combatStage.setPointerCapture(event.pointerId); } catch (error) {}
+    ui.combatStage.classList.add('is-bow-charging');
+    updateBowCharge();
+    event.preventDefault();
+  }
+
+  function updateBowCharge() {
+    const charge = runtime.bowCharge;
+    if (!charge) return;
+    const weapon = GEAR_ITEMS[charge.weaponKey];
+    if (!weapon) {
+      cancelBowCharge();
+      return;
+    }
+
+    charge.charge = clamp((performance.now() - charge.startedAt) / (weapon.chargeTime || 1200), 0, 1);
+    const percent = Math.round(charge.charge * 100);
+    if (ui.combatBowChargeFill) ui.combatBowChargeFill.style.width = `${percent}%`;
+    if (ui.combatBowChargeLabel) ui.combatBowChargeLabel.textContent = `${percent}%`;
+
+    if (charge.charge < 1) {
+      runtime.bowChargeFrame = requestAnimationFrame(updateBowCharge);
+    } else {
+      runtime.bowChargeFrame = null;
+      ui.combatStage?.classList.add('is-bow-fully-drawn');
+    }
+  }
+
+  function cancelBowCharge(event) {
+    if (event?.pointerId != null && runtime.bowCharge?.pointerId !== event.pointerId) return;
+    if (runtime.bowChargeFrame) cancelAnimationFrame(runtime.bowChargeFrame);
+    runtime.bowChargeFrame = null;
+
+    if (event?.pointerId != null) {
+      try {
+        if (ui?.combatStage?.hasPointerCapture(event.pointerId)) ui.combatStage.releasePointerCapture(event.pointerId);
+      } catch (error) {}
+    }
+
+    runtime.bowCharge = null;
+    ui?.combatStage?.classList.remove('is-bow-charging', 'is-bow-fully-drawn');
+    if (ui?.combatBowChargeFill) ui.combatBowChargeFill.style.width = '0%';
+    if (ui?.combatBowChargeLabel) ui.combatBowChargeLabel.textContent = '0%';
+  }
+
+  function releaseBowShot(event) {
+    const charge = runtime.bowCharge;
+    if (!charge || runtime.bowShotInFlight || runtime.combat?.defeated) {
+      cancelBowCharge(event);
+      return;
+    }
+
+    const weapon = GEAR_ITEMS[charge.weaponKey];
+    const chargeAmount = clamp(charge.charge, 0, 1);
+    cancelBowCharge(event);
+
+    if (!weapon || state.equipment.ammo !== 'arrows' || state.inventory.arrows <= 0) {
+      renderCombat();
+      return;
+    }
+
+    const damage = Math.round((weapon.minDamage || 1) + ((weapon.maxDamage || weapon.minDamage || 1) - (weapon.minDamage || 1)) * chargeAmount);
+    state.inventory.arrows -= 1;
+    if (state.inventory.arrows <= 0) state.equipment.ammo = null;
+    runtime.bowShotInFlight = true;
+
+    renderInventory();
+    renderCombat();
+    createBowArrowProjectile(Math.max(1, damage), { key: charge.weaponKey, ...weapon });
+  }
+
+  function createBowArrowProjectile(damage, weapon) {
+    if (!ui.combatStage || !ui.combatEnemyTarget) {
+      runtime.bowShotInFlight = false;
+      return;
+    }
+
+    const stageRect = ui.combatStage.getBoundingClientRect();
+    const targetRect = ui.combatEnemyTarget.getBoundingClientRect();
+    const startX = Math.max(34, stageRect.width * .16);
+    const startY = Math.max(70, stageRect.height * .72);
+    const endX = (targetRect.left + targetRect.width * .5) - stageRect.left;
+    const endY = (targetRect.top + targetRect.height * .52) - stageRect.top;
+    const dx = endX - startX;
+    const dy = endY - startY;
+    const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+
+    const arrow = document.createElement('span');
+    arrow.className = 'combat-arrow-projectile';
+    arrow.textContent = '➶';
+    arrow.style.left = `${startX}px`;
+    arrow.style.top = `${startY}px`;
+    arrow.style.setProperty('--arrow-dx', `${dx}px`);
+    arrow.style.setProperty('--arrow-dy', `${dy}px`);
+    arrow.style.setProperty('--arrow-angle', `${angle}deg`);
+    ui.combatStage.appendChild(arrow);
+
+    arrow.addEventListener('animationend', () => {
+      arrow.remove();
+      runtime.bowShotInFlight = false;
+      strikeCombatEnemyWithBow(damage, weapon);
+    }, { once: true });
+  }
+
+  function strikeCombatEnemyWithBow(damage, weapon) {
+    const combat = runtime.combat;
+    if (!combat || combat.defeated || weapon?.weaponType !== 'bow') return;
+
+    combat.health = Math.max(0, combat.health - Math.max(1, damage || 1));
+    createBowImpactEffect();
+
+    ui.combatEnemyTarget?.classList.remove('is-bow-hit');
+    void ui.combatEnemyTarget?.offsetWidth;
+    ui.combatEnemyTarget?.classList.add('is-bow-hit');
+    window.setTimeout(() => ui.combatEnemyTarget?.classList.remove('is-bow-hit'), 190);
+
+    renderCombat();
+    if (combat.health <= 0) defeatCombatEnemy(weapon);
+  }
+
+  function createBowImpactEffect() {
+    if (!ui.combatEnemyTarget) return;
+    const impact = document.createElement('span');
+    impact.className = 'combat-arrow-impact';
+    impact.textContent = '➶';
+    impact.setAttribute('aria-hidden', 'true');
+    ui.combatEnemyTarget.appendChild(impact);
+    impact.addEventListener('animationend', () => impact.remove(), { once: true });
+  }
+
+  function beginSwordSwipe(event) {
+    if (event.button !== 0 || state.location !== 'combat' || runtime.combat?.defeated) return;
+    const weapon = getMainHandGear();
+    if (weapon?.weaponType !== 'sword') return;
+
+    runtime.swordGesture = {
+      pointerId: event.pointerId,
+      lastX: event.clientX,
+      lastY: event.clientY,
+      hitLocked: false,
+      lastHitAt: 0,
+    };
+
+    try { ui.combatStage.setPointerCapture(event.pointerId); } catch (error) {}
+    ui.combatStage.classList.add('is-swiping');
+    event.preventDefault();
+  }
+
+  function continueSwordSwipe(event) {
+    const swipe = runtime.swordGesture;
+    if (!swipe || swipe.pointerId !== event.pointerId || state.location !== 'combat') return;
+    if ((event.buttons & 1) === 0) {
+      endSwordSwipe(event);
+      return;
+    }
+
+    const x1 = swipe.lastX;
+    const y1 = swipe.lastY;
+    const x2 = event.clientX;
+    const y2 = event.clientY;
+    const distance = Math.hypot(x2 - x1, y2 - y1);
+    const targetRect = ui.combatEnemyTarget?.getBoundingClientRect();
+
+    if (targetRect && distance >= 8) {
+      const crossesEnemy = segmentIntersectsRect(x1, y1, x2, y2, targetRect);
+      const currentInside = pointInsideRect(x2, y2, targetRect);
+      const now = performance.now();
+
+      if (crossesEnemy && !swipe.hitLocked && now - swipe.lastHitAt >= 140) {
+        strikeCombatEnemyWithSword(x1, y1, x2, y2);
+        swipe.hitLocked = true;
+        swipe.lastHitAt = now;
+      }
+
+      if (!currentInside && !crossesEnemy) swipe.hitLocked = false;
+    }
+
+    swipe.lastX = x2;
+    swipe.lastY = y2;
+    event.preventDefault();
+  }
+
+  function endSwordSwipe(event) {
+    if (!runtime.swordGesture) return;
+    if (event?.pointerId != null && runtime.swordGesture.pointerId !== event.pointerId) return;
+
+    if (event?.pointerId != null) {
+      try {
+        if (ui.combatStage?.hasPointerCapture(event.pointerId)) ui.combatStage.releasePointerCapture(event.pointerId);
+      } catch (error) {}
+    }
+
+    runtime.swordGesture = null;
+    cancelBowCharge();
+    runtime.bowShotInFlight = false;
+    ui.combatStage?.classList.remove('is-swiping', 'is-bow-charging', 'is-bow-fully-drawn');
+  }
+
+  function strikeCombatEnemyWithSword(x1, y1, x2, y2) {
+    const combat = runtime.combat;
+    const weapon = getMainHandGear();
+    if (!combat || combat.defeated || weapon?.weaponType !== 'sword') return;
+
+    combat.health = Math.max(0, combat.health - Math.max(1, weapon.damage || 1));
+    createSwordSlashEffect(x1, y1, x2, y2);
+
+    ui.combatEnemyTarget?.classList.remove('is-sword-hit');
+    void ui.combatEnemyTarget?.offsetWidth;
+    ui.combatEnemyTarget?.classList.add('is-sword-hit');
+    window.setTimeout(() => ui.combatEnemyTarget?.classList.remove('is-sword-hit'), 180);
+
+    renderCombat();
+    if (combat.health <= 0) defeatCombatEnemy(weapon);
+  }
+
+  function createSwordSlashEffect(x1, y1, x2, y2) {
+    if (!ui.combatStage) return;
+    const stageRect = ui.combatStage.getBoundingClientRect();
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const length = clamp(Math.hypot(dx, dy) * 1.35, 68, 210);
+    const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+    const slash = document.createElement('span');
+    slash.className = 'sword-slash-effect';
+    slash.style.left = `${((x1 + x2) / 2) - stageRect.left}px`;
+    slash.style.top = `${((y1 + y2) / 2) - stageRect.top}px`;
+    slash.style.width = `${length}px`;
+    slash.style.transform = `translate(-50%,-50%) rotate(${angle}deg)`;
+    ui.combatStage.appendChild(slash);
+    slash.addEventListener('animationend', () => slash.remove(), { once: true });
+  }
+
+  function defeatCombatEnemy(weapon) {
+    const combat = runtime.combat;
+    if (!combat || combat.defeated) return;
+
+    combat.defeated = true;
+    combat.health = 0;
+    runtime.swordGesture = null;
+    ui.combatStage?.classList.remove('is-swiping');
+    ui.combatEnemyTarget?.classList.add('is-defeated');
+
+    const loot = rollSlimeLoot();
+    combat.loot = loot;
+    applyCombatLoot(loot);
+
+    if (weapon?.weaponType === 'sword') {
+      gainClassXp('swordsman', SLIME_SWORDSMAN_XP);
+    } else if (weapon?.weaponType === 'bow') {
+      gainClassXp('ranger', SLIME_RANGER_XP);
+    }
+
+    renderCombat();
+  }
+
+  function rollSlimeLoot() {
+    const loot = [
+      { kind: 'coin', key: 'copper', name: 'Copper', icon: '¢', amount: randomInt(4, 12) },
+      { kind: 'item', key: 'greenGoop', name: 'Green Goop', icon: '<span class="green-goop-icon"></span>', amount: randomInt(2, 6) },
+    ];
+
+    const oreRoll = Math.random();
+    if (oreRoll < .05) {
+      loot.push({ kind: 'item', key: 'ironOre', name: 'Iron Ore', icon: '<span class="mini-ore iron"></span>', amount: 1 });
+    } else if (oreRoll < .23) {
+      loot.push({ kind: 'item', key: 'coal', name: 'Coal', icon: '<span class="mini-ore coal"></span>', amount: 1 });
+    }
+
+    return loot;
+  }
+
+  function applyCombatLoot(loot) {
+    loot.forEach((drop) => {
+      if (drop.kind === 'coin') {
+        state.wallet.copper += drop.amount;
+      } else {
+        state.inventory[drop.key] = (state.inventory[drop.key] || 0) + drop.amount;
+      }
+    });
+
+    renderWallet();
+    renderInventory();
+  }
+
+  function pointInsideRect(x, y, rect) {
+    return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+  }
+
+  function segmentIntersectsRect(x1, y1, x2, y2, rect) {
+    if (pointInsideRect(x1, y1, rect) || pointInsideRect(x2, y2, rect)) return true;
+
+    return segmentsIntersect(x1, y1, x2, y2, rect.left, rect.top, rect.right, rect.top) ||
+      segmentsIntersect(x1, y1, x2, y2, rect.right, rect.top, rect.right, rect.bottom) ||
+      segmentsIntersect(x1, y1, x2, y2, rect.right, rect.bottom, rect.left, rect.bottom) ||
+      segmentsIntersect(x1, y1, x2, y2, rect.left, rect.bottom, rect.left, rect.top);
+  }
+
+  function segmentsIntersect(ax, ay, bx, by, cx, cy, dx, dy) {
+    const abx = bx - ax;
+    const aby = by - ay;
+    const cdx = dx - cx;
+    const cdy = dy - cy;
+    const denominator = (abx * cdy) - (aby * cdx);
+    if (Math.abs(denominator) < 0.0001) return false;
+
+    const acx = cx - ax;
+    const acy = cy - ay;
+    const t = ((acx * cdy) - (acy * cdx)) / denominator;
+    const u = ((acx * aby) - (acy * abx)) / denominator;
+    return t >= 0 && t <= 1 && u >= 0 && u <= 1;
   }
 
   function renderHUD() {
@@ -1508,6 +2015,7 @@
       { key: 'smallHealthPotion', name: 'Small Health Potion', icon: '<span aria-hidden="true">🧪</span>' },
       { key: 'cookies', name: 'Cookie', icon: '<span aria-hidden="true">🍪</span>' },
       { key: 'arrows', name: 'Arrows', icon: '<span aria-hidden="true">➶</span>' },
+      { key: 'greenGoop', name: 'Green Goop', icon: '<span class="green-goop-icon" aria-hidden="true"></span>' },
       { key: 'redMushroom', name: 'Red Mushroom', icon: '<span class="mushroom-icon red" aria-hidden="true">🍄</span>' },
       { key: 'brownMushroom', name: 'Brown Mushroom', icon: '<span class="mushroom-icon brown" aria-hidden="true">🍄</span>' },
       { key: 'whiteMushroom', name: 'White Mushroom', icon: '<span class="mushroom-icon white" aria-hidden="true">🍄</span>' },
@@ -1784,6 +2292,26 @@
 
   function toggleEquipmentSlot(slot) {
     if (!(slot in state.equipment)) return;
+
+    if (slot === 'ammo') {
+      if (state.equipment.ammo === 'arrows') {
+        state.equipment.ammo = null;
+        renderInventory();
+        showToast('Ammo unloaded', 'Arrows removed from the Ammo slot.', '➶');
+        return;
+      }
+
+      if (state.inventory.arrows <= 0) {
+        showToast('No ammunition', 'You do not have any Arrows to load.', '➶');
+        return;
+      }
+
+      state.equipment.ammo = 'arrows';
+      renderInventory();
+      showToast('Ammo loaded', `${state.inventory.arrows} Arrows loaded.`, '➶');
+      return;
+    }
+
     const equippedKey = state.equipment[slot];
     if (equippedKey) {
       const gear = GEAR_ITEMS[equippedKey];
@@ -1808,6 +2336,21 @@
   function renderEquipment() {
     document.querySelectorAll('[data-equipment-slot]').forEach((slotNode) => {
       const slot = slotNode.dataset.equipmentSlot;
+
+      if (slot === 'ammo') {
+        const arrowsLoaded = state.equipment.ammo === 'arrows' && state.inventory.arrows > 0;
+        slotNode.classList.toggle('is-equipped', arrowsLoaded);
+        slotNode.setAttribute('aria-label', arrowsLoaded
+          ? `Ammo, ${state.inventory.arrows} Arrows loaded. Click to unload.`
+          : 'Ammo, empty. Click to load Arrows.');
+        const stateNode = slotNode.querySelector('.equipment-slot-state');
+        if (stateNode) {
+          stateNode.textContent = arrowsLoaded ? `Arrows ×${state.inventory.arrows}` : 'Empty';
+          stateNode.title = arrowsLoaded ? `${state.inventory.arrows} Arrows ready for bows.` : '';
+        }
+        return;
+      }
+
       const equippedKey = state.equipment[slot];
       const gear = equippedKey ? GEAR_ITEMS[equippedKey] : null;
       slotNode.classList.toggle('is-equipped', Boolean(gear));
@@ -1917,6 +2460,14 @@
     addXp(state.overall, overallXpAward);
 
     // XP feedback stays in the HUD only; harvesting never creates XP pop-ups.
+    renderHUD();
+  }
+
+  function gainClassXp(className, amount) {
+    const classData = state.classes[className];
+    if (!classData || amount <= 0) return;
+    addXp(classData, amount);
+    // Class XP is displayed quietly in the Class XP menu.
     renderHUD();
   }
 
